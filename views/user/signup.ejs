@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #fdf4e3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .signup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .signup-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 40px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 370px;
+        }
+
+        .signup-box h2 {
+            margin-bottom: 20px;
+            font-size: 30px;
+            color: #333;
+        }
+
+        .error {
+            font-size: 13px;
+            color: red;
+            margin-top: 5px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .name-fields {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 13px;
+            font-size: 14px;
+            background-color: #f8f8f8;
+            margin-top: 15px;
+        }
+
+        input:focus {
+            border-color: #a0a0a0;
+            outline: none;
+        }
+
+        button {
+            background-color: #5c4238;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #422e24;
+        }
+
+        p {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        p a {
+            color: #5c4238;
+            text-decoration: none;
+        }
+
+        p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="signup-container">
+        <div class="signup-box">
+            <h2 class="fw-bold">Sign Up</h2>
+            <form action="/signup" method="post" id="signupForm">
+                <div class="name-fields">
+                    <input type="text" name="first_name" placeholder="First name" required id="firstName">
+                    <input type="text" name="last_name" placeholder="Last name" required id="lastName">
+                </div>
+
+                <% if (errors) { %>
+                    <% const error = errors.find(err => err.path === 'first_name'); %>
+                    <% if (error) { %>
+                        <small class="error" id="error1">
+                            <%= error.msg %>
+                        </small>
+                    <% } %>
+                <% } %>
+
+                <input type="email" name="email" placeholder="Enter your email" required id="email">
+
+                <% if (errors) { %>
+                    <% const error = errors.find(err => err.path === 'email'); %>
+                    <% if (error) { %>
+                        <small class="error" id="error3">
+                            <%= error.msg %>
+                        </small>
+                    <% } %>
+                <% } %>
+
+                <input type="text" name="phone_no" placeholder="Enter your mobile" required id="phone">
+
+                <% if (errors) { %>
+                    <% const error = errors.find(err => err.path === 'phone_no'); %>
+                    <% if (error) { %>
+                        <small class="error" id="error4">
+                            <%= error.msg %>
+                        </small>
+                    <% } %>
+                <% } %>
+
+                <input type="password" name="password" placeholder="Enter password" required id="password">
+
+                <% if (errors) { %>
+                    <% const error = errors.find(err => err.path === 'password'); %>
+                    <% if (error) { %>
+                        <small class="error" id="error5">
+                            <%= error.msg %>
+                        </small>
+                    <% } %>
+                <% } %>
+
+                <input type="password" name="confirmPass" placeholder="Confirm password" required id="confirmPass">
+
+                <% if (errors) { %>
+                    <% const error = errors.find(err => err.path === 'confirmPass'); %>
+                    <% if (error) { %>
+                        <small class="error" id="error6">
+                            <%= error.msg %>
+                        </small>
+                    <% } %>
+                <% } %>
+
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Don't have an account? <a href="#">Sign in</a></p>
+        </div>
+    </div>
+
+    <!-- <script>
+        const form = document.getElementById('signupForm')
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent default submission initially
+
+            // Clear previous error messages
+            document.querySelectorAll('.error').forEach(item => item.textContent = '');
+
+            // Input values
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
+            const confirmPass = document.getElementById("confirmPass").value;
+
+            let isValid = true;
+
+            // Validate first name
+            if (firstName.length < 2) {
+                isValid = false;
+                document.getElementById('error1').textContent = "First name must be at least 2 characters";
+            } else if (/\d/.test(firstName)) {
+                isValid = false;
+                document.getElementById('error1').textContent = "Name must not contain numbers";
+            } else {
+                document.getElementById('error1').textContent = ""; // Clear the error if valid
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                isValid = false;
+                document.getElementById('error3').textContent = "Please enter a valid email";
+            }
+
+            // Mobile number validation
+            const mobileRegex = /^[0-9]{10}$/;
+            if (!mobileRegex.test(phone)) {
+                isValid = false;
+                document.getElementById('error4').textContent = 'Mobile number must be 10 digits.';
+            }
+
+            // Password validation
+            if (password.length < 6) {
+                isValid = false;
+                document.getElementById('error5').textContent = "Password must be at least 6 characters";
+            }
+
+            // Confirm password validation
+            if (password !== confirmPass) {
+                isValid = false;
+                document.getElementById('error6').textContent = "Password doesn't match";
+            }
+
+            // If all validations pass, submit the form
+            if (isValid) {
+                alert('Sign up successful!');
+                form.submit(); // Proceed with submission
+            }
+        });
+    </script> -->
+</body>
+
+</html>

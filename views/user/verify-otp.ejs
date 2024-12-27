@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+
+    <style>
+        /* General reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f6f1e4; /* Soft background color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* OTP Container Styling */
+.otp-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.otp-box {
+    background-color: transparent;
+    border-radius: 10px;
+    padding: 30px;
+    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
+    text-align: center;
+    width: 400px;
+}
+
+h2 {
+    font-size: 24px;
+    color: #3C2712; /* Darker shade of brown */
+    margin-bottom: 10px;
+}
+
+.info-text {
+    font-size: 14px;
+    color: #3C2712; /* Soft color for instructions */
+    margin-bottom: 20px;
+}
+
+/* OTP Input Styling */
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #ffe8ad;
+    border-radius: 13px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Button Styling */
+.reset-btn {
+    background-color: #3C2712; /* Darker brown */
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius:13px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.reset-btn:hover {
+    background-color: #8a6e53; /* Lighter brown */
+}
+
+/* Links Styling */
+.links {
+    margin-top: 20px;
+}
+
+.resend-link, .back-to-login-link {
+    font-size: 14px;
+    color: #8E4700;
+    text-decoration: none;
+}
+
+.resend-link:hover, .back-to-login-link:hover {
+    text-decoration: underline;
+}
+
+    </style>
+
+</head>
+<body>
+    <div class="otp-container">
+        <div class="otp-box">
+            <h2>Enter the OTP</h2>
+            <p class="info-text">The OTP was sent to your registered email, please check!</p>
+            
+            <form action="/verify-otp" method="POST">
+                <input type="text" name="otp" placeholder="Enter the OTP" required>
+                <small> </small>
+                <button type="submit" class="reset-btn">Submit</button>
+            </form>
+
+            <div class="links">
+                <a href="/resend-otp" class="resend-link">Resend OTP</a> | 
+                <a href="/login" class="back-to-login-link">Back to login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

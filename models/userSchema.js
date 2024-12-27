@@ -13,7 +13,7 @@ const userSchema = new Schema(
         },
         date_of_birth: {
             type: Date,
-            required: true
+            required: false
     
         },
         phone_no: {
@@ -32,9 +32,14 @@ const userSchema = new Schema(
             type: String,
             required: true
         },
+        is_blocked: {
+            type: Boolean,
+            default: false
+        },
         google_id: {
             type: String,
             unique: true,
+            sparse: true,
         },
         is_admin: {
             type: Boolean,
