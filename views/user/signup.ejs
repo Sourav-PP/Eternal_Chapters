@@ -120,7 +120,7 @@
                     <input type="text" name="last_name" placeholder="Last name" required id="lastName">
                 </div>
 
-                <% if (errors) { %>
+                <% if (typeof errors !== 'undefined' && errors) { %>
                     <% const error = errors.find(err => err.path === 'first_name'); %>
                     <% if (error) { %>
                         <small class="error" id="error1">
@@ -131,7 +131,7 @@
 
                 <input type="email" name="email" placeholder="Enter your email" required id="email">
 
-                <% if (errors) { %>
+                <% if (typeof errors !== 'undefined' && errors) { %>
                     <% const error = errors.find(err => err.path === 'email'); %>
                     <% if (error) { %>
                         <small class="error" id="error3">
@@ -142,7 +142,7 @@
 
                 <input type="text" name="phone_no" placeholder="Enter your mobile" required id="phone">
 
-                <% if (errors) { %>
+                <% if (typeof errors !== 'undefined' && errors) { %>
                     <% const error = errors.find(err => err.path === 'phone_no'); %>
                     <% if (error) { %>
                         <small class="error" id="error4">
@@ -153,7 +153,7 @@
 
                 <input type="password" name="password" placeholder="Enter password" required id="password">
 
-                <% if (errors) { %>
+                <% if (typeof errors !== 'undefined' && errors) { %>
                     <% const error = errors.find(err => err.path === 'password'); %>
                     <% if (error) { %>
                         <small class="error" id="error5">
@@ -164,7 +164,7 @@
 
                 <input type="password" name="confirmPass" placeholder="Confirm password" required id="confirmPass">
 
-                <% if (errors) { %>
+                <% if (typeof errors !== 'undefined' && errors) { %>
                     <% const error = errors.find(err => err.path === 'confirmPass'); %>
                     <% if (error) { %>
                         <small class="error" id="error6">
@@ -178,70 +178,6 @@
             <p>Don't have an account? <a href="#">Sign in</a></p>
         </div>
     </div>
-
-    <!-- <script>
-        const form = document.getElementById('signupForm')
-
-        form.addEventListener('submit', function (e) {
-            e.preventDefault(); // Prevent default submission initially
-
-            // Clear previous error messages
-            document.querySelectorAll('.error').forEach(item => item.textContent = '');
-
-            // Input values
-            const firstName = document.getElementById("firstName").value;
-            const lastName = document.getElementById("lastName").value;
-            const email = document.getElementById("email").value;
-            const phone = document.getElementById("phone").value;
-            const password = document.getElementById("password").value;
-            const confirmPass = document.getElementById("confirmPass").value;
-
-            let isValid = true;
-
-            // Validate first name
-            if (firstName.length < 2) {
-                isValid = false;
-                document.getElementById('error1').textContent = "First name must be at least 2 characters";
-            } else if (/\d/.test(firstName)) {
-                isValid = false;
-                document.getElementById('error1').textContent = "Name must not contain numbers";
-            } else {
-                document.getElementById('error1').textContent = ""; // Clear the error if valid
-            }
-
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                isValid = false;
-                document.getElementById('error3').textContent = "Please enter a valid email";
-            }
-
-            // Mobile number validation
-            const mobileRegex = /^[0-9]{10}$/;
-            if (!mobileRegex.test(phone)) {
-                isValid = false;
-                document.getElementById('error4').textContent = 'Mobile number must be 10 digits.';
-            }
-
-            // Password validation
-            if (password.length < 6) {
-                isValid = false;
-                document.getElementById('error5').textContent = "Password must be at least 6 characters";
-            }
-
-            // Confirm password validation
-            if (password !== confirmPass) {
-                isValid = false;
-                document.getElementById('error6').textContent = "Password doesn't match";
-            }
-
-            // If all validations pass, submit the form
-            if (isValid) {
-                alert('Sign up successful!');
-                form.submit(); // Proceed with submission
-            }
-        });
-    </script> -->
 </body>
 
 </html>

@@ -1,4 +1,5 @@
 const User = require('../../models/userSchema')
+const Product = require('../../models/productSchema')
 const nodemailer = require('nodemailer')
 const env = require('dotenv').config()
 const bcrypt = require('bcrypt')
@@ -15,24 +16,6 @@ const page_404 = async (req, res) => {
         res.status(500).send('An error occurred while displaying the 404 page.');
     }
 };
-
-const loadSignup = async (req, res) => {
-    try {
-        return res.render('signup', { errors: [] })
-    } catch (error) {
-        console.log("user signup page error", error.message)
-        res.status(500).send('Server error')
-    }
-}
-
-const loadHomepage = async (req, res) => {
-    try {
-        return res.render('home')
-    } catch (error) {
-        console.log('user home page error', error.message);
-        res.status(500).send('Server error')
-    }
-}
 
 //generatin a 6 digit otp
 function gererateOtp() {
@@ -69,9 +52,41 @@ async function sendVerficationEmail(email, otp) {
     }
 }
 
+//hashing password
+const securePassword = async (password) => {
+    try {
+        const passwordHash = await bcrypt.hash(password,10)
+        return passwordHash
+    } catch (error) {
+        console.error("Error hashing password", error)
+    }
+}
+
+//load signup page
+const loadSignup = async (req, res) => {
+    try {
+        return res.render('signup', { message: "", errors: [] })
+    } catch (error) {
+        console.log("user signup page error", error.message)
+        res.status(500).send('Server error')
+    }
+}
+
 //signup logic
 const signup = async (req, res) => {
     try {
+        console.log("signup body:",req.body)
+        const errors = validationResult(req);  // Validation errors
+
+        console.log("helloiii:",errors.array())
+
+        if (!errors.isEmpty()) {
+            return res.render('signup', {
+                errors: errors.array(),  // Pass the errors to the view
+                data: req.body  // Retain form data
+            });
+        }
+
         const { first_name, last_name, email, phone_no, password, confirmPass } = req.body
         if (password !== confirmPass) {
             return res.render('signup', { message: "Password do not match" })
@@ -101,16 +116,6 @@ const signup = async (req, res) => {
         res.redirect('/page_404')
     }
 
-}
-
-//hashing password
-const securePassword = async (password) => {
-    try {
-        const passwordHash = await bcrypt.hash(password,10)
-        return passwordHash
-    } catch (error) {
-        console.error("Error hashing password", error)
-    }
 }
 
 //verifying the otp
@@ -151,7 +156,6 @@ const verifyOtp = async(req,res) => {
     }
 }
 
-
 //loading the login page
 const loadLogin = async(req,res) => {
     try {
@@ -160,6 +164,70 @@ const loadLogin = async(req,res) => {
         console.error("error loading login page",error)
     }
 }
+
+//Login logic
+const login = async (req, res) => {
+    try {
+        console.log("Login endpoint hit");
+
+        const { email, password } = req.body;
+        console.log("Request body:", req.body);
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        console.log("User retrieved:", user);
+
+        if (!user) {
+            console.log("User not found");
+            return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
+        }
+
+        // Validate password
+        console.log("Validating password...");
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log("Password valid:", isPasswordValid);
+
+        if (!isPasswordValid) {
+            console.log("Invalid password");
+            return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
+        }
+
+        req.session.user = user._id;
+        console.log("Session User ID set:", req.session.user);
+
+        console.log("Halloooo");
+        res.redirect('/');
+    } catch (error) {
+        console.error("Error during login:", error);
+        res.redirect('/page_404');
+    }
+};
+
+
+//load homepage
+const loadHomepage = async (req, res) => {
+    try {
+        if(!req.session.user){
+            return res.redirect('/login')
+        }
+
+        const products = await Product.find({})
+        console.log("products:::",products)
+        res.render('home',{products: products})
+    } catch (error) {
+        console.log('user load homepage error', error.message);
+        res.status(500).send('Server error')
+    }
+}
+
+//logout
+const logout = async(req,res) => {
+    req.session.destroy(() => {
+        res.redirect('/login')
+    })
+}
+
+
 
 
 
@@ -172,5 +240,6 @@ module.exports = {
     page_404,
     signup,
     verifyOtp,
-    loadLogin
+    loadLogin,
+    login
 }

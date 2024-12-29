@@ -26,20 +26,15 @@ const signupValidationRules = [
         .matches(/\d/).withMessage("Password must contain atleast one number")
         .matches(/[A-Za-z]/).withMessage("Password must contain atleast one letter")
         .matches(/[@$!%*-?&#]/).withMessage("Password must contain atleast one special character"),
-
-        (req,res,next) => {
-            const errors = validationResult(req)
-            if(!errors.isEmpty()) {
-            
-                // send validation errors as a respose
-                return res.status(400).render('signup', {
-                    errors: errors.array(),
-                    data: req.body
-                })
-            }
-            next()
+    body('confirmPass')
+    .trim()
+    .notEmpty().withMessage("Please confirm the password")
+    .custom((value, {req}) => {
+        if(value != req.body.password) {
+            throw new Error("Passwored do not match")
         }
-    
+        return true
+    })
 ]
 
 module.exports = signupValidationRules

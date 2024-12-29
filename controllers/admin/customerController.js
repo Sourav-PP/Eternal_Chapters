@@ -17,7 +17,7 @@ const customerInfo = async (req, res) => {
         res.render('customers', { users: userData })
 
     } catch (error) {
-        console.log()
+        console.log("error loading the customer Info")
     }
 }
 

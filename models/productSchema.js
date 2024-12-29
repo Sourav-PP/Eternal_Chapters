@@ -21,7 +21,7 @@ const productSchema = new Schema({
     },
     available_quantity: {
         type: Number,
-        default: true,
+        default: 0,
     },
     description: {
         type: String,
@@ -29,7 +29,7 @@ const productSchema = new Schema({
     },
     publishing_date: {
         type: Date,
-        required: true,
+        required: false,
     },
     publisher: {
         type: String,
@@ -49,7 +49,7 @@ const productSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Sold out", "Out of stock", "Unavailable"],
+        enum: ["Available", "Out of stock", "Unavailable"],
         required: true,
     },
     created_at: {

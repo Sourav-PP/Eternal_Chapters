@@ -203,40 +203,45 @@
       margin-top: 20px;
     }
 
-/* add user modal */
-.modal-content {
-  border-radius: 15px;
-  padding: 20px;
-  background-color: #fdfcf8; /* Light beige background */
-}
+    /* add user modal */
+    .modal-content {
+      border-radius: 15px;
+      padding: 20px;
+      background-color: #fdfcf8;
+      /* Light beige background */
+    }
 
-.input-custom {
-  border-radius: 30px;
-  padding: 10px 15px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-}
+    a {
+      color: #200b0b;
+    }
 
-.input-custom:focus {
-  outline: none;
-  border-color: #82c91e; /* Matching green color */
-  box-shadow: 0 0 5px #82c91e;
-}
+    .input-custom {
+      border-radius: 30px;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+    }
 
-.btn-success {
-  background-color: #82c91e; /* Custom green color */
-  border: none;
-  border-radius: 30px;
-  padding: 10px 15px;
-  font-size: 16px;
-}
+    .input-custom:focus {
+      outline: none;
+      border-color: #82c91e;
+      /* Matching green color */
+      box-shadow: 0 0 5px #82c91e;
+    }
 
-.btn-success:hover {
-  background-color: #72b416; /* Slightly darker green */
-}
+    .btn-success {
+      background-color: #82c91e;
+      /* Custom green color */
+      border: none;
+      border-radius: 30px;
+      padding: 10px 15px;
+      font-size: 16px;
+    }
 
-
-    
+    .btn-success:hover {
+      background-color: #72b416;
+      /* Slightly darker green */
+    }
   </style>
 </head>
 
@@ -245,8 +250,8 @@
     <aside class="sidebar">
       <h2>Eternal Chapter</h2>
       <ul>
-        <li class="active">Dashboard</li>
-        <li>Books</li>
+        <li class="active"><a href="/admin" class="text-decoration-none">Dashboard</a></li>
+        <li><a class="text-decoration-none" href="/admin/products">Books</a></li>
         <li>Orders</li>
         <li>Customers</li>
         <li>Reviews</li>
@@ -256,8 +261,8 @@
       <ul>
         <li>Contact us</li>
         <li>Coupon</li>
-        <li>Banner management</li>
-        <li>Category</li>
+        <li><a class="text-decoration-none" href="/admin/banners">Banner Management</a></li>
+        <li><a class="text-decoration-none" href="/admin/categories">Category</a></li>
         <li>Notification</li>
       </ul>
     </aside>
@@ -266,10 +271,10 @@
       <div class="top-bar">
         <a href="/admin/logout" class="logout-btn text-decoration-none">Log out</a>
         <div class="search-bar">
-          <form action="/admin/users">
-            <input type="text" placeholder="Search">
-            <i class="fas fa-search"></i>
-          </form>
+          <!-- <form action="/admin/users"> -->
+          <input type="text" id="search" onkeyup="search()" placeholder="Search by name">
+          <i class="fas fa-search"></i>
+          <!-- </form> -->
         </div>
       </div>
 
@@ -289,7 +294,7 @@
           <tbody>
             <% users.forEach((user,index)=> { %>
 
-              <tr>
+              <tr id="searchData">
                 <td>
                   <%= index + 1 %>
                 </td>
@@ -306,7 +311,8 @@
                     <%=user.is_blocked ? '' : 'checked' %> ></td>
                 <td>
                   <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-                  <a href="/admin/deleteUser/<%= user._id %>" class="btn btn-danger btn-sm delete-btn" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                  <a href="/admin/deleteUser/<%= user._id %>" class="btn btn-danger btn-sm delete-btn"
+                    onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                 </td>
               </tr>
               <% }); %>
@@ -320,36 +326,37 @@
   </div>
 
   <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form action="/admin/add-user" method="POST">
-          <div class="form-group mb-3">
-            <input type="text" class="form-control input-custom" name="first_name" placeholder="First name" required>
-          </div>
-          <div class="form-group mb-3">
-            <input type="text" class="form-control input-custom" name="last_name" placeholder="Last name" required>
-          </div>
-          <div class="form-group mb-3">
-            <input type="email" class="form-control input-custom" name="email" placeholder="Enter email" required>
-          </div>
-          <div class="form-group mb-3">
-            <input type="text" class="form-control input-custom" name="phone_no" placeholder="Enter mobile" required>
-          </div>
-          <div class="form-group mb-3">
-            <input type="password" class="form-control input-custom" name="password" placeholder="Enter password" required>
-          </div>
-          <button type="submit" class="btn btn-success w-100">Add</button>
-        </form>
+  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form action="/admin/add-user" method="POST">
+            <div class="form-group mb-3">
+              <input type="text" class="form-control input-custom" name="first_name" placeholder="First name" required>
+            </div>
+            <div class="form-group mb-3">
+              <input type="text" class="form-control input-custom" name="last_name" placeholder="Last name" required>
+            </div>
+            <div class="form-group mb-3">
+              <input type="email" class="form-control input-custom" name="email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group mb-3">
+              <input type="text" class="form-control input-custom" name="phone_no" placeholder="Enter mobile" required>
+            </div>
+            <div class="form-group mb-3">
+              <input type="password" class="form-control input-custom" name="password" placeholder="Enter password"
+                required>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Add</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
 
@@ -414,6 +421,20 @@
       });
 
     })
+
+    function search() {
+      const input = document.getElementById("search").value.toLowerCase().trim(); // Get search input and convert to lowercase
+      const rows = document.querySelectorAll("#searchData"); // Get all rows to search
+
+      rows.forEach((row) => {
+        const user = row.children[1].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
+        if (user.includes(input)) {
+          row.style.display = ""; // Show row if it matches the search
+        } else {
+          row.style.display = "none"; // Hide row if it doesn't match
+        }
+      });
+    }
   </script>
 </body>
 
