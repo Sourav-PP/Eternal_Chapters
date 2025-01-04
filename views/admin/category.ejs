@@ -154,7 +154,7 @@
         }
 
         .edit-btn {
-            background-color: #4caf50;
+            background-color: #0085b6;
             color: white;
             padding: 5px 10px;
             border: none;
@@ -262,13 +262,27 @@
             /* Custom green color */
             border: none;
             border-radius: 30px;
-            padding: 10px 15px;
+            padding: 5px 15px;
             font-size: 16px;
         }
 
         .btn-success:hover {
             background-color: #72b416;
             /* Slightly darker green */
+        }
+        .delete-btn{
+            border: transparent;
+            border-radius: 20px;
+            
+        }
+
+        .my-swal-popup {
+            background-color: #ffffff; /* Light red background */
+            border-radius: 15px;        /* Rounded corners */
+            border: 2px solid #f5c6cb; /* Border matching the background */
+            padding: 25px 35px;         /* More padding inside */
+            width: 400px;               /* Set width */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
         }
     </style>
 </head>
@@ -299,10 +313,8 @@
             <div class="top-bar">
                 <a href="/admin/logout" class="logout-btn text-decoration-none">Log out</a>
                 <div class="search-bar">
-                    <!-- <form action="/admin/users"> -->
                     <input type="text" id="search" onkeyup="search()" placeholder="Search by category name">
                     <i class="fas fa-search"></i>
-                    <!-- </form> -->
                 </div>
             </div>
 
@@ -313,65 +325,62 @@
                         <tr>
                             <th>S.No</th>
                             <th>Name</th>
-                            <th></th>
-                            <th></th>
-
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% category.forEach((cat,index)=>{ %>
-
+                        <% category.forEach((cat, index) => { %>
                             <tr id="searchData">
-                                <td>
-                                    <%= index + 1 %>
-                                </td>
-                                <td>
-                                    <%= cat.name %>
-                                </td>
-
-                                <!-- <td class="bt-td">
-                                    
-                                </td> -->
+                                <td><%= index + 1 %></td>
+                                <td><%= cat.name %></td>
                                 <td class="bt-td">
-                                    <button class="edit-btn rounded-pill me-3 ps-3 pe-3" onclick="editCategory('<%= cat.name %>', '<%= cat.description %>', '<%= cat._id %>')">Edit</button>
-
-                                    <% if(cat.is_deleted){ %>
-
+                                    <button class="edit-btn rounded-pill me-3 ps-3 pe-3" onclick="editCategory('<%= cat.name %>', '<%- cat.description %>', '<%= cat._id %>')">Edit</button>
+                                    <% if (cat.is_deleted) { %>
                                     <form action="/admin/restoreCategory/<%= cat._id %>" method="POST" style="display:inline;">
-                                        <button type="submit" class="btn btn-success p-1 soft-bt">Restore</button>
+                                        <button type="submit" class="btn btn-danger rounded-pill p-1 soft-bt">Unblock</button>
                                     </form>
-                                    <% }else{ %>
-                                        <form action="/admin/soft-delete/<%= cat._id %>" method="POST" style="display:inline;">
-                                            <button type="submit" class="btn btn-danger rounded-pill soft-bt">Delete</button>
-                                        </form>
+                                    <% } else { %>
+                                    <form action="/admin/soft-delete/<%= cat._id %>" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-success soft-bt bt-block">Block</button>
+                                    </form>
                                     <% } %>
+                                    <form action="/admin/deleteCategory/<%= cat._id %>" method="POST" style="display:inline;">
+                                        <button type="submit" class="delete-btn ms-3"><i class="bi bi-archive-fill"></i></button>
+                                    </form>
                                 </td>
                             </tr>
-
-                            <% }) %>
+                        <% }) %>
                     </tbody>
                 </table>
-
             </div>
 
-            <form action="/admin/addCategory" method="post" class="addForm">
-                <input type="text" name="name" placeholder="Enter the name">
-                <input type="text" name="description" placeholder="Description">
-                <button class="add-user-btn fw-semibold">Add Category</button>
+            <!-- SweetAlert -->
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <% if (error) { %>
+                <script>
+                    Swal.fire({
+                        title: "Error",
+                        text: "<%= error %>",
+                        icon: "error",
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            popup: 'my-swal-popup', // Custom class for the popup
+                            title: 'my-swal-title', // Custom class for the title
+                            content: 'my-swal-content', // Custom class for the content (text)
+                            confirmButton: 'my-swal-btn' // Custom class for the button
+                        },
+                    });
+                </script>
+            <% } %>
 
+            <form action="/admin/addCategory" method="post" class="addForm">
+                <input type="text" name="name" placeholder="Enter the name" required>
+                <input type="text" name="description" placeholder="Description" required>
+                <button class="add-user-btn fw-semibold">Add Category</button>
             </form>
 
-            <!-- edit modal
-            <form id="editForm" action="/admin/editCategory/<%= category._id %>" method="post" class="addForm" style="display: none;" >
-                <input type="text" name="name" id="editName" placeholder="Enter the updated name">
-                <input type="text" name="description" id="editDescription" placeholder="Updated description">
-                <button class="add-user-btn">Update Category</button>
-            </form> -->
-
-            <!-- edit category Modal -->
             <!-- Modal for Editing Category -->
-            <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
-                aria-hidden="true">
+            <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -387,8 +396,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="editDescription" class="form-label">Description</label>
-                                    <textarea class="form-control" id="editDescription" name="description" rows="3"
-                                        required></textarea>
+                                    <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -399,13 +407,15 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
+    
+
 
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 
     <script>
 

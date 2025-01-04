@@ -9,13 +9,12 @@ const path = require('path')
 const productInfo = async (req, res) => {
     try {
         const productdata = await Product.find()
-
-        console.log("productData:" ,productdata)
-        const categoryData = await Category.find()
+        const categoryData = await Category.find({is_deleted:false})
 
         res.render("products", {
             category: categoryData,
-            products: productdata
+            products: productdata,
+            success: req.flash('success')
         })
 
     } catch (error) {
@@ -29,7 +28,8 @@ const getAddProduct = async (req, res) => {
         const categoryData = await Category.find()
 
         res.render('addProduct', {
-            category: categoryData
+            category: categoryData,
+            success: req.flash("success")
         })
     } catch (error) {
         console.log("error loading add procuct page")
@@ -59,6 +59,8 @@ const addProduct = async (req, res) => {
                 return res.status(400).join("Invalid category")
             }
 
+            const lowerCase = language.toLowerCase();
+
             const newProduct = new Product({
                 title,
                 category_id: categoryId,
@@ -69,12 +71,13 @@ const addProduct = async (req, res) => {
                 publishing_date,
                 publisher,
                 page,
-                language,
+                language: lowerCase,
                 product_imgs: images,
                 status
             });
 
             await newProduct.save()
+            req.flash("success","Product added successfully")
             return res.redirect("/admin/addProduct")
 
         }else{
@@ -88,6 +91,107 @@ const addProduct = async (req, res) => {
     }
 }
 
+//edit product page
+const getEditProduct = async(req,res) => {
+    try {
+        const id = req.query.id;
+        const productData = await Product.findOne({_id: id})
+        const categoryData = await Category.find()
+
+        res.render('editProduct',{
+            product: productData,
+            category: categoryData
+        })
+    } catch (error) {
+        console.error("error geting product edit page")
+    }
+}
+
+const editProduct = async(req,res) => {
+    try {
+        const productId = req.params.id
+        const { title, author_name, price, available_quantity, category_id, status, language, publishing_date, publisher, page, description } = req.body
+        const productExist = await Product.findOne({title: title})
+
+        const images = [];
+            if(req.files && req.files.length > 0) {
+                for(let i=0; i<req.files.length; i++) {
+                    const originalImagePath = req.files[i].path
+
+                    const resizedImagePath = path.join(__dirname,'..', '..','uploads','product-images',req.files[i].filename)
+                    await sharp(originalImagePath).resize({width:300,height:450}).toFile(resizedImagePath)
+                    images.push(req.files[i].filename);
+                }
+            } 
+
+            const categoryId = await Category.findOne({_id: category_id})
+            if(!categoryId) {
+                return res.status(400).join("Invalid category")
+            }
+
+            const updateFields = {
+                title,
+                category_id: categoryId,
+                author_name,
+                price,
+                available_quantity,
+                description,
+                publishing_date,
+                publisher,
+                page,
+                language,
+                product_imgs: images,
+                status
+            };
+
+            await Product.findByIdAndUpdate(productId,updateFields, {new:true})
+            req.flash("success","The product has been updated successfully")
+            return res.redirect("/admin/products")
+    } catch (error) {
+        console.error('error updating the product!', error)
+    }
+}
+
+//soft delete product
+const softDeleteProduct = async(req,res) => {
+    try {
+        const {id} = req.params
+        const result = await Product.findByIdAndUpdate(id,{is_deleted:true})
+        
+        res.redirect('/admin/products')
+    } catch (error) {
+        console.log("error soft deleting product",error)
+        res.status(500).send("Unable to delete the product")
+    }
+}
+
+//restore product
+const restoreProduct = async(req,res) => {
+    try {
+        const {id} = req.params
+        await Product.findByIdAndUpdate(id,{is_deleted:false})
+
+        res.redirect('/admin/products')
+    } catch (error) {
+        console.log("Error restoring the product")
+        res.status(500).send("Unable to restore the product")
+
+    }
+}
+
+//delete the product
+const deleteProduct = async(req,res) => {
+    try {
+        const id = req.params.id
+        await Product.findByIdAndDelete(id)
+
+        req.flash("success", "Product has been deleted successfully")
+        res.redirect('/admin/products')
+    } catch (error) {
+        console.log('error deleting the product', error)
+    }
+}
+
 
 
 
@@ -96,4 +200,9 @@ module.exports = {
     productInfo,
     getAddProduct,
     addProduct,
+    softDeleteProduct,
+    restoreProduct,
+    getEditProduct,
+    editProduct,
+    deleteProduct,
 }

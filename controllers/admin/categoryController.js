@@ -2,8 +2,17 @@ const Category = require('../../models/categorySchema')
 
 const categoryInfo = async(req,res) => {
     try {
+        let error = req.query.error
+
+        if (error) {
+            error = error.replace(/[&<>"'/]/g, "") // Escape special HTML characters
+        }
+
         const categoryData = await Category.find()
-        res.render('category', {category: categoryData})
+        res.render('category', {
+            category: categoryData,
+            error: error,
+        })
     } catch (error) {
         console.error("error loading the categories", error)
     }
@@ -12,7 +21,16 @@ const categoryInfo = async(req,res) => {
 const addCategory = async (req, res) => {
     try {
         const { name, description } = req.body;
+        const categoryData = await Category.find()
 
+        const normalizedName = name.trim().toLowerCase();
+
+        const existingCategory = await Category.findOne({ name: { $regex: `^${normalizedName}$`, $options: 'i' } });
+
+        if (existingCategory) {
+            console.log("category name must be unique")
+            return res.redirect(`/admin/categories?error=${encodeURIComponent(`The category name "${name}" already exists. Please choose a different name.`)}`)
+        }
         const newCategory = new Category({
             name,
             description,
@@ -70,10 +88,23 @@ const restoreCategory = async(req,res) => {
     }
 }
 
+//delete
+const deleteCategory = async(req,res) => {
+    try {
+        const id = req.params.id
+        await Category.findByIdAndDelete(id)
+        res.redirect('/admin/categories')
+
+    } catch (error) {
+        console.log("error deleting category",error)
+    }
+}
+
 module.exports = {
     categoryInfo,
     addCategory,
     editCategory,
     softDelete,
-    restoreCategory
+    restoreCategory,
+    deleteCategory,
 }

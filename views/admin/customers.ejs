@@ -310,9 +310,13 @@
                 <td class="toggle-status"><input type="checkbox" data-user-id="<%= user._id %>" class="status-checkbox"
                     <%=user.is_blocked ? '' : 'checked' %> ></td>
                 <td>
-                  <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-                  <a href="/admin/deleteUser/<%= user._id %>" class="btn btn-danger btn-sm delete-btn"
-                    onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                  <button class="edit-btn rounded-pill me-3 ps-3 pe-3" onclick="editUser('<%= user.first_name %>', '<%= user.last_name %>','<%= user.email %>','<%= user.phone_no %>', '<%= user._id %>')">Edit</button>
+                  <form action="/admin/deleteUser/<%= user._id %>" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm delete-btn"
+                      onclick="return confirm('Are you sure you want to delete this user?');">
+                      Delete
+                    </button>
+                  </form>
                 </td>
               </tr>
               <% }); %>
@@ -354,6 +358,44 @@
             <button type="submit" class="btn btn-success w-100">Add</button>
           </form>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Editing customer -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editCategoryModalLabel">Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editCategoryForm" action="/admin/editUser" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="_id" id="editUserId">
+            <div class="mb-3">
+              <label for="editName" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="editFirstName" name="first_name" required>
+            </div>
+            <div class="mb-3">
+              <label for="editName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="editLastName" name="last_name" required>
+            </div>
+            <div class="mb-3">
+              <label for="editEmail" class="form-label">Email</label>
+              <textarea class="form-control" id="editEmail" name="email" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editMobile" class="form-label">Mobile</label>
+              <textarea class="form-control" id="editPhone" name="phone_no" rows="3" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -434,6 +476,19 @@
           row.style.display = "none"; // Hide row if it doesn't match
         }
       });
+    }
+
+    // Edit User modal function
+    function editUser(first_name, last_name, email, phone_no, id) {
+      document.getElementById("editUserId").value = id
+      document.getElementById("editFirstName").value = first_name
+      document.getElementById("editLastName").value = last_name
+      document.getElementById('editEmail').value = email
+      document.getElementById('editPhone').value = phone_no
+
+      //show modal
+      const addUserModal = new bootstrap.Modal(document.getElementById("editUserModal"))
+      addUserModal.show()
     }
   </script>
 </body>

@@ -7,6 +7,11 @@ const addressSchema = new Schema({
     ref: 'User', // Reference to the User collection
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   city: {
     type: String,
     required: true,

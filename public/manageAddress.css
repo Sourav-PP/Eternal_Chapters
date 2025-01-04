@@ -1,0 +1,51 @@
+#address-card {
+    
+}
+
+.card {
+    background-color: #ececec;
+    border-radius: 20px;
+    border: 2px solid #cecece;
+}
+
+.card h5 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.card p {
+    font-size: 14px;
+    color: #555;
+}
+
+.card .badge {
+    font-size: 12px;
+}
+
+.card .btn {
+    font-size: 12px;
+}
+
+.card .btn-sm {
+    padding: 5px 10px;
+}
+
+.add-address {
+    margin: auto;
+    border-radius: 15px;
+    padding: 6px 18px;
+    background-color: #8E4700;
+}
+
+.address-hold {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    margin-left: 25px;
+    margin-right: 80px;
+    padding: 20px;
+    border-radius: 25px;
+    margin-bottom: 20px;
+    border: 3px solid #FFE4A1;
+}

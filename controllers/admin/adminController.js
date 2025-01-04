@@ -2,6 +2,7 @@ const User = require('../../models/userSchema')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
+const { validationResult } = require('express-validator')
 
 const pageError = async(req,res) => {
     try {
@@ -29,6 +30,15 @@ const loadLogin = async (req, res) => {
 //login admin
 const login = async (req, res) => {
     try {
+        const errors = validationResult(req);  // Validation errors
+        
+                if (!errors.isEmpty()) {
+                    return res.render('admin-login', {
+                        errors: errors.array(),  // Pass the errors to the view
+                        data: req.body  // Retain form data
+                    });
+                }
+
         const { email, password } = req.body
         const admin = await User.findOne({ email, is_admin: true })
         if (admin) {

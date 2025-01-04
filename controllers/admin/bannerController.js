@@ -24,14 +24,14 @@ const addBanner = async(req,res) => {
             name,
             status,
             start_date: new Date(start_date+"T00:00:00"),
-            end_date: new Date(start_date+"T00:00:00")
+            end_date: new Date(end_date+"T00:00:00")
         })
 
         await newBanner.save().then(data => console.log("add bannerData:",data))
 
-        res.redirect('admin/banners')
+        res.redirect('/admin/banners')
     } catch (error) {
-        console.error("error adding banner")
+        console.error("error adding banner",error)
         res.redirect('page-error')
     }
 }

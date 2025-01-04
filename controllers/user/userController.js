@@ -3,8 +3,8 @@ const Product = require('../../models/productSchema')
 const nodemailer = require('nodemailer')
 const env = require('dotenv').config()
 const bcrypt = require('bcrypt')
-
 const { validationResult } = require('express-validator')
+const Banner = require('../../models/bannerSchema')
 
 const page_404 = async (req, res) => {
     try {
@@ -75,10 +75,7 @@ const loadSignup = async (req, res) => {
 //signup logic
 const signup = async (req, res) => {
     try {
-        console.log("signup body:",req.body)
         const errors = validationResult(req);  // Validation errors
-
-        console.log("helloiii:",errors.array())
 
         if (!errors.isEmpty()) {
             return res.render('signup', {
@@ -159,7 +156,11 @@ const verifyOtp = async(req,res) => {
 //loading the login page
 const loadLogin = async(req,res) => {
     try {
-        return res.render('login', { errors: [] })
+        if (req.session.user) {
+            return res.redirect('/');
+        }
+
+        return res.render('login', { errors: [], message:''})
     } catch (error) {
         console.error("error loading login page",error)
     }
@@ -168,41 +169,47 @@ const loadLogin = async(req,res) => {
 //Login logic
 const login = async (req, res) => {
     try {
-        console.log("Login endpoint hit");
 
+        const errors = validationResult(req);  // Validation errors
+
+        if (!errors.isEmpty()) {
+            return res.render('login', {
+                errors: errors.array(),  // Pass the errors to the view
+                data: req.body  // Retain form data
+            });
+        }
         const { email, password } = req.body;
-        console.log("Request body:", req.body);
 
         // Find user by email
         const user = await User.findOne({ email });
-        console.log("User retrieved:", user);
 
         if (!user) {
-            console.log("User not found");
+            console.log("User not found or is blocked");
             return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
         }
 
+        // Check if the user is blocked
+        if (user.is_blocked) {
+            return res.render('login', { message: 'Your account is blocked. Please contact support.' });
+        }
+
         // Validate password
-        console.log("Validating password...");
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log("Password valid:", isPasswordValid);
 
         if (!isPasswordValid) {
             console.log("Invalid password");
             return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
         }
 
+        //session
         req.session.user = user._id;
-        console.log("Session User ID set:", req.session.user);
 
-        console.log("Halloooo");
         res.redirect('/');
     } catch (error) {
         console.error("Error during login:", error);
         res.redirect('/page_404');
     }
 };
-
 
 //load homepage
 const loadHomepage = async (req, res) => {
@@ -211,9 +218,14 @@ const loadHomepage = async (req, res) => {
             return res.redirect('/login')
         }
 
-        const products = await Product.find({})
-        console.log("products:::",products)
-        res.render('home',{products: products})
+        const products = await Product.find({is_deleted: false})
+        const bannerData = await Banner.findOne({name:'Home Banner'})
+
+
+        res.render('home',{
+            products: products,
+            banner: bannerData,
+        })
     } catch (error) {
         console.log('user load homepage error', error.message);
         res.status(500).send('Server error')
@@ -222,11 +234,17 @@ const loadHomepage = async (req, res) => {
 
 //logout
 const logout = async(req,res) => {
-    req.session.destroy(() => {
-        res.redirect('/login')
-    })
+    try {
+        req.session.destroy(err => {
+            if(err) {
+                console.log("error destroying admin session", err)
+            }
+            res.redirect('/login')
+        })
+    } catch (error) {
+        console.log("error during user logout", error)
+    }
 }
-
 
 
 
@@ -241,5 +259,6 @@ module.exports = {
     signup,
     verifyOtp,
     loadLogin,
-    login
+    login,
+    logout,
 }

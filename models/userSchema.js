@@ -5,11 +5,13 @@ const userSchema = new Schema(
     {
         first_name: {
             type: String,
-            required: true
+            required: false,
+            default: null
         },
         last_name: {
             type: String,
-            required: true
+            required: false,
+            default: null
         },
         date_of_birth: {
             type: Date,
@@ -19,7 +21,6 @@ const userSchema = new Schema(
         phone_no: {
             type: String,
             required: false,
-            unique: true,
             sparse: true,
             default: null,
         },
@@ -30,7 +31,8 @@ const userSchema = new Schema(
         },
         password: {
             type: String,
-            required: true
+            required: false,
+            default: null
         },
         is_blocked: {
             type: Boolean,
@@ -44,14 +46,6 @@ const userSchema = new Schema(
         is_admin: {
             type: Boolean,
             default: false
-        },
-        created_at: {
-            type: Date,
-            default: Date.now
-        },
-        updated_at: {
-            type: Date,
-            default: Date.now
         },
     },
     {

@@ -1,4 +1,6 @@
 const User = require("../../models/userSchema")
+const bcrypt = require('bcrypt')
+
 
 const customerInfo = async (req, res) => {
     try {
@@ -39,18 +41,28 @@ const updateStatus = async (req, res) => {
     }
 }
 
+const securePassword = async (password) => {
+    try {
+        const passwordHash = await bcrypt.hash(password,10)
+        return passwordHash
+    } catch (error) {
+        console.error("Error hashing password", error)
+    }
+}
+
 //add user
 const addUser = async(req,res) => {
     try {
         const {first_name, last_name,email,phone_no,password} = req.body
         console.log('add user body',req.body)
 
+        const passwordHash = await securePassword(password)
         const newUser = new User({
             first_name,
             last_name,
             email,
             phone_no,
-            password
+            password: passwordHash
         })
 
         await newUser.save()
@@ -74,6 +86,20 @@ const deleteUser = async(req,res) => {
     } catch (error) {
         console.log("error deleting user", error)
     }
+}
+
+const editUser = async(req,res) => {
+    try {
+        console.log("Its comming")
+        console.log("edittttttttttt:",req.body)
+        const {_id, first_name, last_name, email, phone_no} = req.body    
+        await User.findByIdAndUpdate(_id, { first_name, last_name,email, phone_no }, { new: true });
+
+
+        res.redirect('/admin/users');
+    } catch (error) {
+        console.error("error editing the users",error)
+    }   
 }
 
 
@@ -118,6 +144,6 @@ module.exports = {
     customerInfo,
     updateStatus,
     addUser,
-    deleteUser
-    // editUser
+    deleteUser,
+    editUser,
 }

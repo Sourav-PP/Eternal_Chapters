@@ -49,8 +49,13 @@ const productSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Available", "Out of stock", "Unavailable"],
+        enum: ["active", "discontinued", "unavailable"],
         required: true,
+        default: "active"
+    },
+    is_deleted: {
+        type: Boolean,
+        default: false
     },
     created_at: {
         type: Date,
@@ -67,6 +72,13 @@ productSchema.pre('save', function (next) {
     this.updated_at = Date.now();
     next();
 });
+
+productSchema.virtual("stock_state").get(function() {
+    if(this.is_deleted) return "Blocked";
+    if(this.available_quantity === 0) return this.status === "discontinued" ? "Sold out" : "Out of stock";
+    if(this.status === "unavailable") return "Unavailable"
+    return "Available"
+})
 
 const Product = mongoose.model('Product', productSchema)
 
