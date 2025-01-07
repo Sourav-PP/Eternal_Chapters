@@ -9,6 +9,7 @@ const productController = require('../controllers/user/productController')
 const profileController = require('../controllers/user/profileController')
 const validateAddAddress = require('../middlewares/validateAddAddress')
 const cartController = require('../controllers/user/cartController')
+const categoryController = require('../controllers/user/categoryController')
 
 
 
@@ -45,8 +46,16 @@ router.post('/deleteAdress/:id',userAuth,profileController.deleteAddress)
 router.get('/productDetails', userAuth, productController.getProductDetails)
 
 //cart management
-router.post('/addToCart',userAuth,cartController.addToCart)
 router.get('/cart-page',userAuth,cartController.getCartPage)
+router.post('/addCart',userAuth,cartController.addToCart)
+router.post('/remove-cart-product/:id', userAuth, cartController.removeProduct)
+
+//category
+router.get('/romance/:id',userAuth, categoryController.romance)
+
+//filter product
+router.get('/filter',userAuth,productController.filterProduct)
+
 
 
 

@@ -1,496 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customers Dashboard</title>
+    <!-- font awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customers Dashboard</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f9f5f0;
-    }
+    <link rel="stylesheet" href="/admin/adminDashboard.css" />
+    <link rel="stylesheet" href="/admin/admin.css" />
+    <link rel="stylesheet" href="/admin/customer.css">
 
-    .containerr {
-      display: flex;
-      height: 100vh;
-    }
+  </head>
 
-    /* Sidebar */
-    .sidebar {
-      width: 250px;
-      background-color: #ffffff;
-      padding: 20px;
-      height: 100vh;
-      display: flex;
-      border-right: 2px solid #D3D3D3;
-      flex-direction: column;
-    }
+  <body>
+    <div class="container-fluid holder">
+      <!-- Header -->
+      <%- include('../../views/partials/admin/header') %>
 
-    .sidebar h2 {
-      font-size: 24px;
-      color: #4b2c20;
-      margin-bottom: 20px;
-    }
-
-    .sidebar ul {
-      list-style: none;
-    }
-
-    .sidebar ul li {
-      padding: 10px 0;
-      cursor: pointer;
-      color: #4b2c20;
-      font-weight: 500;
-    }
-
-    .sidebar ul li.active,
-    .sidebar ul li:hover {
-      color: #333;
-      font-weight: bold;
-    }
-
-    .sidebar hr {
-      margin: 20px 0;
-      border: 0.5px solid #D3D3D3;
-    }
-
-    .main {
-      flex: 1;
-      padding: 20px;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .top-bar button {
-      background-color: #ff7043;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .top-bar .search-bar {
-      position: relative;
-    }
-
-    .top-bar .search-bar input {
-      padding: 10px 15px;
-      width: 250px;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-    }
-
-    .top-bar .search-bar i {
-      position: absolute;
-      right: 15px;
-      top: 12px;
-      color: #aaa;
-    }
-
-    .table-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    table th,
-    table td {
-      padding: 15px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-
-    table th {
-      background-color: #f3f3f3;
-      color: #502314;
-    }
-
-    table td {
-      font-size: 14px;
-    }
-
-    .edit-btn {
-      background-color: #4caf50;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .delete-btn {
-      background-color: #f44336;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .toggle-status {
-      display: flex;
-      align-items: center;
-    }
-
-    .toggle-status input[type="checkbox"] {
-      width: 40px;
-      height: 20px;
-      margin-right: 10px;
-      appearance: none;
-      background-color: #ccc;
-      border-radius: 10px;
-      position: relative;
-      cursor: pointer;
-      outline: none;
-    }
-
-    .logout-btn {
-      background-color: #ff8c66;
-      color: #fff;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .toggle-status input[type="checkbox"]:checked {
-      background-color: #4caf50;
-    }
-
-    .toggle-status input[type="checkbox"]:checked:before {
-      left: 20px;
-    }
-
-    .toggle-status input[type="checkbox"]:before {
-      content: "";
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background-color: white;
-      border-radius: 50%;
-      top: 1px;
-      left: 1px;
-      transition: left 0.2s;
-    }
-
-    .add-user-btn {
-      background-color: #ff7043;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      display: inline-block;
-      margin-top: 20px;
-    }
-
-    /* add user modal */
-    .modal-content {
-      border-radius: 15px;
-      padding: 20px;
-      background-color: #fdfcf8;
-      /* Light beige background */
-    }
-
-    a {
-      color: #200b0b;
-    }
-
-    .input-custom {
-      border-radius: 30px;
-      padding: 10px 15px;
-      font-size: 14px;
-      border: 1px solid #ddd;
-    }
-
-    .input-custom:focus {
-      outline: none;
-      border-color: #82c91e;
-      /* Matching green color */
-      box-shadow: 0 0 5px #82c91e;
-    }
-
-    .btn-success {
-      background-color: #82c91e;
-      /* Custom green color */
-      border: none;
-      border-radius: 30px;
-      padding: 10px 15px;
-      font-size: 16px;
-    }
-
-    .btn-success:hover {
-      background-color: #72b416;
-      /* Slightly darker green */
-    }
-  </style>
-</head>
-
-<body>
-  <div class="containerr">
-    <aside class="sidebar">
-      <h2>Eternal Chapter</h2>
-      <ul>
-        <li class="active"><a href="/admin" class="text-decoration-none">Dashboard</a></li>
-        <li><a class="text-decoration-none" href="/admin/products">Books</a></li>
-        <li>Orders</li>
-        <li>Customers</li>
-        <li>Reviews</li>
-        <li>Offers</li>
-      </ul>
-      <hr>
-      <ul>
-        <li>Contact us</li>
-        <li>Coupon</li>
-        <li><a class="text-decoration-none" href="/admin/banners">Banner Management</a></li>
-        <li><a class="text-decoration-none" href="/admin/categories">Category</a></li>
-        <li>Notification</li>
-      </ul>
-    </aside>
-
-    <div class="main">
-      <div class="top-bar">
-        <a href="/admin/logout" class="logout-btn text-decoration-none">Log out</a>
-        <div class="search-bar">
-          <!-- <form action="/admin/users"> -->
-          <input type="text" id="search" onkeyup="search()" placeholder="Search by name">
-          <i class="fas fa-search"></i>
-          <!-- </form> -->
+      <div class="row side">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
+          <%- include('../../views/partials/admin/sidebar') %>
         </div>
-      </div>
 
-      <div class="table-container">
-        <h3>Customers</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>S.No</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% users.forEach((user,index)=> { %>
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
+          <!-- content goes here -->
+          <div class="main">
+            <div class="top-bar">
+              <div class="search-bar">
+                <!-- <form action="/admin/users"> -->
+                <input
+                  type="text"
+                  id="search"
+                  onkeyup="search()"
+                  placeholder="Search by name"
+                />
+                <i class="fas fa-search"></i>
+                <!-- </form> -->
+              </div>
+            </div>
 
-              <tr id="searchData">
-                <td>
-                  <%= index + 1 %>
-                </td>
-                <td>
-                  <%= user.first_name %>
-                </td>
-                <td>
-                  <%= user.email %>
-                </td>
-                <td>
-                  <%= user.phone_no %>
-                </td>
-                <td class="toggle-status"><input type="checkbox" data-user-id="<%= user._id %>" class="status-checkbox"
-                    <%=user.is_blocked ? '' : 'checked' %> ></td>
-                <td>
-                  <button class="edit-btn rounded-pill me-3 ps-3 pe-3" onclick="editUser('<%= user.first_name %>', '<%= user.last_name %>','<%= user.email %>','<%= user.phone_no %>', '<%= user._id %>')">Edit</button>
-                  <form action="/admin/deleteUser/<%= user._id %>" method="POST" style="display:inline;">
-                    <button type="submit" class="btn btn-danger btn-sm delete-btn"
-                      onclick="return confirm('Are you sure you want to delete this user?');">
-                      Delete
-                    </button>
-                  </form>
-                </td>
-              </tr>
-              <% }); %>
+            <div class="table-container">
+              <h3>Customers</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% users.forEach((user,index)=> { %>
 
-          </tbody>
-        </table>
+                  <tr id="searchData">
+                    <td><%= index + 1 %></td>
+                    <td><%= user.first_name %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.phone_no %></td>
+                    <td class="toggle-status">
+                      <input type="checkbox" data-user-id="<%= user._id %>"
+                      class="status-checkbox" <%=user.is_blocked ? '' :
+                      'checked' %> >
+                    </td>
+                    <td>
+                      <form
+                        action="/admin/deleteUser/<%= user._id %>"
+                        method="POST"
+                        style="display: inline"
+                      >
+                        <button
+                          type="submit"
+                          class="btn btn-danger btn-sm delete-btn"
+                          onclick="return confirm('Are you sure you want to delete this user?');"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
 
-        <button class="add-user-btn" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add User Modal -->
-  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form action="/admin/add-user" method="POST">
-            <div class="form-group mb-3">
-              <input type="text" class="form-control input-custom" name="first_name" placeholder="First name" required>
+              <!-- <button
+                class="add-user-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#addUserModal"
+              >
+                Add User
+              </button> -->
             </div>
-            <div class="form-group mb-3">
-              <input type="text" class="form-control input-custom" name="last_name" placeholder="Last name" required>
-            </div>
-            <div class="form-group mb-3">
-              <input type="email" class="form-control input-custom" name="email" placeholder="Enter email" required>
-            </div>
-            <div class="form-group mb-3">
-              <input type="text" class="form-control input-custom" name="phone_no" placeholder="Enter mobile" required>
-            </div>
-            <div class="form-group mb-3">
-              <input type="password" class="form-control input-custom" name="password" placeholder="Enter password"
-                required>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Add</button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal for Editing customer -->
-  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editCategoryModalLabel">Edit User</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="editCategoryForm" action="/admin/editUser" method="post">
+    <!-- Add User Modal -->
+    <!-- <div
+      class="modal fade"
+      id="addUserModal"
+      tabindex="-1"
+      aria-labelledby="addUserModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
           <div class="modal-body">
-            <input type="hidden" name="_id" id="editUserId">
-            <div class="mb-3">
-              <label for="editName" class="form-label">First Name</label>
-              <input type="text" class="form-control" id="editFirstName" name="first_name" required>
-            </div>
-            <div class="mb-3">
-              <label for="editName" class="form-label">Last Name</label>
-              <input type="text" class="form-control" id="editLastName" name="last_name" required>
-            </div>
-            <div class="mb-3">
-              <label for="editEmail" class="form-label">Email</label>
-              <textarea class="form-control" id="editEmail" name="email" rows="3" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="editMobile" class="form-label">Mobile</label>
-              <textarea class="form-control" id="editPhone" name="phone_no" rows="3" required></textarea>
-            </div>
+            <form action="/admin/add-user" method="POST">
+              <div class="form-group mb-3">
+                <input
+                  type="text"
+                  class="form-control input-custom"
+                  name="first_name"
+                  placeholder="First name"
+                  required
+                />
+              </div>
+              <div class="form-group mb-3">
+                <input
+                  type="text"
+                  class="form-control input-custom"
+                  name="last_name"
+                  placeholder="Last name"
+                  required
+                />
+              </div>
+              <div class="form-group mb-3">
+                <input
+                  type="email"
+                  class="form-control input-custom"
+                  name="email"
+                  placeholder="Enter email"
+                  required
+                />
+              </div>
+              <div class="form-group mb-3">
+                <input
+                  type="text"
+                  class="form-control input-custom"
+                  name="phone_no"
+                  placeholder="Enter mobile"
+                  required
+                />
+              </div>
+              <div class="form-group mb-3">
+                <input
+                  type="password"
+                  class="form-control input-custom"
+                  name="password"
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-success w-100">Add</button>
+            </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
+    </div> -->
 
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll(".status-checkbox");
 
+        checkboxes.forEach((checkbox) => {
+          checkbox.addEventListener("change", async (event) => {
+            const userId = event.target.getAttribute("data-user-id");
+            const isBlocked = !event.target.checked;
 
-  <!-- Bootstrap JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+            try {
+              const response = await fetch("/admin/update-status", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId, isBlocked }),
+              });
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const checkboxes = document.querySelectorAll('.status-checkbox');
-
-      checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', async (event) => {
-          const userId = event.target.getAttribute('data-user-id');
-          const isBlocked = !event.target.checked;
-
-          try {
-            const response = await fetch('/admin/update-status', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ userId, isBlocked })
-            })
-
-            const result = await response.json()
-            if (response.ok) {
-              alert(result.message)
-            } else {
-              alert("Error updating user status")
+              const result = await response.json();
+              if (response.ok) {
+                alert(result.message);
+              } else {
+                alert("Error updating user status");
+              }
+            } catch (error) {
+              console.error("Error updating user status", error);
+              alert("Something went wrong");
             }
-          } catch (error) {
-            console.error("Error updating user status", error)
-            alert("Something went wrong")
+          });
+        });
 
-          }
+        //edit the user
+        const editButtons = document.querySelectorAll(".edit-btn");
 
-        })
-      })
+        editButtons.forEach((button) => {
+          button.addEventListener("click", (event) => {
+            const row = event.target.closest("tr");
+            const userId = row
+              .querySelector(".status-checkbox")
+              .getAttribute("data-user-id");
+            const firstName = row.querySelector(".first-name").textContent;
+            const secondName = row.querySelector(".second-name").textContent;
+            const dob = row.querySelector(".dob").textContent;
+            const email = row.querySelector(".email").textContent;
+            const phone = row.querySelector(".phone").textContent;
 
-      //edit the user
-      const editButtons = document.querySelectorAll('.edit-btn');
-
-      editButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-          const row = event.target.closest('tr');
-          const userId = row.querySelector('.status-checkbox').getAttribute('data-user-id');
-          const firstName = row.querySelector('.first-name').textContent;
-          const secondName = row.querySelector('.second-name').textContent;
-          const dob = row.querySelector('.dob').textContent;
-          const email = row.querySelector('.email').textContent;
-          const phone = row.querySelector('.phone').textContent;
-
-          // Populate the modal with user data
-          document.getElementById('usereditid').value = userId;
-          document.getElementById('firstName').value = firstName;
-          document.getElementById('secondName').value = secondName;
-          document.getElementById('dob').value = dob;
-          document.getElementById('email').value = email;
-          document.getElementById('phone').value = phone;
+            // Populate the modal with user data
+            document.getElementById("usereditid").value = userId;
+            document.getElementById("firstName").value = firstName;
+            document.getElementById("secondName").value = secondName;
+            document.getElementById("dob").value = dob;
+            document.getElementById("email").value = email;
+            document.getElementById("phone").value = phone;
+          });
         });
       });
 
-    })
+      function search() {
+        const input = document
+          .getElementById("search")
+          .value.toLowerCase()
+          .trim(); // Get search input and convert to lowercase
+        const rows = document.querySelectorAll("#searchData"); // Get all rows to search
 
-    function search() {
-      const input = document.getElementById("search").value.toLowerCase().trim(); // Get search input and convert to lowercase
-      const rows = document.querySelectorAll("#searchData"); // Get all rows to search
+        rows.forEach((row) => {
+          const user = row.children[1].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
+          if (user.includes(input)) {
+            row.style.display = ""; // Show row if it matches the search
+          } else {
+            row.style.display = "none"; // Hide row if it doesn't match
+          }
+        });
+      }
 
-      rows.forEach((row) => {
-        const user = row.children[1].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
-        if (user.includes(input)) {
-          row.style.display = ""; // Show row if it matches the search
-        } else {
-          row.style.display = "none"; // Hide row if it doesn't match
-        }
-      });
-    }
+      // Edit User modal function
+      function editUser(first_name, last_name, email, phone_no, id) {
+        document.getElementById("editUserId").value = id;
+        document.getElementById("editFirstName").value = first_name;
+        document.getElementById("editLastName").value = last_name;
+        document.getElementById("editEmail").value = email;
+        document.getElementById("editPhone").value = phone_no;
 
-    // Edit User modal function
-    function editUser(first_name, last_name, email, phone_no, id) {
-      document.getElementById("editUserId").value = id
-      document.getElementById("editFirstName").value = first_name
-      document.getElementById("editLastName").value = last_name
-      document.getElementById('editEmail').value = email
-      document.getElementById('editPhone').value = phone_no
-
-      //show modal
-      const addUserModal = new bootstrap.Modal(document.getElementById("editUserModal"))
-      addUserModal.show()
-    }
-  </script>
-</body>
-
+        //show modal
+        const addUserModal = new bootstrap.Modal(
+          document.getElementById("editUserModal")
+        );
+        addUserModal.show();
+      }
+    </script>
+  </body>
 </html>

@@ -19,7 +19,10 @@ const loadLogin = async (req, res) => {
         } else {
             res.render('admin-login', {
                 message: null,
-                messageType: null
+                messageType: null,
+                error: req.flash('error'),
+                validationError: req.flash('validationError'),
+                data: req.flash('data')
             })
         }
     } catch (error) {
@@ -33,10 +36,10 @@ const login = async (req, res) => {
         const errors = validationResult(req);  // Validation errors
         
                 if (!errors.isEmpty()) {
-                    return res.render('admin-login', {
-                        errors: errors.array(),  // Pass the errors to the view
-                        data: req.body  // Retain form data
-                    });
+                    // Store validation errors and form data
+                    req.flash('validationError', errors.array());
+                    req.flash('data', req.body);
+                    return res.redirect('/admin/login'); // Redirect to login page
                 }
 
         const { email, password } = req.body
@@ -47,10 +50,12 @@ const login = async (req, res) => {
                 req.session.admin = true
                 return res.redirect('/admin')
             } else {
-                res.redirect('/admin/login')
+                req.flash('error','Invalid username or password. Please try again.')
+                return res.redirect('/admin/login')
             }
         } else {
-            res.redirect('/admin/login')
+            req.flash('error','Invalid username or password. Please try again.')
+            return res.redirect('/admin/login')
         }
     } catch (error) {
         console.error("error login admin", error)

@@ -6,6 +6,9 @@ const bcrypt = require('bcrypt')
 const { validationResult } = require('express-validator')
 const Banner = require('../../models/bannerSchema')
 
+
+
+
 const page_404 = async (req, res) => {
     try {
         // Set 404 status code and render the custom 404 page
@@ -55,7 +58,7 @@ async function sendVerficationEmail(email, otp) {
 //hashing password
 const securePassword = async (password) => {
     try {
-        const passwordHash = await bcrypt.hash(password,10)
+        const passwordHash = await bcrypt.hash(password, 10)
         return passwordHash
     } catch (error) {
         console.error("Error hashing password", error)
@@ -105,7 +108,7 @@ const signup = async (req, res) => {
         req.session.otpGeneratedAt = Date.now()
         req.session.userData = { first_name, last_name, email, phone_no, password }
 
-        res.render('verify-otp', {message: ''})
+        res.render('verify-otp', { message: '' })
         console.log("OTP sent", otp)
 
     } catch (error) {
@@ -116,10 +119,10 @@ const signup = async (req, res) => {
 }
 
 //verifying the otp
-const verifyOtp = async(req,res) => {
+const verifyOtp = async (req, res) => {
     try {
-        const {otp} = req.body
-        if(otp === req.session.userOtp) {
+        const { otp } = req.body
+        if (otp === req.session.userOtp) {
             const { first_name, last_name, email, phone_no, password } = req.session.userData
             const passwordHash = await securePassword(password)
 
@@ -141,7 +144,7 @@ const verifyOtp = async(req,res) => {
                 messageType: "success"
             })
 
-        }else{
+        } else {
             return res.render('verify-otp', {
                 message: "Invalid otp, please try again",
                 messageType: "failure"
@@ -154,15 +157,19 @@ const verifyOtp = async(req,res) => {
 }
 
 //loading the login page
-const loadLogin = async(req,res) => {
+const loadLogin = async (req, res) => {
     try {
         if (req.session.user) {
             return res.redirect('/');
         }
 
-        return res.render('login', { errors: [], message:''})
+        return res.render('login', {
+            error: req.flash('error'),
+            validationError: req.flash('validationError'),
+            data: req.flash('data')
+        })
     } catch (error) {
-        console.error("error loading login page",error)
+        console.error("error loading login page", error)
     }
 }
 
@@ -173,10 +180,10 @@ const login = async (req, res) => {
         const errors = validationResult(req);  // Validation errors
 
         if (!errors.isEmpty()) {
-            return res.render('login', {
-                errors: errors.array(),  // Pass the errors to the view
-                data: req.body  // Retain form data
-            });
+            // Store validation errors and form data
+            req.flash('validationError', errors.array());
+            req.flash('data', req.body);
+            return res.redirect('/login'); // Redirect to login page
         }
         const { email, password } = req.body;
 
@@ -184,13 +191,14 @@ const login = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            console.log("User not found or is blocked");
-            return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
+            req.flash('error', 'Invalid Email or Password')
+            return res.redirect('/login');
         }
 
         // Check if the user is blocked
         if (user.is_blocked) {
-            return res.render('login', { message: 'Your account is blocked. Please contact support.' });
+            req.flash('error', 'Your account is blocked. Please contact support.')
+            return res.redirect('/login');
         }
 
         // Validate password
@@ -198,7 +206,8 @@ const login = async (req, res) => {
 
         if (!isPasswordValid) {
             console.log("Invalid password");
-            return res.render('login', { message: 'Invalid email or password', messageType: 'failure' });
+            req.flash('error', 'Invalid Email or Password')
+            return res.redirect('/login');
         }
 
         //session
@@ -214,17 +223,27 @@ const login = async (req, res) => {
 //load homepage
 const loadHomepage = async (req, res) => {
     try {
-        if(!req.session.user){
+        if (!req.session.user) {
             return res.redirect('/login')
         }
 
-        const products = await Product.find({is_deleted: false})
-        const bannerData = await Banner.findOne({name:'Home Banner'})
+        const products = await Product.find({ is_deleted: false })
+
+        const updatedProducts = products.map(product => ({
+            ...product._doc,
+            title: product.title
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ')
+        }));
+
+        const bannerData = await Banner.findOne({ name: 'Home Banner' })
 
 
-        res.render('home',{
-            products: products,
+        res.render('home', {
+            products: updatedProducts,
             banner: bannerData,
+            error: req.flash('error')
         })
     } catch (error) {
         console.log('user load homepage error', error.message);
@@ -233,10 +252,10 @@ const loadHomepage = async (req, res) => {
 }
 
 //logout
-const logout = async(req,res) => {
+const logout = async (req, res) => {
     try {
         req.session.destroy(err => {
-            if(err) {
+            if (err) {
                 console.log("error destroying admin session", err)
             }
             res.redirect('/login')

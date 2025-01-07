@@ -1,0 +1,81 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #FFFBF0;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  header {
+    z-index: 1030; /* Ensure header stays on top */
+  }
+  
+  header h4 {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  header .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: all 0.3s ease;
+  }
+  
+  header .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  
+
+  .holder {
+    background-color: #FFFBF0;
+  }
+  /* Sidebar */
+  .sidebar-container {
+    background-color: #ffffff;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    padding-top: 30px;
+  }
+  
+  .sidebar-container .menu-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #666;
+    margin: 20px 0 10px;
+    text-transform: uppercase;
+  }
+  
+  .sidebar-container a {
+    display: block;
+    color: #333;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .side{
+    margin-top: 95px;
+  }
+  
+  .sidebar-container a:hover {
+    background-color: #ffeace;
+    color: #000000;
+  }
+  
+  .sidebar .menu-link.active {
+    background-color: #8f542a;
+    color: #ffffff;
+}
+  /* Main Content */
+  .main-content {
+    padding: 30px;
+    background-color: #FFFBF0;
+    min-height: 100vh;
+  }
+
+  .logo-container img {
+    width: 9.5rem;
+    margin-top: .5rem;
+}

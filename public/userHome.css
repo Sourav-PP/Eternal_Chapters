@@ -1,0 +1,58 @@
+.book {
+  transition: transform 0.2s ease;
+  width: 100%;
+  border-radius: 20px;
+  padding-top: 17px;
+  text-align: center;
+}
+
+.book img {
+  border-radius: 20px;
+  width: 80%;
+  height: 80%;
+  margin: auto;
+}
+
+.book:hover {
+  transform: scale(1.05);
+}
+
+footer {
+  background-color: #341616;
+  border-top: 1px solid #ddd;
+  color: #fff;
+}
+
+footer a {
+  color: #b8b8b8;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* custom */
+.best {
+  font-size: 1.8rem;
+}
+
+.b-img {
+  width: 100%;
+  height: auto;
+  margin-top: 20px;
+  object-fit: cover;
+  border-radius: 35px;
+}
+
+.b-row {
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+
+/* filter */
+.filter-box {
+  background-color: rgb(247, 231, 212);
+  border-radius: 20px;
+}

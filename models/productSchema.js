@@ -65,7 +65,6 @@ const productSchema = new Schema({
         type: Date,
         default: Date.now
     }
-
 })
 
 productSchema.pre('save', function (next) {

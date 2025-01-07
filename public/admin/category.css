@@ -1,0 +1,138 @@
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+.table-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.addForm {
+  margin-top: 15px;
+  width: 100%;
+  border-collapse: collapse;
+  background: rgb(228, 224, 224);
+  padding: 32px 20px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  border: 2px solid rgb(182, 182, 182);
+}
+
+input {
+  width: 400px;
+  height: 50px;
+  padding-left: 15px;
+  border-radius: 15px;
+  border: 1px solid rgb(224, 224, 224);
+}
+
+table th,
+table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background-color: #f3f3f3;
+  color: #502314;
+}
+
+table td {
+  font-size: 14px;
+}
+
+.edit-btn {
+  background-color: #0085b6;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.bt-td {
+  text-align: right;
+}
+
+.add-category-btn {
+  background-color: #ff7043;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* add user modal */
+.modal-content {
+  border-radius: 15px;
+  padding: 20px;
+  background-color: #fdfcf8;
+  /* Light beige background */
+}
+
+.input-custom {
+  border-radius: 30px;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+}
+.soft-bt {
+  width: 100px;
+  padding: 2px 2px;
+}
+
+.input-custom:focus {
+  outline: none;
+  border-color: #82c91e;
+  /* Matching green color */
+  box-shadow: 0 0 5px #82c91e;
+}
+
+.btn-success {
+  background-color: #82c91e;
+  /* Custom green color */
+  border: none;
+  border-radius: 30px;
+  padding: 5px 15px;
+  font-size: 16px;
+}
+
+.btn-success:hover {
+  background-color: #72b416;
+  /* Slightly darker green */
+}
+.delete-btn {
+  border: transparent;
+  border-radius: 20px;
+}
+
+.my-swal-popup {
+  background-color: #ffffff; /* Light red background */
+  border-radius: 15px; /* Rounded corners */
+  border: 2px solid #f5c6cb; /* Border matching the background */
+  padding: 25px 35px; /* More padding inside */
+  width: 400px; /* Set width */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}

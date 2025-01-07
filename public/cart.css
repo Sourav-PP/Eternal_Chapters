@@ -32,3 +32,21 @@
     padding: 10px;
     border-radius: 20px;
 }
+.empty {
+    margin-top: 200px;
+    font-size: 30px;
+    color: #a77429;
+}
+
+.btn-checkout {
+    border-radius: 10px;
+    background-color: #3dbd69;
+    border: none;
+    padding: 5px 15px;
+    color: #fff;
+}
+
+.btn-checkout:hover {
+    background-color: #22ab52;
+    color: #fff;
+}

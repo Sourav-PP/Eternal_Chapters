@@ -12,249 +12,27 @@
     <!-- cropper -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f9f5f0;
-        }
+    <link rel="stylesheet" href="/admin/adminDashboard.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+  <link rel="stylesheet" href="/admin/banner.css">
 
-        .containerr {
-            display: flex;
-            height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background-color: #ffffff;
-            padding: 20px;
-            height: 100vh;
-            display: flex;
-            border-right: 2px solid #D3D3D3;
-            flex-direction: column;
-        }
-
-        .sidebar h2 {
-            font-size: 24px;
-            color: #4b2c20;
-            margin-bottom: 20px;
-        }
-
-        .sidebar ul {
-            list-style: none;
-        }
-
-        .sidebar ul li {
-            padding: 10px 0;
-            cursor: pointer;
-            color: #4b2c20;
-            font-weight: 500;
-        }
-
-        .sidebar ul li.active,
-        .sidebar ul li:hover {
-            color: #333;
-            font-weight: bold;
-        }
-
-        .sidebar hr {
-            margin: 20px 0;
-            border: 0.5px solid #D3D3D3;
-        }
-
-        .main {
-            flex: 1;
-            padding: 20px;
-        }
-
-        a {
-            color: #200b0b;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .top-bar button {
-            background-color: #ff7043;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .top-bar .search-bar {
-            position: relative;
-        }
-
-        .top-bar .search-bar input {
-            padding: 10px 15px;
-            width: 250px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-        }
-
-        .top-bar .search-bar i {
-            position: absolute;
-            right: 15px;
-            top: 12px;
-            color: #aaa;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th,
-        td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .table-container {
-            margin: 20px 0;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .controls select,
-        .controls input {
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .update-button {
-            
-            cursor: pointer;
-        }
-
-        .delete-button {
-            color: #d9534f;
-            border: none;
-            background: none;
-            cursor: pointer;
-        }
-
-        .delete-button:hover {
-            text-decoration: underline;
-        }
-
-        .status {
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        /* ________ */
-
-        .logout-btn {
-            background-color: #ff8c66;
-            color: #fff;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .addForm {
-            margin-top: 15px;
-            width: 100%;
-            border-collapse: collapse;
-            background: rgb(228, 224, 224);
-            padding: 32px 20px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 50px;
-            border: 2px solid rgb(182, 182, 182);
-        }
-
-        .addForm input[type="text"],
-        .addForm input[type="number"],
-        .addForm input[type="file"],
-        .addForm input[type="date"],
-        .addForm select,
-        .addForm textarea {
-            width: 350px;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #d5d5d5;
-            border-radius: 10px;
-            background-color: #fefefe;
-        }
-
-        .banner-h2 {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 25px;
-        }
-
-        /* cropper */
-        #croppedImgContainer {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #croppedImg {
-            max-width: 100%;
-            max-height: 300px;
-        }
-    </style>
 </head>
 
 <body>
-    <div class="containerr">
-        <aside class="sidebar">
-            <h2>Eternal Chapter</h2>
-            <ul>
-                <li class="active"><a href="/admin" class="text-decoration-none">Dashboard</a></li>
-                <li><a class="text-decoration-none" href="/admin/products">Books</a></li>
-                <li>Orders</li>
-                <li><a class="text-decoration-none" href="/admin/users">Customers</a></li>
-                <li>Reviews</li>
-                <li>Offers</li>
-            </ul>
-            <hr>
-            <ul>
-                <li>Contact us</li>
-                <li>Coupon</li>
-                <li>Banner management</li>
-                <li><a class="text-decoration-none" href="/admin/categories">Category</a></li>
-                <li>Notification</li>
-            </ul>
-        </aside>
+    <div class="container-fluid holder">
+        <!-- Header -->
+    <%- include('../../views/partials/admin/header') %>
 
+    <div class="row side">
+      <!-- Sidebar -->
+      <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
+        <%- include('../../views/partials/admin/sidebar') %>
+      </div>
+<!-- Main content -->
+<div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">   
         <div class="main">
             <div class="top-bar">
-                <a href="/admin/logout" class="logout-btn text-decoration-none">Log out</a>
+                <div><h2 class="banner-h2">banner Management</h2></div>
                 <div class="search-bar">
                     <!-- <form action="/admin/users"> -->
                     <input type="text" id="search" onkeyup="search()" placeholder="Search by category name">
@@ -262,7 +40,6 @@
                     <!-- </form> -->
                 </div>
             </div>
-            <h2 class="banner-h2">banner Management</h2>
 
             <div class="controls">
                 <div>
@@ -339,7 +116,7 @@
                     <input type="date" name="start_date" placeholder="Startin date">
                     <input type="date" name="end_date" placeholder="Ending date">
                 </div>
-                <div class="d-flex flex-column gap-2">
+                <div class="d-flex flex-column gap-2 last-inp">
                     <label for="upload-image">Upload an Image:</label>
                     <input type="file" id="upload-image" name="image" accept="image/*">
                     <div id="croppedImgContainer">
@@ -352,6 +129,11 @@
 
 
             </form>
+            </div>
+            </div>
+            </div>
+            </div>
+            
 
 
             <!-- Bootstrap JS Bundle -->

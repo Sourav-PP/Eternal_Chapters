@@ -35,7 +35,8 @@ const orderSchema = new Schema({
     },
     shipping_chrg: {
         type: Number,
-        required: true
+        required: true,
+        default: 0,
     },
     total: {
         type: Number,

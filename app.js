@@ -1,15 +1,17 @@
 const express = require('express')
 const app = express()
+const http = require('http')
+const {server} = require('socket.io')
 const path = require('path')
 const env = require('dotenv').config()
 const nocache = require('nocache')
 const session = require('express-session')
+const flash = require('connect-flash');
 const db = require('./config/db')
 const userRouter = require('./routes/userRouter')
 const adminRouter = require('./routes/adminRouter')
 const passport = require('./config/passport')
 const authRouter = require('./routes/authRouter')
-const flash = require('connect-flash');
 
 db() //function for connecting db
 
@@ -33,13 +35,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
-
 app.use('/uploads', express.static('uploads'));
 
+//Routers
 app.use('/auth', authRouter);
 app.use('/admin', adminRouter)
 app.use('/', userRouter)
 
+//create an http server
 
 app.listen(process.env.PORT, () => {
     console.log(`server is running on port ${process.env.PORT} `)

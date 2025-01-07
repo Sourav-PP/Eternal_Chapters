@@ -1,0 +1,24 @@
+.content-wrapper {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  border: none;
+  background-color: #f8f9fa;
+}
+
+.card h5 {
+  color: #333;
+}
+
+.card-text {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.logo-type {
+  font-size: 25px;
+}
