@@ -11,6 +11,11 @@ const orderSchema = new Schema({
     payment_id: {
         type: Schema.Types.ObjectId,
         ref: 'Payment',
+        required: function() { return this.payment_method !== 'COD'; } 
+    },
+    payment_method: {
+        type: String,
+        enum: ['COD', 'Online'],
         required: true
     },
     address_id: {

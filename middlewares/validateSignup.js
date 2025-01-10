@@ -18,7 +18,8 @@ const signupValidationRules = [
     body('phone_no')
         .trim()
         .notEmpty().withMessage("Phone number is required")
-        .isMobilePhone().withMessage("Invalid phone number"),
+        .isMobilePhone().withMessage("Invalid phone number")
+        .isLength({ min: 10, max: 10 }).withMessage("Phone number must be 10 digits"),
     body('password')
         .trim()
         .notEmpty().withMessage("Password is requried")

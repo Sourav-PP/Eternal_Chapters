@@ -48,7 +48,7 @@
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-outline-secondary btn-sm decrement">-</button>
                                         <input type="text" class="form-control form-control-sm mx-2 text-center"
-                                            value="<%= item.quantity %>" style="width: 40px" />
+                                            value="<%= item.quantity %>" data-current-quantity="<%= item.quantity %>" style="width: 40px" />
                                         <button class="btn btn-outline-secondary btn-sm increment">+</button>
                                     </div>
                                 </div>
@@ -66,14 +66,14 @@
                         <div class="price-details">
                             <h5>PRICE DETAILS</h5>
                             <p>
-                                Price ( <%= items.length %> Items ) <span class="float-end">&#8377;<%= totalPrice %></span>
+                                Price ( <%= items.length %> Items ) <span class="float-end">&#8377;<%= items.subTotal %></span>
                             </p>
-                            <p>Delivery Charges <span class="float-end">&#8377;0.00</span></p>
+                            <p>Delivery Charges <span class="float-end"><%= shippingCharges %></span></p>
                             <hr />
                             <p class="fw-bold">
                                 Total Amount <span class="float-end">&#8377;<%= totalPrice %></span>
                             </p>
-                            <button class="btn-checkout w-100 mt-3">Checkout</button>
+                            <button class="btn-checkout w-100 mt-3"><a class="text-white text-decoration-none" href="/checkout">Checkout</a></button>
                         </div>
                     </div>
                 </div>
@@ -88,6 +88,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Sweet Alert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
     <% if (success && success.length > 0) { %>
         <script>
@@ -107,29 +109,126 @@
         </script>
     <% } %>
 
+    <% if (error && error.length > 0) { %>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '<%= error[0] %>', // Display the first error message
+                showConfirmButton: false,
+                timer: 1500,
+                customClass: {
+                    popup: 'my-swal-popup',
+                    title: 'my-swal-title',
+                    content: 'my-swal-content',
+                    confirmButton: 'my-swal-btn'
+                },
+            });
+        </script>
+     
+    <% } %>
+
     <script>
-        const decrementBtn = document.querySelectorAll('.decrement');
-        const incrementBtn = document.querySelectorAll('.increment');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io(); // Initialize socket connection
+            const cartItems = document.querySelectorAll('.detail'); // Get all cart items
 
-        decrementBtn.forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const input = btn.nextElementSibling;
-                let currentValue = parseInt(input.value);
-                if (!isNaN(currentValue) && currentValue > 1) {
-                    input.value = currentValue - 1;
-                }
-            });
-        });
+            const updateCartQuantity = async (productId, quantity, quantityInput) => {
+                try {
+                    const response = await fetch(`/update-cart`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            quantity,
+                            product_id: productId
+                        })
+                    });
 
-        incrementBtn.forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const input = btn.previousElementSibling;
-                let currentValue = parseInt(input.value);
-                if (!isNaN(currentValue)) {
-                    input.value = currentValue + 1;
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        socket.emit('updateCart', { productId, quantity });
+                    } else {
+                        quantityInput.value = quantityInput.dataset.currentQuantity;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: data.message,
+                            confirmButtonText: 'Okay',
+                            customClass: {
+                                popup: 'my-swal-popup',
+                                title: 'my-swal-title',
+                                content: 'my-swal-content',
+                                confirmButton: 'my-swal-btn'
+                            },
+                        });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'An error occurred while updating the cart!',
+                        confirmButtonText: 'Okay',
+                        customClass: {
+                            popup: 'my-swal-popup',
+                            title: 'my-swal-title',
+                            content: 'my-swal-content',
+                            confirmButton: 'my-swal-btn'
+                        },
+                    });
                 }
+            };
+
+            cartItems.forEach(item => {
+                const productId = item.querySelector('form').action.split('/').pop();
+                const decrementBtn = item.querySelector('.decrement');
+                const incrementBtn = item.querySelector('.increment');
+                const quantityInput = item.querySelector('input');
+
+                // Initialize data-current-quantity
+                quantityInput.dataset.currentQuantity = quantityInput.value;
+
+                decrementBtn.addEventListener('click', () => {
+                    let quantity = parseInt(quantityInput.value);
+                    if (quantity > 1) {
+                        quantity -= 1;
+                        quantityInput.value = quantity;
+                        updateCartQuantity(productId, quantity, quantityInput);
+                    }
+                });
+
+                incrementBtn.addEventListener('click', () => {
+                    let quantity = parseInt(quantityInput.value);
+                    quantity += 1;
+                    quantityInput.value = quantity;
+                    updateCartQuantity(productId, quantity, quantityInput);
+                });
+
+                quantityInput.addEventListener('change', () => {
+                    let quantity = parseInt(quantityInput.value);
+                    if (quantity < 1) {
+                        quantity = 1;
+                    }
+                    quantityInput.value = quantity;
+                    updateCartQuantity(productId, quantity, quantityInput);
+                });
+            })
+
+            //liste for real time cart update
+            socket.on('updateClientCart', ({ productId, quantity }) => {
+                cartItems.forEach(item => {
+                    const id = item.querySelector('form').action.split('/').pop();
+                    if (id === productId) {
+                        item.querySelector('input').value = quantity;
+                        input.dataset.currentQuantity = quantity; // Update current quantity
+                    }
+                });
             });
-        });
+        })
     </script>
 </body>
 

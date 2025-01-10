@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const http = require('http')
-const {server} = require('socket.io')
+const { Server } = require('socket.io')
 const path = require('path')
 const env = require('dotenv').config()
 const nocache = require('nocache')
@@ -43,9 +43,28 @@ app.use('/admin', adminRouter)
 app.use('/', userRouter)
 
 //create an http server
+const server = http.createServer(app);
 
-app.listen(process.env.PORT, () => {
+//create a socket.io instance
+const io = new Server(server);
+
+//socket.io event handling
+io.on('connection', (socket) => {
+    console.log("A user connected");
+
+    //custon event for cart update
+    socket.on('updateCart', (data) => {
+        console.log('cart updated', data);
+        io.emit('updateClientCart', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+server.listen(process.env.PORT, () => {
     console.log(`server is running on port ${process.env.PORT} `)
 })
 
-module.exports = app
+module.exports = { app, server }

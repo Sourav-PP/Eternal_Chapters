@@ -1,0 +1,26 @@
+.add-radio{
+    position: absolute;
+    top: 0;
+    border: 2px solid #ac9d9d;
+}
+
+.address {
+    margin-left: 30px;
+}
+
+.add-div {
+    overflow-y: scroll;
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(240, 240, 240);
+    border-radius: 15px;
+    padding: 10px;
+}
+
+.address-card {
+    border: 3px solid #ac9d9d;
+    width: 95%;
+    border-radius: 20px;
+}

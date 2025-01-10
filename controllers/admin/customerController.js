@@ -1,5 +1,6 @@
 const User = require("../../models/userSchema")
 const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
 
 
 const customerInfo = async (req, res) => {
@@ -16,7 +17,10 @@ const customerInfo = async (req, res) => {
                 { email: { $regex: ".*" + search + ".*" } }
             ]
         })
-        res.render('customers', { users: userData })
+        res.render('customers', {
+            users: userData,
+            success: req.flash('success'),
+        })
 
     } catch (error) {
         console.log("error loading the customer Info")
@@ -26,13 +30,14 @@ const customerInfo = async (req, res) => {
 const updateStatus = async (req, res) => {
     console.log("POST /update-status triggered");
     try {
-        console.log("request bodu of toggle", req.body)
+        console.log("request body of toggle", req.body)
         const { userId, isBlocked } = req.body
-
 
         //update the users "is_blocked" status
         await User.findByIdAndUpdate(userId, { is_blocked: isBlocked }, { new: true })
-        res.status(200).json({ message: "User status updated successfully" })
+        console.log("User status updated successfully");
+
+        res.status(200).json({ message: 'User status updated successfully' });
 
     } catch (error) {
 

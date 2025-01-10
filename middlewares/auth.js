@@ -7,7 +7,12 @@ const userAuth = async (req, res, next) => {
         }
 
         const user = await User.findById(req.session.user);
-        if (user && !user.is_blocked) {
+
+        if(user.is_blocked){
+            req.flash('error', 'Your account is blocked. Please contact support.')
+            return res.redirect('/blocked')
+        }
+        if (user) {
             return next(); // User is authenticated and not blocked
         }
 

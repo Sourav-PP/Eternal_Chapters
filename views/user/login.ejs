@@ -144,7 +144,7 @@
             type="email"
             placeholder="Enter your email"
             name="email"
-            value="<%= data ? data.email : '' %>"
+            value="<%= (data?.email || '') %>"
             required
           />
           <% if (typeof validationError !== 'undefined' && validationError) { %> <% const error =
@@ -155,7 +155,7 @@
             type="password"
             placeholder="Enter your password"
             name="password"
-            value="<%= data ? data.password : '' %>"
+            value="<%= (data?.password || '') %>"
             required
           />
           <% if (typeof validationError !== 'undefined' && validationError) { %> <% const error =
@@ -185,11 +185,31 @@
 
     <!-- SweetAlert -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <% if (error.length > 0) { %>
+
+  <% if (success && success.length > 0) { %>
+    
+    <script>
+      console.log("success", "<%= success[0] %>");
+     Swal.fire({
+       title: "Success",
+       text: "<%= success[0] %>",
+       icon: "success",
+       confirmButtonText: "OK",
+       customClass: {
+         popup: "my-swal-popup", // Custom class for the popup
+         title: "my-swal-title", // Custom class for the title
+         content: "my-swal-content", // Custom class for the content (text)
+         confirmButton: "my-swal-btn", // Custom class for the button
+       },
+     });
+    </script>
+   <% } %>
+
+  <% if (error && error.length > 0) { %>
   <script>
     Swal.fire({
       title: "Error",
-      text: "<%= error %>",
+      text: "<%= error[0] %>",
       icon: "error",
       confirmButtonText: "OK",
       customClass: {
@@ -201,5 +221,7 @@
     });
   </script>
   <% } %>
+  
+  
   </body>
 </html>

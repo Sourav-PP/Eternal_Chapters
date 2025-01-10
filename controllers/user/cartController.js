@@ -1,5 +1,6 @@
 const Cart = require('../../models/cartSchema')
 const User = require('../../models/userSchema')
+const Product = require('../../models/productSchema')
 
 //add to cart
 const addToCart = async (req, res) => {
@@ -7,10 +8,33 @@ const addToCart = async (req, res) => {
         const user_id = req.session.user
         const { quantity, product_id } = req.body
 
+        const product = await Product.findById(product_id)
+
+        if(product.available_quantity < 1 || product.status !== 'active') {
+            req.flash('error', `the product ${product.title} is currently unavailable`);
+            return res.redirect(`/productDetails?id=${product_id}`);
+        }
         // Convert quantity to a number
         const parsedQuantity = Number(quantity) || 1;
+        
+        let currentQuantity = 0;
 
         let cart = await Cart.findOne({ user_id })
+        if(cart) {
+            const item = cart.items.find(item => item.product_id.toString() === product_id)
+            if(item){
+                currentQuantity = item.quantity;
+            }
+        }
+
+        const totalQuantity = currentQuantity + parsedQuantity;
+
+        if(totalQuantity > product.available_quantity) {
+            req.flash('error', `Only ${product.available_quantity} items left in stock for ${product.title}!  You have already added ${currentQuantity} items to the cart`);
+            return res.redirect(`/productDetails?id=${product_id}`);
+        }
+
+
         if (!cart) {
             //create a new cart if it doesn't exist
             cart = new Cart({ user_id, items: [{ product_id, quantity: parsedQuantity || 1 }] })
@@ -45,6 +69,8 @@ const getCartPage = async (req, res) => {
             return res.render('cart',{
                 items: [],
                 totalPrice: 0,
+                success: req.flash('success'),
+                error: req.flash('error')
             })
         }
 
@@ -52,21 +78,25 @@ const getCartPage = async (req, res) => {
         let totalPrice = 0;
         const cartItems = cart.items.map(item => {
             const product = item.product_id;
-            const subTotal = product.price * item.quantity
+            const shippingCharges = 100;
+            const subTotal = (product.price * item.quantity) + shippingCharges;
+            
             totalPrice += subTotal;
             return {
                 product,
                 quantity: item.quantity,
-                subTotal
+                subTotal,
             }
         })
 
-        console.log("items in cart",cartItems)
+        console.log('cartItems', cartItems)
 
         res.render('cart', {
+            shippingCharges: 100,
             items: cartItems,
             totalPrice,
-            success: req.flash('success')
+            success: req.flash('success'),
+            error: req.flash('error')
         })
     } catch (error) {
         console.error("error loading the cart page", error)
@@ -92,10 +122,48 @@ const removeProduct = async(req,res) => {
     }
 }
 
+//update cart item quantity
+const updateCart = async(req,res) => {
+    try {
+        console.log('invoked')
+        const {product_id, quantity} = req.body
+        const userId = req.session.user
+        console.log('quantity', quantity)
+
+        const product = await Product.findById(product_id)
+
+        if(product.available_quantity < quantity) {
+            console.log('Redirecting to /cart-page');
+            return res.status(400).json({
+                success: false,
+                message: `Only ${product.available_quantity} items available`
+            })
+        }
+
+        const cart = await Cart.findOne({user_id: userId})
+
+        //update the quantity for the specific product
+        const item = cart.items.find(item => item.product_id.toString() === product_id)
+        if(item) {
+            item.quantity = quantity
+        } else {
+            req.flash('error', 'Product not found in the cart');
+            return res.redirect('/cart-page');
+        }
+
+        await cart.save()
+        req.flash('success', 'Cart updated successfully');
+    } catch (error) {   
+        console.error('error updating the cart', error)
+    }
+}
+
+
 
 
 module.exports = {
     getCartPage,
     addToCart,
     removeProduct,
+    updateCart,
 }

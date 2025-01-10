@@ -10,6 +10,7 @@ const profileController = require('../controllers/user/profileController')
 const validateAddAddress = require('../middlewares/validateAddAddress')
 const cartController = require('../controllers/user/cartController')
 const categoryController = require('../controllers/user/categoryController')
+const orderController = require('../controllers/user/orderController')  
 
 
 
@@ -21,8 +22,12 @@ router.post('/signup', validateSignup, userController.signup)
 //login management  
 router.get('/login', userController.loadLogin)
 router.post('/login', validateSignin, userController.login)
+router.get('/verify-otp', userController.getOtpPage)
 router.post('/verify-otp', validateOtpInput, userController.verifyOtp)
 router.get('/logout', userController.logout)
+
+//blocked user page
+router.get('/blocked', userController.blockedUser)
 
 //profile management
 router.get('/forgot-password', profileController.getForgotpage)
@@ -49,6 +54,13 @@ router.get('/productDetails', userAuth, productController.getProductDetails)
 router.get('/cart-page',userAuth,cartController.getCartPage)
 router.post('/addCart',userAuth,cartController.addToCart)
 router.post('/remove-cart-product/:id', userAuth, cartController.removeProduct)
+router.post('/update-cart', userAuth, cartController.updateCart)
+
+//order management
+router.get('/checkout',userAuth, orderController.checkout)
+router.post('/place-order',userAuth, orderController.placeOrder)
+router.get('/order-history',userAuth, orderController.orderHistory)
+router.post('/cancel-order/:id',userAuth, orderController.cancelOrder )
 
 //category
 router.get('/romance/:id',userAuth, categoryController.romance)

@@ -39,7 +39,8 @@ const getProductDetails = async (req, res) => {
             review: reviews,
             relatedProducts: relatedProducts,
             stockState: stockState,
-            success: req.flash('success')
+            success: req.flash('success'),
+            error: req.flash('error')
         })
     } catch (error) {
         console.error("error loading the product detail page:", error)

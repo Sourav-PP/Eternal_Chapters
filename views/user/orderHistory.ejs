@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eternal Chapters</title>
+    <!-- Bootstrap CSS -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="userDetails.css">
+    <link rel="stylesheet" href="manageAddress.css">
+    <link rel="stylesheet" href="user/header.css">
+    
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .order-history {
+            margin-top: 50px;
+        }
+        .order-card {
+            margin-bottom: 20px;
+            margin-right: 50px;
+            margin-left: 50px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 25px;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .order-item {
+            margin-bottom: 10px;
+        }
+        .order-item img {
+            
+            object-fit: cover;
+            border-radius: 10px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <%- include('../../views/partials/user/detailsHeader') %>
+    <div class="d-flex "style="height: 100 ">
+        <!-- Sidebar -->
+        <%- include('../../views/partials/user/detailsSidebar') %>
+    
+        <!-- Main Content -->
+        <div class="container order-history">
+            <h1 class="text-center mb-4">Order History</h1>
+
+            <% if (orders.length === 0) { %>
+                <div class="alert alert-danger text-center">
+                    <strong>No orders found!</strong>
+                </div>
+            <% } else { %>
+                <% orders.forEach(order => { %>
+                    <div class="order-card p-4 mb-4">
+                        <!-- Order Header -->
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                            <div>
+                                
+                                <p><strong>Order Date:</strong> <%= new Date(order.order_date).toLocaleDateString() %></p>
+                                <p><strong>Delivery Date:</strong> <%= order.delivery_date ? new Date(order.delivery_date).toLocaleDateString() : 'Pending' %></p>
+                            </div>
+                            <div>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge bg-<%= order.status === 'delivered' ? 'success' : order.status === 'pending' ? 'warning' : order.status === 'shipped' ? 'primary' : 'danger' %>">
+                                        <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+            
+                        <!-- Order Items -->
+                        <div class="order-items">
+                            <% order.orderItems.forEach(orderItem => { %>
+                                <% orderItem.items.forEach(item => { %>
+                                    <div class="order-item d-flex flex-column flex-md-row align-items-center mb-4">
+                                        <!-- Product Image -->
+                                        <img src="/uploads/<%= item.product_id.product_imgs[0] %>" 
+                                            alt="Product Image" 
+                                            class="img-fluid rounded border" 
+                                            style="height: 150px; width: auto;" />
+                                        <!-- Product Details -->
+                                        <div class="ms-4">
+                                            <h5 class="fw-bold"><%= item.product_id.title %></h5>
+                                            <p class="mb-1"><em>By: <%= item.product_id.author_name %></em></p>
+                                            <p class="mb-1"><strong>Quantity:</strong> <%= item.quantity %></p>
+                                            <p class="mb-1"><strong>Price:</strong> $<%= item.product_id.price %></p>
+                                            <p><strong>Subtotal:</strong> $<%= item.total_amount %></p>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% }) %>
+                        </div>
+            
+                        <!-- Order Summary -->
+                        <div class="order-summary mt-4">
+                            <h5 class="fw-bold text-primary">Order Summary</h5>
+                            <p><strong>Shipping Charges:</strong> $<%= order.shipping_chrg %></p>
+                            <p><strong>Discount:</strong> $<%= order.discount %></p>
+                            <p><strong>Total Amount:</strong> $<%= order.netAmount %></p>
+                            
+                        </div>
+            
+                        <!-- Order Actions -->
+                        <div class="order-actions mt-3">
+                            <% if (order.status === 'pending' || order.status === 'shipped') { %>
+                                <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                            <% } %>
+                            
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+            
+        </div>
+        
+        
+    </div>
+
+    <!-- footer -->
+    <%- include('../../views/partials/user/detailsFooter') %>
+
+    
+    
+    
+    
+    
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- sweet alert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function cancelOrder(orderId) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, cancel it!'
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/cancel-order/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type' : 'application/json'
+                        }
+                    }).then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            Swal.fire({
+                                title: 'Success',
+                                text: data.message,
+                                icon: 'success'
+                            }).then(() => {
+                                location.reload();
+                            })
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Something went wrong. Please try again.',
+                                icon: 'error'
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    </script>
+    
+
+</body>
+</html>

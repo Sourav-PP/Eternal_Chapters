@@ -81,6 +81,7 @@ const signup = async (req, res) => {
         const errors = validationResult(req);  // Validation errors
 
         if (!errors.isEmpty()) {
+            req.flash('validationError', errors.array());
             return res.render('signup', {
                 errors: errors.array(),  // Pass the errors to the view
                 data: req.body  // Retain form data
@@ -94,7 +95,9 @@ const signup = async (req, res) => {
 
         const findUser = await User.findOne({ email })
         if (findUser) {
-            return res.render('signup', { message: "User with this email already exist" })
+            req.flash('error', 'User with this email already exist')
+            // return res.render('signup', { message: "User with this email already exist" })
+            return res.redirect('/signup')
         }
 
         const otp = gererateOtp()
@@ -108,7 +111,8 @@ const signup = async (req, res) => {
         req.session.otpGeneratedAt = Date.now()
         req.session.userData = { first_name, last_name, email, phone_no, password }
 
-        res.render('verify-otp', { message: '' })
+        
+        res.redirect('/verify-otp')
         console.log("OTP sent", otp)
 
     } catch (error) {
@@ -116,6 +120,23 @@ const signup = async (req, res) => {
         res.redirect('/page_404')
     }
 
+}
+
+//get veryfy otp page
+const getOtpPage = async (req, res) => {
+    try {
+        if (!req.session.userOtp) {
+            return res.redirect('/signup')
+        }
+
+        const error = req.flash('error') || [];
+        res.render('verify-otp', { 
+            error,
+        })
+    }catch(error){
+        console.error("error loading verify otp page", error)
+        res.redirect('/page_404')
+    }
 }
 
 //verifying the otp
@@ -135,20 +156,17 @@ const verifyOtp = async (req, res) => {
             })
             await newUser.save()
 
-            req.session.user = newUser._id
+            
             req.session.userOtp = null
             req.session.userData = null
 
-            return res.render('login', {
-                message: "Account successfully verified!",
-                messageType: "success"
-            })
+            req.flash('success', 'Account successfully verified! Please login to continue.')
+            return res.redirect('/login')
 
         } else {
-            return res.render('verify-otp', {
-                message: "Invalid otp, please try again",
-                messageType: "failure"
-            })
+
+            req.flash('error', 'Invalid OTP. Please try again.')
+            return res.redirect('/verify-otp')
         }
     } catch (error) {
         console.error("error verifying otp", error)
@@ -162,12 +180,15 @@ const loadLogin = async (req, res) => {
         if (req.session.user) {
             return res.redirect('/');
         }
+        console.log(req.flash('success'))   
 
         return res.render('login', {
             error: req.flash('error'),
             validationError: req.flash('validationError'),
-            data: req.flash('data')
-        })
+            data: req.flash('data'),
+            success: req.flash('success'),
+        });
+        
     } catch (error) {
         console.error("error loading login page", error)
     }
@@ -209,7 +230,6 @@ const login = async (req, res) => {
             req.flash('error', 'Invalid Email or Password')
             return res.redirect('/login');
         }
-
         //session
         req.session.user = user._id;
 
@@ -229,19 +249,21 @@ const loadHomepage = async (req, res) => {
 
         const products = await Product.find({ is_deleted: false })
 
-        const updatedProducts = products.map(product => ({
-            ...product._doc,
-            title: product.title
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ')
-        }));
+        // const updatedProducts = products.map(product => ({
+        //     ...product._doc,
+        //     title: product.title
+        //         .split(' ')
+        //         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        //         .join(' ')
+        // }));
+
+        // console.log('updated products', updatedProducts)
 
         const bannerData = await Banner.findOne({ name: 'Home Banner' })
 
 
         res.render('home', {
-            products: updatedProducts,
+            products,
             banner: bannerData,
             error: req.flash('error')
         })
@@ -265,6 +287,15 @@ const logout = async (req, res) => {
     }
 }
 
+//blocked user page
+const blockedUser = async (req, res) => {
+    try {
+        res.render('blocked')
+    } catch (error) {
+        console.log("error loading the blocked user page")
+    }
+}
+
 
 
 
@@ -280,4 +311,6 @@ module.exports = {
     loadLogin,
     login,
     logout,
+    blockedUser,
+    getOtpPage
 }
