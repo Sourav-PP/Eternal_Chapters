@@ -11,11 +11,11 @@ const orderSchema = new Schema({
     payment_id: {
         type: Schema.Types.ObjectId,
         ref: 'Payment',
-        required: function() { return this.payment_method !== 'COD'; } 
+        required: function () { return this.payment_method !== 'COD'; }
     },
     payment_method: {
         type: String,
-        enum: ['COD', 'Online'],
+        enum: ['COD', 'creditCard', 'bank', 'upi'],
         required: true
     },
     address_id: {
@@ -32,12 +32,6 @@ const orderSchema = new Schema({
         type: Date,
         required: false
     }, // Can be null initially
-    status: {
-        type: String,
-        enum: ['pending', 'shipped', 'delivered', 'canceled'],
-        required: true,
-        default: 'pending',
-    },
     shipping_chrg: {
         type: Number,
         required: true,

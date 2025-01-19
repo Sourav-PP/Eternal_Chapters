@@ -1,0 +1,36 @@
+.wallet-box {
+    background-color: #ffe680;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    color: #000;
+    border: 3px solid #fff;
+    box-shadow: 0 0px 30px rgba(177, 156, 113, 0.1);;
+  }
+  .wallet-box h4 {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .payment-box {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+  }
+  .btn-wallet-history {
+    background-color: #5b4129;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 15px;
+    border-radius: 5px;
+  }
+  .btn-wallet-history:hover {
+    background-color: #3e2c1e;
+  }
+
+  .btn-success {
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    padding: 0px 26px;
+  }

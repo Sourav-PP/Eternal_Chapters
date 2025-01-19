@@ -1,9 +1,3 @@
-/* image preview */
-#image-preview {
-  max-width: 100%;
-  max-height: 400px;
-}
-
 /* add form */
 .form-container {
   max-width: 100%;
@@ -41,7 +35,6 @@ label {
 }
 input[type="text"],
 input[type="number"],
-input[type="file"],
 input[type="date"],
 select,
 textarea {
@@ -50,6 +43,16 @@ textarea {
   border: 1px solid #d5d5d5;
   border-radius: 5px;
   background-color: #f0f0f0;
+}
+
+input[type="file"] {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #d5d5d5;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  display: block;
+  margin-top: 10px;
 }
 textarea {
   resize: none;
@@ -70,13 +73,19 @@ button.add-button {
 button.add-button:hover {
   background-color: #6daa2b;
 }
-#croppedImg1,
-#croppedImg2,
-#croppedImg3,
-#croppedImg4 {
-  max-width: 300px;
-  max-height: 200px;
-  object-fit: contain;
+
+button {
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    flex: 1 1 100%;
+  }
 }
 .my-swal-popup {
   background-color: #ffffff; /* Light red background */
@@ -85,4 +94,81 @@ button.add-button:hover {
   padding: 25px 35px; /* More padding inside */
   width: 400px; /* Set width */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+
+
+.image-upload-container {
+  margin-bottom: 20px;
+}
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: 10px 0;
+}
+
+.preview {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.image-cropper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+}
+
+.image-cropper img {
+  max-width: 100%;
+  max-height: 400px;
+}
+
+.cropper-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: none;
+}
+
+.btn-crop {
+  background-color: #82c341;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }

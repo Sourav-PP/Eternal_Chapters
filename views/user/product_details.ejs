@@ -116,7 +116,7 @@
                     </form>
                         <button class="buy-now">Buy Now</button>
                         <div class="wishlist">
-                            <i class="fas fa-heart heart"></i>
+                            <button onclick="wishlishBtn('<%= product._id %>')" class="btn love-btn"><i class="fas fa-heart heart"></i></button>
                         </div>
                     </div>
 
@@ -142,9 +142,17 @@
                           <p class="text-muted small">
                             <%= element.author_name %>
                           </p>
-                          <p class="text-danger small mb-0">
-                            <%= element.status %>
-                          </p>
+                          <% if (product.stock_state === "Blocked") { %>
+                            <p class="text-danger small mb-0">Blocked</p>
+                            <% } else if (product.stock_state === "Sold out") { %>
+                            <p class="text-danger small mb-0">Sold out</p>
+                            <% } else if (product.stock_state === "Out of stock") { %>
+                            <p class="text-danger small mb-0">Out of stock</p>
+                            <% } else if (product.stock_state === "Unavailable") { %>
+                            <p class="text-danger small mb-0">Unavailable</p>
+                            <% } else if (product.stock_state === "Available") { %>
+                            <p class="text-success small mb-0">Available</p>
+                            <% } %>
                         </div>
                       </a>
                       </div>
@@ -260,8 +268,8 @@
     }
 
     function validateQuantity(input) {
-        const maxStock = document.getElementById('max-stock').value
-        const enteredQuantity = input.value
+        const maxStock = parseInt(document.getElementById('max-stock').value, 10)
+        const enteredQuantity = parseInt(input.value, 10)
 
         if(enteredQuantity > maxStock) {
             Swal.fire({
@@ -269,7 +277,7 @@
                 title: 'Error!',
                 text: `Only ${maxStock} items are available in stock.`,
                 showConfirmButton: false,
-                timer: 1500,
+                timer: 2000,
                 customClass: {
                     popup: 'my-swal-popup',
                     title: 'my-swal-title',
@@ -278,6 +286,34 @@
                 },
             })
             input.value = maxStock
+        }
+    }
+
+    async function wishlishBtn(productId) {
+        console.log('Product ID:', productId);
+        const response = await fetch('/wishlist', {
+            method: 'post',
+            headers: { 'Content-type' : 'application/json'},
+            body: JSON.stringify({productId})
+        })
+
+        const result = await response.json()
+        if(result.listed) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Product added to wishlist',
+                showConfirmButton: false,
+                timer: 1500,
+            })
+        } else {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Product removed from wishlist',
+                showConfirmButton: false,
+                timer: 1500,
+            })
         }
     }
 </script>

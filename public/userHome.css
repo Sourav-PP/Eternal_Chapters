@@ -4,6 +4,8 @@
   border-radius: 20px;
   padding-top: 17px;
   text-align: center;
+  border: none;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 .book img {

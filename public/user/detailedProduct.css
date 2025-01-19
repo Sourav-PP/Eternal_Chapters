@@ -108,6 +108,7 @@ body {
 
 .action-buttons {
   display: flex;
+  align-items: center;
   gap: 15px;
 }
 
@@ -133,10 +134,11 @@ body {
 }
 
 .wishlist {
-  font-size: 40px;
+  
   color: #ff4d4d;
   cursor: pointer;
   text-align: center;
+  padding: 0;
 }
 
 /* footer */
@@ -225,4 +227,9 @@ footer a:hover {
   position: absolute;
   left: 0px;
   top: 0px;
+}
+
+.love-btn {
+  border: none;
+  font-size: 35px;
 }

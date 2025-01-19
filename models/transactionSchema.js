@@ -3,23 +3,27 @@ const {Schema} = mongoose
 
 
 const transactionSchema = new Schema({
-  status: { 
-    type: String, 
-    required: true, 
-    enum: ['success', 'failed', 'pending'], 
-  }, 
-  amount: { 
-    type: Number, 
-    required: true 
-  }, 
-  date: { 
-    type: Date, 
-    default: Date.now 
-  }, 
-  payment_id: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'Payment', 
-    required: true 
+  status: {
+    type: String,
+    required: true,
+    enum: ['pending', 'completed', 'canceled', 'partially_refunded', 'refunded'],
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  refunded_amount: {
+    type: Number,
+    default: 0, // Initialize to 0
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  payment_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Payment',
+    required: true
   },
   created_at: { 
     type: Date, 

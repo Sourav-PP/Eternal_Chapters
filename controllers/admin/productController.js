@@ -1,6 +1,7 @@
 const Product = require('../../models/productSchema')
 const Category = require('../../models/categorySchema')
 const User = require('../../models/userSchema')
+const { validationResult } = require('express-validator')
 const sharp = require('sharp')
 const fs = require('fs')
 const path = require('path')
@@ -28,6 +29,8 @@ const getAddProduct = async (req, res) => {
         const categoryData = await Category.find()
 
         res.render('addProduct', {
+            validationError: req.flash('validationError'),
+            data: req.flash('data')[0] || {},
             category: categoryData,
             success: req.flash("success")
         })
@@ -39,6 +42,14 @@ const getAddProduct = async (req, res) => {
 //add product
 const addProduct = async (req, res) => {
     try {
+        const errors = validationResult(req)
+
+        if(!errors.isEmpty()) {
+            req.flash('validationError', errors.array())
+            req.flash('data', req.body)
+            return res.redirect('/admin/addProduct')
+        }
+
         const { title, author_name, price, available_quantity, category_id, status, language, publishing_date, publisher, page, description } = req.body
         const productExist = await Product.findOne({ title: title })
 

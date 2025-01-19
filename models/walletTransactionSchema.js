@@ -7,7 +7,7 @@ const walletTransactionSchema = new Schema({
     ref: 'Wallet', 
     required: true 
   },
-  amount: { 
+  amount: {
     type: Number, 
     required: true 
   },
@@ -15,6 +15,29 @@ const walletTransactionSchema = new Schema({
     type: Schema.Types.ObjectId, 
     ref: 'Order', 
     required: false 
+  },
+  transaction_type: {
+    type: String,
+    enum: ['creditCard', 'bank', 'upi', 'razorpay'],
+    required: true
+  },
+  balance_after_transaction: {
+    type: Number,
+    required: true
+  },
+  payment_status: {
+    type: String,
+    enum: ['initiated', 'successful', 'failed'],
+    default: 'initiated', // Track transaction status
+    required: true
+  },
+  razorpay_payment_id: {
+    type: String, // Razorpay's payment ID for successful transactions
+    required: false
+  },
+  razorpay_signature: {
+    type: String, // Signature for transaction verification
+    required: false
   },
   created_at: { 
     type: Date, 

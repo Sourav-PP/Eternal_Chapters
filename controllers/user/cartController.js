@@ -79,17 +79,15 @@ const getCartPage = async (req, res) => {
         const cartItems = cart.items.map(item => {
             const product = item.product_id;
             const shippingCharges = 100;
-            const subTotal = (product.price * item.quantity) + shippingCharges;
+            const subTotal = (product.price * item.quantity);
             
-            totalPrice += subTotal;
+            totalPrice += subTotal + shippingCharges;;
             return {
                 product,
                 quantity: item.quantity,
                 subTotal,
             }
         })
-
-        console.log('cartItems', cartItems)
 
         res.render('cart', {
             shippingCharges: 100,
@@ -125,15 +123,12 @@ const removeProduct = async(req,res) => {
 //update cart item quantity
 const updateCart = async(req,res) => {
     try {
-        console.log('invoked')
         const {product_id, quantity} = req.body
         const userId = req.session.user
-        console.log('quantity', quantity)
 
         const product = await Product.findById(product_id)
 
         if(product.available_quantity < quantity) {
-            console.log('Redirecting to /cart-page');
             return res.status(400).json({
                 success: false,
                 message: `Only ${product.available_quantity} items available`

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customers Dashboard</title>
+    <!-- font awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/admin/adminDashboard.css" />
+    <link rel="stylesheet" href="/admin/admin.css" />
+    <link rel="stylesheet" href="/admin/customer.css">
+
+    <style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .t-head {
+        background-color: rgb(63, 63, 63);
+    }
+    .form-holder{
+        padding: 20px;
+        background-color: #e6e6e6;
+        border-radius: 20px;
+    }
+
+    .ad-bt{
+        text-align: center;
+    }
+    </style>
+
+  </head>
+
+  <body>
+    <div class="container-fluid holder">
+      <!-- Header -->
+      <%- include('../../views/partials/admin/header') %>
+
+      <div class="row side">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
+          <%- include('../../views/partials/admin/sidebar') %>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
+          <!-- content goes here -->
+          <div class="container mt-5">
+            <!-- Search bar -->
+            <div class="d-flex justify-content-between mb-3">
+              <h3>Coupon Management</h3>
+              <input type="text" class="form-control w-25" placeholder="Search...">
+            </div>
+          
+            <!-- Coupon Table -->
+            <table class="table table-bordered table-striped">
+              <thead class="t-head">
+                <tr class="text-white">
+                  <th class="text-white">Code</th>
+                  <th class="text-white">Coupon Type</th>
+                  <th class="text-white">Coupon Amount</th>
+                  <th class="text-white">Description</th>
+                  <th class="text-white">Usage Limit</th>
+                  <th class="text-white">Expiry Date</th>
+                  <th class="text-white">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+        
+                 <% coupon.forEach(items => { %>
+                  
+                <tr>
+                  <td><%= items.code %></td>
+                  <td><%= items.coupon_type %></td>
+                  <td><%= items.discount_value %></td>
+                  <td><%= items.description %></td>
+                  <td><%= items.limit %></td>
+                  <td><%= items.expiry_date.toLocaleDateString() %></td>
+                  <td>
+                    <a href="#" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="#" class="btn btn-danger btn-sm">Delete</a>
+                  </td>
+                </tr>
+
+                <% }) %>
+
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Add Coupon Form -->
+          <div class="container mt-5">
+            <div class="form-holder">
+            <h4 class="text-center mb-3 fw-bold">Add New Coupon</h4>
+            <form action="/admin/create-coupon" method="post">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="coupon-code" class="form-label">Coupon Code</label>
+                    <input name="code" type="text" class="form-control" id="coupon-code" placeholder="Coupon Code" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="coupon-amount" class="form-label">Discount value</label>
+                    <input name="discount_value" type="number" class="form-control" id="coupon-amount" placeholder="Amount" required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="coupon-type" class="form-label">Coupon Type</label>
+                    <select name="coupon_type" class="form-select" id="coupon-type" required>
+                      <option value="fixed">Fixed Amount</option>
+                      <option value="percentage">Percentage</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <input name="description" type="text" class="form-control" id="description" placeholder="Description" required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="limit" class="form-label">Usage Limit</label>
+                    <input name="limit" type="number" class="form-control" id="limit" placeholder="Limit" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="expiry-date" class="form-label">Expiry Date</label>
+                    <input name="expiry_date" type="date" class="form-control" id="expiry-date" required>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-center mt-3">
+                <button type="submit" class="btn btn-success ad-bt">Add Coupon</button>
+              </div>
+            </form>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <!-- scrips -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <% if (error && error.length > 0) { %>
+        <script>
+            Swal.fire({
+                title: "Error",
+                text: "<%= error[0] %>",
+                icon: 'error',
+                showConfirmButton: false,
+                timer: 2000,
+            }) 
+        </script>
+    <% } %>
+
+    <% if (success && success.length > 0) { %>
+     <script>
+        Swal.fire({
+            title: 'Success',
+            text: '<%= success[0] %>',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 2000,
+        })
+     </script>
+    <% } %>
+
+    
+
+    <script>
+
+      function search() {
+        const input = document
+          .getElementById("search")
+          .value.toLowerCase()
+          .trim(); // Get search input and convert to lowercase
+        const rows = document.querySelectorAll("#searchData"); // Get all rows to search
+
+        rows.forEach((row) => {
+          const user = row.children[1].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
+          if (user.includes(input)) {
+            row.style.display = ""; // Show row if it matches the search
+          } else {
+            row.style.display = "none"; // Hide row if it doesn't match
+          }
+        });
+      }
+
+    </script>
+  </body>
+</html>

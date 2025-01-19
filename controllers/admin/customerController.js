@@ -28,14 +28,11 @@ const customerInfo = async (req, res) => {
 }
 
 const updateStatus = async (req, res) => {
-    console.log("POST /update-status triggered");
     try {
-        console.log("request body of toggle", req.body)
         const { userId, isBlocked } = req.body
 
         //update the users "is_blocked" status
         await User.findByIdAndUpdate(userId, { is_blocked: isBlocked }, { new: true })
-        console.log("User status updated successfully");
 
         res.status(200).json({ message: 'User status updated successfully' });
 
@@ -59,7 +56,6 @@ const securePassword = async (password) => {
 const addUser = async(req,res) => {
     try {
         const {first_name, last_name,email,phone_no,password} = req.body
-        console.log('add user body',req.body)
 
         const passwordHash = await securePassword(password)
         const newUser = new User({
@@ -83,7 +79,6 @@ const addUser = async(req,res) => {
 
 const deleteUser = async(req,res) => {
     try {
-        console.log('deleteeeeeeeeee')
         const userId = req.params.id;
     const user = await User.findByIdAndDelete(userId)
 
@@ -95,8 +90,6 @@ const deleteUser = async(req,res) => {
 
 const editUser = async(req,res) => {
     try {
-        console.log("Its comming")
-        console.log("edittttttttttt:",req.body)
         const {_id, first_name, last_name, email, phone_no} = req.body    
         await User.findByIdAndUpdate(_id, { first_name, last_name,email, phone_no }, { new: true });
 
@@ -106,44 +99,6 @@ const editUser = async(req,res) => {
         console.error("error editing the users",error)
     }   
 }
-
-
-
-// //edit user
-// const editUser = async (req, res) => {
-//     const { id, firstName, secondName, dob, email, phone, password, adminStatus } = req.body;
-
-//   try {
-//     // Find the user by ID
-//     const user = await User.findById(id);
-
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-
-//     // Update the user fields
-//     user.first_name = firstName;
-//     user.last_name = secondName;
-//     user.date_of_birth = dob;
-//     user.email = email;
-//     user.phone_no = phone;
-//     user.password = password; // You should hash the password before saving it
-//     user.is_admin = adminStatus === 'admin'; // Check if the adminStatus is 'admin' or 'user'
-
-//     // Save the updated user
-//     await user.save();
-
-//     // Respond with success message
-//     res.json({ message: 'User updated successfully' });
-
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Error updating user' });
-//   }
-// };
-
-
-
 
 module.exports = {
     customerInfo,

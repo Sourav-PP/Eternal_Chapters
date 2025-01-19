@@ -9,6 +9,26 @@
   <link rel="stylesheet" href="/admin/adminDashboard.css">
   <link rel="stylesheet" href="/admin/admin.css">
 
+  <style>
+    body {
+      background-color: #fdf8ec;
+    }
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 0px 15px rgba(99, 99, 99, 0.1);
+      background-color: #fff;
+    }
+    .status-completed {
+      color: green;
+    }
+    .status-processing {
+      color: orange;
+    }
+    .status-rejected {
+      color: red;
+    }
+  </style>
+
 </head>
 <body>
   <div class="container-fluid holder">
@@ -25,33 +45,77 @@
       <!-- Main Content -->
       <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
         <!-- content goes here -->
-        <div class="content-wrapper">
-          <h1 class="mb-4">Dashboard</h1>
-          <div class="row g-4">
+        <div class="container mt-4">
+          <!-- Key Metrics Section -->
+          <div class="row text-center">
             <div class="col-md-4">
-              <div class="card shadow-sm">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Total Users</h5>
-                  <p class="card-text fs-4">1,234</p>
-                </div>
+              <div class="card p-3">
+                <h5>Total Users</h5>
+                <h2>40,689</h2>
+                <small class="text-success">8.5% Up from last month</small>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card shadow-sm">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Sales</h5>
-                  <p class="card-text fs-4">$56,789</p>
-                </div>
+              <div class="card p-3">
+                <h5>Total Orders</h5>
+                <h2>10,293</h2>
+                <small class="text-success">1.3% Up from last month</small>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card shadow-sm">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Active Sessions</h5>
-                  <p class="card-text fs-4">312</p>
-                </div>
+              <div class="card p-3">
+                <h5>Total Sales</h5>
+                <h2>$89,000</h2>
+                <small class="text-danger">4.3% Down from last month</small>
               </div>
             </div>
+          </div>
+      
+          <!-- Sales Graph Placeholder -->
+          <div class="card mt-4 p-4">
+            <h5>Sales Details</h5>
+            <div id="chart" class="text-center">
+              <img src="https://via.placeholder.com/800x400?text=Graph+Placeholder" alt="Graph Placeholder" class="img-fluid">
+            </div>
+          </div>
+      
+          <!-- Data Table Section -->
+          <div class="card mt-4 p-4">
+            <h5>Sales Records</h5>
+            <table class="table table-striped mt-3">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Address</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>00001</td>
+                  <td>Christine Brooks</td>
+                  <td>089 Kutch Green Apt. 448</td>
+                  <td>04 Sep 2019</td>
+                  <td class="status-completed">Completed</td>
+                </tr>
+                <tr>
+                  <td>00002</td>
+                  <td>Rosie Pearson</td>
+                  <td>979 Immanuel Ferry Suite 526</td>
+                  <td>28 May 2019</td>
+                  <td class="status-processing">Processing</td>
+                </tr>
+                <tr>
+                  <td>00003</td>
+                  <td>Darrell Caldwell</td>
+                  <td>8587 Frida Ports</td>
+                  <td>23 Nov 2019</td>
+                  <td class="status-rejected">Rejected</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

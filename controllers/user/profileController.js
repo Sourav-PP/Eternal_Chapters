@@ -12,7 +12,7 @@ function generateForgotOtp() {
     return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-//verification email
+//Send verification email
 const sendVerficationEmail = async (email, otp) => {
     try {
         const transporter = nodemailer.createTransport({
@@ -34,7 +34,6 @@ const sendVerficationEmail = async (email, otp) => {
             html: `<b>Your OTP: ${otp}</b>`
         })
 
-        console.log("email sent:", info.messageId)
         return true
     } catch (error) {
         console.error('error sending email for forgot password', error)
@@ -43,7 +42,7 @@ const sendVerficationEmail = async (email, otp) => {
 }
 
 //secure password
-const securePassword = async (req, res) => {
+const securePassword = async (password) => {
     try {
         const passwordHash = await bcrypt.hash(password, 10)
         return passwordHash
@@ -55,7 +54,9 @@ const securePassword = async (req, res) => {
 //forgot password
 const getForgotpage = async (req, res) => {
     try {
-        res.render('forgotPassword')
+        res.render('forgotPassword',{
+            error: req.flash('error')
+        })
     } catch (error) {
         console.error('error loading forgot password', error)
     }
@@ -64,7 +65,6 @@ const getForgotpage = async (req, res) => {
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body
-        console.log("recipent email:", email)
         const findUser = await User.findOne({ email: email })
 
         if (findUser) {
@@ -79,9 +79,8 @@ const forgotPassword = async (req, res) => {
                 res.json({ success: false, message: "failed to send OTP, please try again" })
             }
         } else {
-            res.render('forgotPassword', {
-                message: "User with this email does not exist"
-            })
+            req.flash('error', 'Email not found. Please try again.')
+            return res.redirect('/forgot-password')
         }
 
     } catch (error) {
@@ -92,13 +91,12 @@ const forgotPassword = async (req, res) => {
 const verifyForgotPassOtp = async (req, res) => {
     try {
         const enteredOtp = req.body.otp
-
-        console.log("entered otp:", enteredOtp, "Session otp:", req.session.userOtp)
         if (enteredOtp === req.session.userOtp) {
-            console.log('hello mr')
+            req.flash('success', 'Otp verified successfully! Please reset your password.')
             res.redirect('/reset-password')
         } else {
-            res.json({ success: false, message: "Otp not matching" })
+            req.flash('error', 'Invalid OTP. Please try again.')
+            return res.redirect('/forgot-password')
         }
 
     } catch (error) {
@@ -109,11 +107,9 @@ const verifyForgotPassOtp = async (req, res) => {
 //resend otp
 const resendOtp = async (req, res) => {
     try {
-        console.log("hi resend")
         const otp = generateForgotOtp()
         const email = req.session.email
 
-        console.log("resending otp to email:", email);
         const emailSent = await sendVerficationEmail(email, otp)
         if (emailSent) {
             console.log("resend otp:", otp)
@@ -130,7 +126,8 @@ const resendOtp = async (req, res) => {
 const getResetPassword = async (req, res) => {
     try {
         res.render('reset-password', {
-            messages: req.flash()
+            error: req.flash('error'),
+            success: req.flash('success')
         })
     } catch (error) {
         console.error("error loading the reset password page", error)
@@ -163,10 +160,8 @@ const resetPassword = async (req, res) => {
 const userProfile = async (req, res) => {
     try {
         const userId = req.session.user
-        console.log("userrrr", userId)
         const userData = await User.findById(userId);
         const address = await Address.find({ user_id: userId })
-        console.log("user address:", address)
 
         res.render('profile', {
             user: userData,
@@ -238,6 +233,7 @@ const getAddAddress = async (req, res) => {
 //add address
 const addAddress = async (req, res) => {
     try {
+        const fromCheckout = req.query.from === 'checkout'
         const userId = req.session.user
         const userData = await User.findById(userId)
 
@@ -248,7 +244,6 @@ const addAddress = async (req, res) => {
 
         // Handle validation errors
         const errors = validationResult(req);
-        console.log("add address error", errors)
         if (!errors.isEmpty()) {
             req.flash('validationErrors', JSON.stringify(errors.array())); // Convert array to JSON string
             req.flash('formData', JSON.stringify(req.body)); // Convert form data to JSON string
@@ -274,7 +269,13 @@ const addAddress = async (req, res) => {
         await newAddress.save()
 
         req.flash('success', 'Address added successfully!');
-        res.redirect('/addAddress')
+
+        if(fromCheckout) {
+            return res.redirect('/checkout')
+        }else{
+            return res.redirect('/addAddress')
+        }
+        
 
     } catch (error) {
         console.error("error adding the address", error)
@@ -290,8 +291,6 @@ const getEditAddress = async (req, res) => {
         const addressId = req.params.id
 
         const address = await Address.findById(addressId)
-
-        console.log("edit addddddd", address)
         const userData = await User.findById(userId)
 
         res.render('edit-address', {
@@ -343,7 +342,7 @@ const deleteAddress = async(req,res) => {
         req.flash('success', 'Address deleted successfully!')
         res.redirect('/addressManagent')
     } catch (error) {
-        
+        console.log('error deleting the address',error)
     }
 }
 

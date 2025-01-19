@@ -24,3 +24,13 @@
     width: 95%;
     border-radius: 20px;
 }
+
+.bg{
+    background-color: rgb(236, 247, 228);
+    padding: 10px;
+    border-radius: 20px;
+}
+
+.bg input {
+    width: 260px;
+}

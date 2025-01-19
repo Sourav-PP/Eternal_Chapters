@@ -6,7 +6,10 @@ const categoryController = require('../controllers/admin/categoryController')
 const productController = require('../controllers/admin/productController')
 const bannerController = require('../controllers/admin/bannerController')
 const orderController = require('../controllers/admin/orderController')
+const couponController = require('../controllers/admin/couponController')
+//validation
 const validateAdminSignin = require('../middlewares/validateAdminSignin')
+const validateAddProduct = require('../middlewares/validateAddProduct')
 const { userAuth, adminAuth } = require('../middlewares/auth')
 const multer = require('multer')
 const path = require('path')
@@ -53,7 +56,7 @@ router.post('/deleteCategory/:id',adminAuth,categoryController.deleteCategory)
 // Product management
 router.get('/products', adminAuth, productController.productInfo)
 router.get('/addProduct', adminAuth, productController.getAddProduct)
-router.post('/add-product', adminAuth, upload.array('product_images', 4), productController.addProduct)
+router.post('/add-product', adminAuth, upload.array('product_images', 4), validateAddProduct, productController.addProduct)
 router.post('/soft-deleteProduct/:id', adminAuth, productController.softDeleteProduct)
 router.post('/restoreProduct/:id', adminAuth, productController.restoreProduct)
 router.get('/editProduct',adminAuth,productController.getEditProduct)
@@ -62,7 +65,13 @@ router.post('/deleteProduct/:id',adminAuth, productController.deleteProduct)
 
 //order management
 router.get('/orders', adminAuth, orderController.getOrders)
-router.post('/update-order-status/:id', adminAuth, orderController.updateOrderStatus)
+router.post('/update-order-status/:orderId/:productId', adminAuth, orderController.updateOrderStatus)
+router.post('/approve-return/:orderId/:productId', adminAuth, orderController.approveReturn)
+router.post('/reject-return/:orderId/:productId', adminAuth, orderController.rejectReturn)
+
+//coupon management
+router.get('/coupon-page', adminAuth, couponController.getPage)
+router.post('/create-coupon', adminAuth, couponController.createCoupon)
 
 //banner management
 router.get('/banners', adminAuth, bannerController.getBannerPage)

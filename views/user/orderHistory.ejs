@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="userDetails.css">
     <link rel="stylesheet" href="manageAddress.css">
     <link rel="stylesheet" href="user/header.css">
-    
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
@@ -34,7 +33,6 @@
             margin-bottom: 10px;
         }
         .order-item img {
-            
             object-fit: cover;
             border-radius: 10px;
         }
@@ -58,44 +56,48 @@
                 </div>
             <% } else { %>
                 <% orders.forEach(order => { %>
+                    <% order.orderItems.forEach(orderItem => { %>
+                     <% orderItem.items.forEach(item => { %>
+                      
                     <div class="order-card p-4 mb-4">
                         <!-- Order Header -->
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                             <div>
-                                
                                 <p><strong>Order Date:</strong> <%= new Date(order.order_date).toLocaleDateString() %></p>
                                 <p><strong>Delivery Date:</strong> <%= order.delivery_date ? new Date(order.delivery_date).toLocaleDateString() : 'Pending' %></p>
                             </div>
                             <div>
-                                <p><strong>Status:</strong> 
-                                    <span class="badge bg-<%= order.status === 'delivered' ? 'success' : order.status === 'pending' ? 'warning' : order.status === 'shipped' ? 'primary' : 'danger' %>">
-                                        <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                                <p><strong>Status:</strong>
+                                    <span class="badge 
+                                        <% if (item.status === 'delivered') { %> bg-success
+                                        <% } else if (item.status === 'pending') { %> bg-warning
+                                        <% } else if (item.status === 'shipped') { %> bg-primary
+                                        <% } else if (item.status === 'canceled') { %> bg-danger
+                                        <% } else if (item.status === 'return_requested') { %> bg-info
+                                        <% } else if (item.status === 'return_approved') { %> bg-success
+                                        <% } else if (item.status === 'return_rejected') { %> bg-secondary
+                                        <% } %>">
+                                        <%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %>
                                     </span>
                                 </p>
                             </div>
                         </div>
             
-                        <!-- Order Items -->
-                        <div class="order-items">
-                            <% order.orderItems.forEach(orderItem => { %>
-                                <% orderItem.items.forEach(item => { %>
-                                    <div class="order-item d-flex flex-column flex-md-row align-items-center mb-4">
-                                        <!-- Product Image -->
-                                        <img src="/uploads/<%= item.product_id.product_imgs[0] %>" 
-                                            alt="Product Image" 
-                                            class="img-fluid rounded border" 
-                                            style="height: 150px; width: auto;" />
-                                        <!-- Product Details -->
-                                        <div class="ms-4">
-                                            <h5 class="fw-bold"><%= item.product_id.title %></h5>
-                                            <p class="mb-1"><em>By: <%= item.product_id.author_name %></em></p>
-                                            <p class="mb-1"><strong>Quantity:</strong> <%= item.quantity %></p>
-                                            <p class="mb-1"><strong>Price:</strong> $<%= item.product_id.price %></p>
-                                            <p><strong>Subtotal:</strong> $<%= item.total_amount %></p>
-                                        </div>
-                                    </div>
-                                <% }) %>
-                            <% }) %>
+                        <!-- Order Item -->
+                        <div class="order-item d-flex flex-column flex-md-row align-items-center mb-4">
+                            <!-- Product Image -->
+                            <img src="/uploads/<%= item.product_id.product_imgs[0] %>" 
+                                alt="Product Image" 
+                                class="img-fluid rounded border" 
+                                style="height: 150px; width: auto;" />
+                            <!-- Product Details -->
+                            <div class="ms-4">
+                                <h5 class="fw-bold"><%= item.product_id.title %></h5>
+                                <p class="mb-1"><em>By: <%= item.product_id.author_name %></em></p>
+                                <p class="mb-1"><strong>Quantity:</strong> <%= item.quantity %></p>
+                                <p class="mb-1"><strong>Price:</strong> $<%= item.product_id.price %></p>
+                                <p><strong>Subtotal:</strong> $<%= item.total_amount %></p>
+                            </div>
                         </div>
             
                         <!-- Order Summary -->
@@ -104,17 +106,23 @@
                             <p><strong>Shipping Charges:</strong> $<%= order.shipping_chrg %></p>
                             <p><strong>Discount:</strong> $<%= order.discount %></p>
                             <p><strong>Total Amount:</strong> $<%= order.netAmount %></p>
-                            
                         </div>
             
                         <!-- Order Actions -->
                         <div class="order-actions mt-3">
-                            <% if (order.status === 'pending' || order.status === 'shipped') { %>
-                                <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                            <% if (item.status === 'pending' || item.status === 'shipped') { %>
+                                <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>','<%= item.product_id._id %>')">Cancel Order</button>
+                            <% } else if (item.status === 'delivered') { %>
+                                <button class="btn btn-primary fw-bold" onclick="returnProducts('<%= order._id %>','<%= item.product_id._id %>')">Return</button>
+                            <% } else if (item.status === 'return_requested') { %>
+                                <h4 class="text-danger">Return request is sent</h4>
+                            <% } else if (item.status === 'returned') { %>
+                                <h3>Order has been returned</h3>
                             <% } %>
-                            
                         </div>
                     </div>
+                    <% }) %>
+                    <% }) %>
                 <% }) %>
             <% } %>
             
@@ -126,12 +134,6 @@
     <!-- footer -->
     <%- include('../../views/partials/user/detailsFooter') %>
 
-    
-    
-    
-    
-    
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -139,23 +141,26 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function cancelOrder(orderId) {
+        function cancelOrder(orderId, productId) {
             Swal.fire({
                 title: "Are you sure?",
-                text: "You won't be able to revert this!",
+                text: "Please provide a reason for cancelling this product:",
+                input: 'textarea',
+                inputPlaceholder: 'Please enter the reason',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Yes, cancel it!'
-
             }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`/cancel-order/${orderId}`, {
+                if (result.isConfirmed && result.value) {
+                    const cancelReason = result.value;
+                    fetch(`/cancel-order/${orderId}/${productId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type' : 'application/json'
-                        }
+                        },
+                        body: JSON.stringify({cancelReason})
                     }).then(response => response.json())
                     .then(data => {
                         if(data.success) {
@@ -174,11 +179,64 @@
                             })
                         }
                     })
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: 'Return reason is required',
+                        icon: 'error',
+                    })
+                }
+            })
+        }
+
+        //return order
+        function returnProducts(orderId, productId) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Please provide a reason for returning this product:",
+                input: 'textarea',
+                inputPlaceholder: 'Enter your reason here!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, return it!'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    const returnReason = result.value
+                    fetch(`/return-order/${orderId}/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type' : 'application/json'
+                        },
+                        body: JSON.stringify({returnReason})
+                    }).then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            Swal.fire({
+                                title: 'Success',
+                                text: data.message,
+                                icon: 'success'
+                            }).then(() => {
+                                location.reload();
+                            })
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Something went wrong. Please try again.',
+                                icon: 'error'
+                            })
+                        }
+                    })
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Return reason is required",
+                        icon: 'error'
+                    })
                 }
             })
         }
     </script>
-    
-
 </body>
 </html>

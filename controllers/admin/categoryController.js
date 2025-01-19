@@ -28,7 +28,6 @@ const addCategory = async (req, res) => {
         const existingCategory = await Category.findOne({ name: { $regex: `^${normalizedName}$`, $options: 'i' } });
 
         if (existingCategory) {
-            console.log("category name must be unique")
             return res.redirect(`/admin/categories?error=${encodeURIComponent(`The category name "${name}" already exists. Please choose a different name.`)}`)
         }
         const newCategory = new Category({
@@ -37,7 +36,7 @@ const addCategory = async (req, res) => {
         });
 
         await newCategory.save();
-        console.log('Category added successfully');
+        
         res.redirect('/admin/categories'); // Redirect to the category list page
     } catch (error) {
         console.error('Error adding category:', error.message);
@@ -47,8 +46,7 @@ const addCategory = async (req, res) => {
 
 const editCategory = async(req,res) => {
     try {
-        console.log("Its comming")
-        console.log("edittttttttttt:",req.body)
+        
         const {_id, name, description} = req.body    
         await Category.findByIdAndUpdate(_id, { name, description }, { new: true });
 
@@ -62,8 +60,6 @@ const editCategory = async(req,res) => {
 //soft delete
 const softDelete = async(req,res) => {
     try {
-        console.log('helo')
-        console.log("heheeee:",req.params)
         const {id} = req.params
         const result = await Category.findByIdAndUpdate(id,{is_deleted:true})
         console.log("soft:",result)

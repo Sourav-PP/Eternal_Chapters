@@ -79,3 +79,9 @@ body {
     width: 9.5rem;
     margin-top: .5rem;
 }
+
+.error {
+  font-size: 13px;
+  color: red;
+  margin-top: 5px;
+}

@@ -1,0 +1,34 @@
+.detail {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+}
+
+.detail img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 5px;
+}
+
+.detail h5 {
+    margin: 0;
+}
+
+.detail p {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .detail {
+        text-align: center;
+    }
+
+    .detail .col-4, .detail .col-8, .detail .col-12 {
+        margin-bottom: 10px;
+    }
+
+    .detail .col-md-4 {
+        text-align: center;
+    }
+}

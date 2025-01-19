@@ -1,36 +1,49 @@
 const mongoose = require('mongoose');
-const {Schema} = mongoose
+const { Schema } = mongoose
 
 const orderItemsSchema = new Schema({
-  order_id: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'Order', 
-    required: true 
+  order_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Order',
+    required: true
   }, // Reference to the associated order
   items: [
     {
-      product_id: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Product', 
-        required: true 
+      product_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
       },
-      quantity: { 
-        type: Number, 
-        required: true 
+      quantity: {
+        type: Number,
+        required: true
       },
-      total_amount: { 
-        type: Number, 
-        required: true 
+      total_amount: {
+        type: Number,
+        required: true
       },
+      status: {
+        type: String,
+        enum: ['pending', 'shipped', 'delivered', 'canceled', 'return_requested', 'return_approved', 'return_rejected'],
+        default: 'pending'
+      },
+      return_reason: {
+        type: String,
+        default: ''
+      },
+      cancel_reason: {
+        type: String,
+        default: ''
+      }
     }
-  ], 
-  created_at: { 
-    type: Date, 
-    default: Date.now 
-  }, 
-  updated_at: { 
-    type: Date, 
-    default: Date.now 
+  ],
+  created_at: {
+    type: Date,
+    default: Date.now
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now
   },
 });
 

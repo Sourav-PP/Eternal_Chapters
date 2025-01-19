@@ -8,7 +8,7 @@ const Cart = require('../../models/cartSchema')
 const romance = async(req,res) => {
     try {
         const categoryName = req.params.id
-        const name = categoryName.toUpperCase()
+        const name = categoryName.toLowerCase()
         const banner = await Banner.findOne({name:'Romance'})
         const category = await Category.findOne({name: categoryName})
     

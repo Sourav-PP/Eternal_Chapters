@@ -62,11 +62,12 @@
                     </div>
 
                     <!-- Right Section: Price Details -->
+                    
                     <div class="col-md-4 price-holder">
                         <div class="price-details">
                             <h5>PRICE DETAILS</h5>
                             <p>
-                                Price ( <%= items.length %> Items ) <span class="float-end">&#8377;<%= items.subTotal %></span>
+                                Price ( <%= items.length %> Items ) <span class="float-end">&#8377;<%= totalPrice %></span>
                             </p>
                             <p>Delivery Charges <span class="float-end"><%= shippingCharges %></span></p>
                             <hr />
@@ -76,6 +77,7 @@
                             <button class="btn-checkout w-100 mt-3"><a class="text-white text-decoration-none" href="/checkout">Checkout</a></button>
                         </div>
                     </div>
+                    
                 </div>
             <% } %>
         </div>

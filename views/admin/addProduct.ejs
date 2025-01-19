@@ -19,7 +19,7 @@
     />
 
     <link rel="stylesheet" href="admin.css" />
-    <link rel="stylesheet" href="/admin/addProduct.css">
+    <link rel="stylesheet" href="/admin/addProduct.css" />
     <!-- <link rel="stylesheet" href="/adminProducts.css"> -->
 
     <!-- cropper -->
@@ -27,7 +27,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css"
     />
-
   </head>
 
   <body>
@@ -57,8 +56,15 @@
                     type="text"
                     id="book-title"
                     name="title"
+                    value="<%= (data.title || '') %>"
                     placeholder="Enter book title"
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'title'); %> <% if
+                  (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
                 <div class="form-group">
                   <label for="author-name">Author Name</label>
@@ -66,8 +72,15 @@
                     type="text"
                     id="author-name"
                     name="author_name"
+                    value="<%= (data.author_name || '') %>"
                     placeholder="Enter author name"
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'author_name'); %> <%
+                  if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
               <div class="form-row">
@@ -77,8 +90,15 @@
                     type="number"
                     id="price"
                     name="price"
+                    value="<%= (data.price || '') %>"
                     placeholder="Enter price"
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'price'); %> <% if
+                  (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
                 <div class="form-group">
                   <label for="quantity">Available Quantity</label>
@@ -86,28 +106,47 @@
                     type="number"
                     id="quantity"
                     name="available_quantity"
+                    value="<%= (data.available_quantity || '') %>"
                     placeholder="Enter quantity"
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path ===
+                  'available_quantity'); %> <% if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="category">Category</label>
-                  <select id="category" name="category_id" required>
+                  <select id="category" name="category_id">
                     <% category.forEach((cat,index)=>{ %>
 
                     <option value="<%= cat._id %>"><%= cat.name %></option>
 
                     <% }) %>
                   </select>
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'category_id'); %> <%
+                  if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
                 <div class="form-group">
                   <label for="status">Status</label>
-                  <select id="status" name="status" required>
+                  <select id="status" name="status">
                     <option value="active">Active</option>
                     <option value="discontinued">Discontinued</option>
                     <option value="unavailable">Unavailable</option>
                   </select>
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'status'); %> <% if
+                  (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
               <div class="form-row">
@@ -118,6 +157,12 @@
                     id="publishing-date"
                     name="publishing_date"
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'publishing_date');
+                  %> <% if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
                 <div class="form-group">
                   <label for="publisher">Publisher</label>
@@ -125,9 +170,15 @@
                     type="text"
                     id="publisher"
                     name="publisher"
+                    value="<%= (data.publisher || '') %>"
                     placeholder="Enter publisher name"
-                    required
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'publisher'); %> <%
+                  if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
 
@@ -138,139 +189,119 @@
                     type="number"
                     id="page"
                     name="page"
+                    value="<%= (data.page || '') %>"
                     placeholder="Enter number of pages"
-                    required
                   />
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'page'); %> <% if
+                  (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
                 <div class="form-group">
                   <label for="language">Language</label>
-                  <select id="status" name="language" required>
+                  <select id="status" name="language">
                     <option value="malayalam">Malayalam</option>
                     <option value="english">English</option>
                   </select>
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'language'); %> <% if
+                  (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
+              <!--  -->
               <div class="form-row">
                 <!-- image 1 -->
                 <div class="form-group">
-                  <label for="upload-image">Upload image 1</label>
-                  <input
-                    type="file"
-                    id="upload-image1"
-                    name="product_images"
-                    accept="image/png, image/jpeg, image/jpg"
-                    onchange="viewImage1(event), viewImage(event, 1)"
-                  />
+                  <label for="upload-image1">Upload image 1</label>
+                  <div class="image-upload-container">
+                      <div class="preview-container">
+                          <img src="" alt="" id="imgView1" class="preview" />
+                      </div>
+                      <input type="file" 
+                            id="upload-image1" 
+                            name="product_images" 
+                            accept="image/png, image/jpeg, image/jpg"
+                            onchange="viewImage(event, 1)" />
+                      <% if (typeof validationError !== 'undefined' && validationError) { %>
+                        <% const error = validationError.find(err => err.path === 'product_images'); %>
+                        <% if (error) { %>
+                          <small class="error" id="error1"> <%= error.msg %> </small>
+                        <% } %>
+                      <% } %>
+                  </div>
                 </div>
-                <div
-                  class="image-cropper d-flex align-items-center"
-                  style="
-                    display: none;
-                    width: 300x;
-                    height: 200px;
-                    margin-bottom: 18px;
-                  "
-                >
-                  <img src="" id="croppedImg1" alt="" />
-                  <button
-                    type="button"
-                    id="saveButton1"
-                    class="btn-sm btn btn-success"
-                  >
-                    Save
-                  </button>
-                </div>
+
                 <!-- image 2 -->
                 <div class="form-group">
-                  <label for="upload-image-2">Upload Image 2</label>
-                  <input
-                    type="file"
-                    id="upload-image2"
-                    name="product_images"
-                    accept="image/png, image/jpeg, image/jpg"
-                    onchange="viewImage2(event), viewImage(event, 2)"
-                  />
+                  <label for="upload-image2">Upload image 2</label>
+                  <div class="image-upload-container">
+                      <div class="preview-container">
+                          <img src="" alt="" id="imgView2" class="preview" />
+                      </div>
+                      <input type="file" 
+                            id="upload-image2" 
+                            name="product_images" 
+                            accept="image/png, image/jpeg, image/jpg"
+                            onchange="viewImage(event, 2)" />
+                      <% if (typeof validationError !== 'undefined' && validationError) { %>
+                        <% const error = validationError.find(err => err.path === 'product_images'); %>
+                        <% if (error) { %>
+                          <small class="error" id="error1"> <%= error.msg %> </small>
+                        <% } %>
+                      <% } %>
+                  </div>
                 </div>
-                <div
-                  class="image-cropper d-flex align-items-center"
-                  style="
-                    display: none;
-                    width: 300x;
-                    height: 200px;
-                    margin-bottom: 18px;
-                  "
-                >
-                  <img src="" id="croppedImg2" alt="" />
-                  <button
-                    type="button"
-                    id="saveButton2"
-                    class="btn-sm btn btn-success"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
+              </div> 
+              <!-- form row first -->
               <div class="form-row">
                 <!-- image 3 -->
                 <div class="form-group">
-                  <label for="upload-image-3">Upload Image 3</label>
-                  <input
-                    type="file"
-                    id="upload-image3"
-                    name="product_images"
-                    accept="image/png, image/jpeg, image/jpg"
-                    onchange="viewImage3(event), viewImage(event, 3)"
-                  />
+                  <label for="upload-image3">Upload image 3</label>
+                  <div class="image-upload-container">
+                      <div class="preview-container">
+                          <img src="" alt="" id="imgView3" class="preview" />
+                      </div>
+                      <input type="file" 
+                            id="upload-image3" 
+                            name="product_images" 
+                            accept="image/png, image/jpeg, image/jpg"
+                            onchange="viewImage(event, 3)" />
+                      <% if (typeof validationError !== 'undefined' && validationError) { %>
+                        <% const error = validationError.find(err => err.path === 'product_images'); %>
+                        <% if (error) { %>
+                          <small class="error" id="error1"> <%= error.msg %> </small>
+                        <% } %>
+                      <% } %>
+                  </div>
                 </div>
-                <div
-                  class="image-cropper d-flex align-items-center"
-                  style="
-                    display: none;
-                    width: 300x;
-                    height: 200px;
-                    margin-bottom: 18px;
-                  "
-                >
-                  <img src="" id="croppedImg3" alt="" />
-                  <button
-                    type="button"
-                    id="saveButton3"
-                    class="btn-sm btn btn-success"
-                  >
-                    Save
-                  </button>
-                </div>
+
                 <!-- iamge 4 -->
                 <div class="form-group">
-                  <label for="upload-image-4">Upload Image 4</label>
-                  <input
-                    type="file"
-                    id="upload-image4"
-                    name="product_images"
-                    accept="image/png, image/jpeg, image/jpg"
-                    onchange="viewImage4(event), viewImage(event, 4)"
-                  />
-                </div>
-                <div
-                  class="image-cropper d-flex align-items-center"
-                  style="
-                    display: none;
-                    width: 300x;
-                    height: 200px;
-                    margin-bottom: 18px;
-                  "
-                >
-                  <img src="" id="croppedImg4" alt="" />
-                  <button
-                    type="button"
-                    id="saveButton4"
-                    class="btn-sm btn btn-success"
-                  >
-                    Save
-                  </button>
+                  <label for="upload-image4">Upload image 4</label>
+                  <div class="image-upload-container">
+                      <div class="preview-container">
+                          <img src="" alt="" id="imgView4" class="preview" />
+                      </div>
+                      <input type="file" 
+                            id="upload-image4" 
+                            name="product_images" 
+                            accept="image/png, image/jpeg, image/jpg"
+                            onchange="viewImage(event, 4)" />
+                      <% if (typeof validationError !== 'undefined' && validationError) { %>
+                        <% const error = validationError.find(err => err.path === 'product_images'); %>
+                        <% if (error) { %>
+                          <small class="error" id="error1"> <%= error.msg %> </small>
+                        <% } %>
+                      <% } %>
+                  </div>
                 </div>
               </div>
-
+              <!--  -->
               <div class="form-row">
                 <div class="form-group">
                   <label for="description">Description</label>
@@ -279,6 +310,12 @@
                     name="description"
                     placeholder="Enter description"
                   ></textarea>
+                  <% if (typeof validationError !== 'undefined' &&
+                  validationError) { %> <% const error =
+                  validationError.find(err => err.path === 'description'); %> <%
+                  if (error) { %>
+                  <small class="error" id="error1"> <%= error.msg %> </small>
+                  <% } %> <% } %>
                 </div>
               </div>
               <button type="submit" class="add-button">Add</button>
@@ -287,6 +324,10 @@
         </div>
       </div>
     </div>
+
+
+    <!-- Add this modal backdrop and cropper container outside your form -->
+    <div class="modal-backdrop" id="cropperBackdrop"></div>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -333,113 +374,97 @@
       }
 
       //image cropper functionality
-      function viewImage1(event) {
-        document.getElementById("croppedImg1").src = URL.createObjectURL(
-          event.target.files[0]
-        );
-      }
 
-      function viewImage2(event) {
-        document.getElementById("croppedImg2").src = URL.createObjectURL(
-          event.target.files[0]
-        );
-      }
-
-      function viewImage3(event) {
-        document.getElementById("croppedImg3").src = URL.createObjectURL(
-          event.target.files[0]
-        );
-      }
-
-      function viewImage4(event) {
-        document.getElementById("croppedImg4").src = URL.createObjectURL(
-          event.target.files[0]
-        );
-      }
-
-      function viewImage(event, index) {
-        let input = event.target;
-        let reader = new FileReader();
-        reader.onload = function () {
-          let dataURL = reader.result;
-          let image = document.getElementById("croppedImg" + index);
-          image.src = dataURL;
-          let cropper = new Cropper(image, {
-            aspectRatio: 2 / 3,
-            viewMode: 1,
-            guides: true,
-            background: false,
-            autoCropArea: 1,
-            zoomable: true,
-          });
-
-          let cropperContainer = document.querySelector(
-            "#croppedImg" + index
-          ).parentNode;
-          cropperContainer.style.display = "block";
-
-          let saveButton = document.querySelector("#saveButton" + index);
-          saveButton.addEventListener("click", async function () {
-            let croppedCanvas = cropper.getCroppedCanvas();
-            let croppedImage = document.getElementById("croppedImg" + index);
-            croppedImage.src = croppedCanvas.toDataURL("image/jpeg", 1.0);
-
-            let timestamp = new Date().getTime();
-            let fileName = `cropped-img-${timestamp}-${index}.png`;
-
-            await croppedCanvas.toBlob((blob) => {
-              let input = document.getElementById("upload-image" + index);
-              let imgFile = new File([blob], fileName, blob);
-              const fileList = new DataTransfer();
-              fileList.items.add(imgFile);
-              input.files = fileList.files;
-            });
-
-            cropperContainer.style.display = "none";
-            cropper.destroy();
-          });
-        };
-        reader.readAsDataURL(input.files[0]);
-      }
-
-      const selectedImages = [];
-      document
-        .getElementById("upload-image1")
-        .addEventListener("change", handleFileSelect);
-
-      function handleFileSelect(event) {
-        const addedImagesContainer = document.getElementById(
-          "addedImagesContainer"
-        );
-        addedImagesContainer.innerHTML = "";
-        const files = event.target.files;
-
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          selectedImages.push(file);
-          const thumbnail = document.createElement("div");
-          thumbnail.classList.add("thumbnail");
-
-          const img = document.createElement("img");
-          img.src = URL.createObjectURL(file);
-          img.alt = "thumbnail";
-          img.style.width = "50px";
-          img.style.height = "auto";
-          const removeIcon = document.createElement("span");
-          removeIcon.classList.add("remove-icon");
-          removeIcon.innerHTML = "&times;";
-          removeIcon.addEventListener("click", function () {
-            const index = selectedImages.indexOf(file);
-            if (inex !== -1) {
-              selectedImages.splice(index, 1);
-            }
-            thumbnail.remove();
-          });
-          thumbnail.appendChild(img);
-          thumbnail.appendChild(removeIcon);
-          addedImagesContainer.appendChild(thumbnail);
+      let currentCropper = null;
+        let currentImageIndex = null;
+        
+        function viewImage(event, index) {
+            const input = event.target;
+            const reader = new FileReader();
+            currentImageIndex = index;
+            
+            reader.onload = function() {
+                const dataURL = reader.result;
+                const image = document.getElementById("imgView" + index);
+                image.src = dataURL;
+                
+                // Show modal backdrop
+                document.getElementById('cropperBackdrop').style.display = 'block';
+                
+                // Create cropper container if it doesn't exist
+                let cropperContainer = document.querySelector('.image-cropper');
+                if (!cropperContainer) {
+                    cropperContainer = document.createElement('div');
+                    cropperContainer.className = 'image-cropper';
+                    cropperContainer.innerHTML = `
+                        <img src="${dataURL}" id="cropperImage">
+                        <div class="cropper-actions">
+                            <button class="btn-crop" onclick="saveCroppedImage()">Save</button>
+                            <button class="btn-cancel" onclick="cancelCropping()">Cancel</button>
+                        </div>
+                    `;
+                    document.body.appendChild(cropperContainer);
+                } else {
+                    cropperContainer.style.display = 'block';
+                    cropperContainer.querySelector('img').src = dataURL;
+                }
+                
+                // Initialize cropper
+                if (currentCropper) {
+                    currentCropper.destroy();
+                }
+                
+                currentCropper = new Cropper(cropperContainer.querySelector('img'), {
+                    aspectRatio: 2/3,
+                    viewMode: 1,
+                    guides: true,
+                    background: false,
+                    autoCropArea: 1,
+                    zoomable: true
+                });
+            };
+            
+            reader.readAsDataURL(input.files[0]);
         }
-      }
+        
+        function saveCroppedImage() {
+            if (!currentCropper) return;
+            
+            const canvas = currentCropper.getCroppedCanvas();
+            const image = document.getElementById("imgView" + currentImageIndex);
+            image.src = canvas.toDataURL("image/jpeg", 1.0);
+            
+            canvas.toBlob((blob) => {
+                const input = document.getElementById("upload-image" + currentImageIndex);
+                const fileName = `cropped-img-${Date.now()}-${currentImageIndex}.png`;
+                const file = new File([blob], fileName, { type: "image/png" });
+                
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+            });
+            
+            cleanupCropper();
+        }
+        
+        function cancelCropping() {
+            const input = document.getElementById("upload-image" + currentImageIndex);
+            input.value = ''; // Clear the file input
+            const image = document.getElementById("imgView" + currentImageIndex);
+            image.src = ''; // Clear the preview
+            
+            cleanupCropper();
+        }
+        
+        function cleanupCropper() {
+            if (currentCropper) {
+                currentCropper.destroy();
+                currentCropper = null;
+            }
+            
+            document.querySelector('.image-cropper').style.display = 'none';
+            document.getElementById('cropperBackdrop').style.display = 'none';
+        }
     </script>
   </body>
 </html>

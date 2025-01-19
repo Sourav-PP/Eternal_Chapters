@@ -38,7 +38,7 @@
                             <span class="badge bg-primary text-light pt-2"><%= addr.address_type %></span>
                             <div>
                                 <button class="btn btn-warning btn-sm"><a class="text-decoration-none text-dark" href="/editAddress/<%= addr._id  %>">Edit</a></button>
-                                    <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteModal<%= address._id %>">Delete</button>
+                                    <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteModal<%= addr._id %>">Delete</button>
                                 
                             </div>
                         </div>
@@ -66,7 +66,7 @@
 
     <!-- confirmation modal -->
      <% address.forEach(addr => { %>
-        <div class="modal fade" id="deleteModal<%= address._id %>" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal fade" id="deleteModal<%= addr._id %>" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">

@@ -5,6 +5,7 @@ const env = require('dotenv').config()
 const bcrypt = require('bcrypt')
 const { validationResult } = require('express-validator')
 const Banner = require('../../models/bannerSchema')
+const Wallet = require('../../models/walletSchema')
 
 
 
@@ -68,7 +69,14 @@ const securePassword = async (password) => {
 //load signup page
 const loadSignup = async (req, res) => {
     try {
-        return res.render('signup', { message: "", errors: [] })
+        if(req.session.user) {
+            return res.redirect('/')
+        }
+        return res.render('signup', {
+            validationError: req.flash('validationError'),
+            data: req.flash('data'),
+            error: req.flash('error'),
+        })
     } catch (error) {
         console.log("user signup page error", error.message)
         res.status(500).send('Server error')
@@ -82,21 +90,19 @@ const signup = async (req, res) => {
 
         if (!errors.isEmpty()) {
             req.flash('validationError', errors.array());
-            return res.render('signup', {
-                errors: errors.array(),  // Pass the errors to the view
-                data: req.body  // Retain form data
-            });
+            req.flash('data', req.body);
+            return res.redirect('/signup');
         }
 
         const { first_name, last_name, email, phone_no, password, confirmPass } = req.body
         if (password !== confirmPass) {
-            return res.render('signup', { message: "Password do not match" })
+            req.flash('error', 'Password do not match!')
+            return res.redirect('/signup')
         }
 
         const findUser = await User.findOne({ email })
         if (findUser) {
             req.flash('error', 'User with this email already exist')
-            // return res.render('signup', { message: "User with this email already exist" })
             return res.redirect('/signup')
         }
 
@@ -104,7 +110,7 @@ const signup = async (req, res) => {
         const emailSent = await sendVerficationEmail(email, otp);
 
         if (!emailSent) {
-            return res.json("email-error")
+            return res.status(500).json({ error: "Failed to send verification email" });
         }
 
         req.session.userOtp = otp;
@@ -112,7 +118,7 @@ const signup = async (req, res) => {
         req.session.userData = { first_name, last_name, email, phone_no, password }
 
         
-        res.redirect('/verify-otp')
+        res.redirect('/verify-otp') 
         console.log("OTP sent", otp)
 
     } catch (error) {
@@ -174,13 +180,42 @@ const verifyOtp = async (req, res) => {
     }
 }
 
+//resend otp
+const resendSignupOtp = async (req, res) => {
+    try {
+
+        if (!req.session.userOtp || !req.session.userData) {
+            return res.redirect('/signup');
+        }
+
+        const newOtp = gererateOtp(); // Generate new OTP
+        req.session.userOtp = newOtp; // Update session with new OTP
+
+        console.log("Generated new OTP:", newOtp);
+
+        const email = req.session.userData.email; // Retrieve email from userData
+
+        const emailSent = await sendVerficationEmail(email, newOtp);
+        if (!emailSent) {
+            // Send only one response, and avoid calling res.redirect() or res.send() after this.
+            return res.status(500).json({ success: false, message: 'Failed to resend OTP. Please try again later.' });
+        }
+
+        req.session.otpGeneratedAt = Date.now(); // Update OTP generation timestamp
+        res.status(200).json({ success: true, message: 'A new OTP has been sent to your email.' });
+
+    } catch (error) {
+        console.error("Error resending OTP:", error);
+        res.redirect('/page_404');
+    }
+};
+
 //loading the login page
 const loadLogin = async (req, res) => {
     try {
         if (req.session.user) {
             return res.redirect('/');
         }
-        console.log(req.flash('success'))   
 
         return res.render('login', {
             error: req.flash('error'),
@@ -226,12 +261,24 @@ const login = async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            console.log("Invalid password");
             req.flash('error', 'Invalid Email or Password')
             return res.redirect('/login');
         }
+        
         //session
         req.session.user = user._id;
+
+        // Check if the user already has a wallet
+        const existingWallet = await Wallet.findOne({ user_id: user._id });
+
+        if (!existingWallet) {
+            // Create wallet for the new user
+            const newWallet = new Wallet({
+                user_id: user._id,
+                balance: 0,
+            });
+            await newWallet.save();
+        }
 
         res.redirect('/');
     } catch (error) {
@@ -248,16 +295,6 @@ const loadHomepage = async (req, res) => {
         }
 
         const products = await Product.find({ is_deleted: false })
-
-        // const updatedProducts = products.map(product => ({
-        //     ...product._doc,
-        //     title: product.title
-        //         .split(' ')
-        //         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        //         .join(' ')
-        // }));
-
-        // console.log('updated products', updatedProducts)
 
         const bannerData = await Banner.findOne({ name: 'Home Banner' })
 
@@ -308,9 +345,11 @@ module.exports = {
     page_404,
     signup,
     verifyOtp,
+    resendSignupOtp,
     loadLogin,
     login,
     logout,
     blockedUser,
-    getOtpPage
+    getOtpPage,
+
 }

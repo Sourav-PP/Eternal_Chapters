@@ -6,8 +6,9 @@ const couponSchema = new Schema({
   is_active: { 
     type: String, 
     enum: ['active', 'inactive'], 
-    required: true 
-  }, // Enum: active or inactive
+    required: true,
+    default: 'active'
+  },
   code: { 
     type: String, 
     required: true, 
@@ -16,7 +17,7 @@ const couponSchema = new Schema({
   }, // Unique coupon code
   coupon_type: { 
     type: String, 
-    enum: ['fixed', 'percentage'], 
+    enum: ['fixed', 'percentage'],
     required: true 
   },
   discount_value: { 
@@ -33,7 +34,7 @@ const couponSchema = new Schema({
     required: true, 
     min: 1 
   }, // Maximum usage limit
-  expire_date: { 
+  expiry_date: { 
     type: Date, 
     required: true 
   },
