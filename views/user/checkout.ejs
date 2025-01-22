@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="user/header.css" />
     <link rel="stylesheet" href="user/checkout.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .success-message {
+            color: green;
+        }
+    </style>
 </head>
 <body>
     <%- include('../../views/partials/user/detailsHeader') %>
@@ -49,6 +54,7 @@
                             <h4 class="mb-3">Apply Coupon</h4>
                             <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" />
                             <button type="button" id="apply-coupon" class="btn btn-success mt-2">Apply Coupon</button>
+                            <button type="button" id="remove-coupon" class="btn btn-danger mt-2" style="display: none;">Remove Coupon</button>
                             <div id="coupon-message" class="mt-2 text-danger"></div>
                         </div>
 
@@ -188,6 +194,7 @@
             }
         });
 
+        //apply coupon
         document.getElementById('apply-coupon').addEventListener('click', async function() {
             const couponCode = document.getElementById('coupon-code').value;
 
@@ -207,8 +214,12 @@
 
                 if(data.success) {
                     document.getElementById('coupon-message').innerHTML = `Coupn applied! discount: ₹${data.discountAmount}`;
+                    document.getElementById('coupon-message').className = 'success-message'
                     //update the total amount displayed on the page
                     document.querySelector('.total').innerHTML = `₹${data.newTotalAmount}`
+
+                    document.getElementById('apply-coupon').style.display = 'none'
+                    document.getElementById('remove-coupon').style.display = 'inline-block'
                 } else {
                     document.getElementById('coupon-message').innerHTML = data.message
                 }
@@ -220,6 +231,38 @@
                     showConfirmButton: false,
                     timer: 2000
                 })
+            }
+        })
+
+        //remove coupon
+        document.getElementById('remove-coupon').addEventListener('click' , async function() {
+            try {
+                const response = await fetch('/remove-coupon', {
+                    method: 'POST',
+                })
+
+                const data = await response.json()
+
+                if(data.success) {
+                    document.getElementById('coupon-message').innerHTML = ''
+                    document.getElementById('coupon-code').value = ''
+
+                    //update the total amount displayed on the page
+                    document.querySelector('.total').innerHTML = `₹${data.newTotalAmount}`
+
+                    document.getElementById('apply-coupon').style.display = 'inline-block'
+                    document.getElementById('remove-coupon').style.display = 'none'
+                }else{
+                    document.getElementById('coupon-message').innerHTML = data.message
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message,
+                    icon: 'error',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             }
         })
     </script>

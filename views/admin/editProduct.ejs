@@ -156,6 +156,14 @@
                     name="title"
                     value="<%= product.title %>"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'title'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
                 <div class="form-group">
                   <label for="author-name">Author Name</label>
@@ -165,6 +173,14 @@
                     name="author_name"
                     value="<%= product.author_name %>"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'author_name'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
               <div class="form-row">
@@ -176,6 +192,14 @@
                     name="price"
                     value="<%= product.price %>"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'price'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
                 <div class="form-group">
                   <label for="quantity">Available Quantity</label>
@@ -185,6 +209,14 @@
                     name="available_quantity"
                     value="<%= product.available_quantity %>"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'available_quantity'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
               <div class="form-row">
@@ -197,6 +229,14 @@
 
                     <% }) %>
                   </select>
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'category_id'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
                 <div class="form-group">
                   <label for="status">Status</label>
@@ -205,6 +245,14 @@
                     <option value="discontinued">Discontinued</option>
                     <option value="unavailable">Unavailable</option>
                   </select>
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'status'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
               <div class="form-row">
@@ -216,6 +264,15 @@
                     name="publishing_date"
                     value="<%= product.publishing_date %>"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'publishing_date'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
+
                 </div>
                 <div class="form-group">
                   <label for="publisher">Publisher</label>
@@ -226,6 +283,14 @@
                     value="<%= product.publisher %>"
                     required
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'publisher'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
 
@@ -239,6 +304,14 @@
                     value="<%= product.page %>"
                     required
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'page'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
                 <div class="form-group">
                   <label for="language">Language</label>
@@ -249,6 +322,14 @@
                     value="<%= product.language %>"
                     required
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'language'); %>
+                    <% if(error) { %>
+                    <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
               <div class="form-row">
@@ -262,6 +343,14 @@
                     accept="image/png, image/jpeg, image/jpg"
                     onchange="viewImage1(event), viewImage(event, 1)"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'product_images'); %>
+                    <% if (error) { %>
+                      <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                   <% if (product.product_imgs && product.product_imgs[0]) { %>
                   <img
                     src="/uploads/<%= product.product_imgs[0] %>"
@@ -299,6 +388,14 @@
                     accept="image/png, image/jpeg, image/jpg"
                     onchange="viewImage2(event), viewImage(event, 2)"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'product_images'); %>
+                    <% if (error) { %>
+                      <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                   <% if (product.product_imgs && product.product_imgs[1]) { %>
                   <img
                     src="/uploads/<%= product.product_imgs[1] %>"
@@ -338,6 +435,14 @@
                     accept="image/png, image/jpeg, image/jpg"
                     onchange="viewImage3(event), viewImage(event, 3)"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'product_images'); %>
+                    <% if (error) { %>
+                      <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                   <% if (product.product_imgs && product.product_imgs[2]) { %>
                   <img
                     src="/uploads/<%= product.product_imgs[2] %>"
@@ -375,6 +480,14 @@
                     accept="image/png, image/jpeg, image/jpg"
                     onchange="viewImage4(event), viewImage(event, 4)"
                   />
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'product_images'); %>
+                    <% if (error) { %>
+                      <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                   <% if (product.product_imgs && product.product_imgs[3]) { %>
                   <img
                     src="/uploads/<%= product.product_imgs[3] %>"
@@ -412,6 +525,14 @@
                     name="description"
                     placeholder="Enter description"
                   ></textarea>
+
+                  <% if (typeof validationError !== 'undefined' && validationError) { %>
+                    <% const error = validationError.find(err => err.path === 'description'); %>
+                    <% if (error) { %>
+                      <small class="error" id="error1"> <%= error.msg %> </small>
+                    <% } %>
+                  <% } %>
+
                 </div>
               </div>
               <button type="submit" class="add-button">Update</button>

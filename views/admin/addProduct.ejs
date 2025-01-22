@@ -376,95 +376,146 @@
       //image cropper functionality
 
       let currentCropper = null;
-        let currentImageIndex = null;
+let currentImageIndex = null;
+
+function viewImage(event, index) {
+    const input = event.target;
+    if (!input.files || !input.files[0]) return;
+    
+    const reader = new FileReader();
+    currentImageIndex = index;
+    
+    reader.onload = function() {
+        const dataURL = reader.result;
         
-        function viewImage(event, index) {
-            const input = event.target;
-            const reader = new FileReader();
-            currentImageIndex = index;
-            
-            reader.onload = function() {
-                const dataURL = reader.result;
-                const image = document.getElementById("imgView" + index);
-                image.src = dataURL;
-                
-                // Show modal backdrop
-                document.getElementById('cropperBackdrop').style.display = 'block';
-                
-                // Create cropper container if it doesn't exist
-                let cropperContainer = document.querySelector('.image-cropper');
-                if (!cropperContainer) {
-                    cropperContainer = document.createElement('div');
-                    cropperContainer.className = 'image-cropper';
-                    cropperContainer.innerHTML = `
-                        <img src="${dataURL}" id="cropperImage">
-                        <div class="cropper-actions">
-                            <button class="btn-crop" onclick="saveCroppedImage()">Save</button>
-                            <button class="btn-cancel" onclick="cancelCropping()">Cancel</button>
-                        </div>
-                    `;
-                    document.body.appendChild(cropperContainer);
-                } else {
-                    cropperContainer.style.display = 'block';
-                    cropperContainer.querySelector('img').src = dataURL;
-                }
-                
-                // Initialize cropper
-                if (currentCropper) {
-                    currentCropper.destroy();
-                }
-                
-                currentCropper = new Cropper(cropperContainer.querySelector('img'), {
-                    aspectRatio: 2/3,
-                    viewMode: 1,
-                    guides: true,
-                    background: false,
-                    autoCropArea: 1,
-                    zoomable: true
-                });
-            };
-            
-            reader.readAsDataURL(input.files[0]);
+        // Show modal backdrop
+        const backdrop = document.getElementById('cropperBackdrop');
+        backdrop.style.display = 'block';
+        
+        // Create or get cropper container
+        let cropperContainer = document.querySelector('.image-cropper');
+        if (!cropperContainer) {
+            cropperContainer = document.createElement('div');
+            cropperContainer.className = 'image-cropper';
+            cropperContainer.innerHTML = `
+                <div style="max-height: 70vh; overflow: auto;">
+                    <img src="${dataURL}" id="cropperImage" style="max-width: 100%;">
+                </div>
+                <div class="cropper-actions">
+                    <button class="btn-crop" onclick="saveCroppedImage()">Save</button>
+                    <button class="btn-cancel" onclick="cancelCropping()">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(cropperContainer);
+        } else {
+            const cropperImage = cropperContainer.querySelector('#cropperImage');
+            cropperImage.src = dataURL;
+            cropperContainer.style.display = 'block';
         }
         
-        function saveCroppedImage() {
-            if (!currentCropper) return;
-            
-            const canvas = currentCropper.getCroppedCanvas();
-            const image = document.getElementById("imgView" + currentImageIndex);
-            image.src = canvas.toDataURL("image/jpeg", 1.0);
-            
-            canvas.toBlob((blob) => {
-                const input = document.getElementById("upload-image" + currentImageIndex);
-                const fileName = `cropped-img-${Date.now()}-${currentImageIndex}.png`;
-                const file = new File([blob], fileName, { type: "image/png" });
-                
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                input.files = dataTransfer.files;
-            });
-            
-            cleanupCropper();
+        // Destroy existing cropper if any
+        if (currentCropper) {
+            currentCropper.destroy();
         }
         
-        function cancelCropping() {
-            const input = document.getElementById("upload-image" + currentImageIndex);
-            input.value = ''; // Clear the file input
-            const image = document.getElementById("imgView" + currentImageIndex);
-            image.src = ''; // Clear the preview
-            
-            cleanupCropper();
-        }
+        // Initialize new cropper
+        const cropperImage = document.getElementById('cropperImage');
+        currentCropper = new Cropper(cropperImage, {
+            aspectRatio: 2/3,
+            viewMode: 2,
+            guides: true,
+            background: false,
+            autoCropArea: 0.8,
+            zoomable: true,
+            movable: true,
+            cropBoxResizable: true
+        });
+    };
+    
+    reader.readAsDataURL(input.files[0]);
+}
+
+function saveCroppedImage() {
+    if (!currentCropper) return;
+    
+    const canvas = currentCropper.getCroppedCanvas();
+    if (!canvas) return;
+    
+    // Update preview image
+    const image = document.getElementById("imgView" + currentImageIndex);
+    image.src = canvas.toDataURL("image/jpeg", 0.9);
+    
+    // Add close button if it doesn't exist
+    let closeButton = image.parentElement.querySelector('.preview-close');
+    if (!closeButton) {
+        closeButton = document.createElement('button');
+        closeButton.className = 'preview-close';
+        closeButton.innerHTML = '×';
+        closeButton.onclick = function(e) {
+            e.preventDefault();
+            clearPreview(currentImageIndex);
+        };
+        image.parentElement.appendChild(closeButton);
+    }
+    
+    // Convert canvas to blob and update file input
+    canvas.toBlob(function(blob) {
+        const input = document.getElementById("upload-image" + currentImageIndex);
+        const fileName = `cropped-image-${Date.now()}.jpg`;
+        const file = new File([blob], fileName, { type: "image/jpeg" });
         
-        function cleanupCropper() {
-            if (currentCropper) {
-                currentCropper.destroy();
-                currentCropper = null;
-            }
-            
-            document.querySelector('.image-cropper').style.display = 'none';
-            document.getElementById('cropperBackdrop').style.display = 'none';
-        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+    }, 'image/jpeg', 0.9);
+    
+    cleanupCropper();
+}
+
+function clearPreview(index) {
+    const input = document.getElementById("upload-image" + index);
+    const image = document.getElementById("imgView" + index);
+    const closeButton = image.parentElement.querySelector('.preview-close');
+    
+    input.value = '';
+    image.src = '';
+    if (closeButton) {
+        closeButton.remove();
+    }
+}
+
+function cancelCropping() {
+    const input = document.getElementById("upload-image" + currentImageIndex);
+    input.value = '';
+    const image = document.getElementById("imgView" + currentImageIndex);
+    image.src = '';
+    
+    cleanupCropper();
+}
+
+function cleanupCropper() {
+    if (currentCropper) {
+        currentCropper.destroy();
+        currentCropper = null;
+    }
+    
+    const cropperContainer = document.querySelector('.image-cropper');
+    if (cropperContainer) {
+        cropperContainer.style.display = 'none';
+    }
+    
+    const backdrop = document.getElementById('cropperBackdrop');
+    if (backdrop) {
+        backdrop.style.display = 'none';
+    }
+}
+
+// Add event listener for the modal backdrop to cancel cropping when clicked
+document.getElementById('cropperBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) {
+        cancelCropping();
+    }
+});
     </script>
   </body>
 </html>

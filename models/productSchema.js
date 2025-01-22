@@ -11,6 +11,10 @@ const productSchema = new Schema({
         ref: "Category",
         required: true,
     },
+    offer_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Offer'
+    },
     author_name: {
         type: String,
         required: true,

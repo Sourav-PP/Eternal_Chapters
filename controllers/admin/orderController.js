@@ -5,7 +5,14 @@ const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema')
 const Payment = require('../../models/paymentSchema')
 const Transaction = require('../../models/transactionSchema')
+const Razorpay = require('razorpay')
+const Wallet = require('../../models/walletSchema')
+const WalletTransaction = require('../../models/walletTransactionSchema')
 
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 
 const getOrders = async (req, res) => {
@@ -190,6 +197,32 @@ const approveReturn = async (req, res) => {
                 console.error('Error approving return request:', error);
                 req.flash('error', 'Internal server error while approving return request.');
                 return res.redirect('/admin/orders');
+            }
+
+            //update the wallet
+            const user = await User.findById(order.user_id)
+            const wallet = await Wallet.findOne({ user_id: user._id })
+
+            if (wallet) {
+                wallet.balance += refundAmount
+                await wallet.save()
+
+
+                //update the transaction of wallet
+                const walletTransaction = new WalletTransaction({
+                    wallet_id: wallet._id,
+                    amount: refundAmount,
+                    order_id: orderId,
+                    transaction_type: 'refund',
+                    balance_after_transaction: wallet.balance,
+                    payment_status: 'successful',
+                    razorpay_payment_id: payment.razorpay_payment_id || null,
+                    razorpay_signature: payment.razorpay_signature || null,
+                })
+
+                await walletTransaction.save();
+            } else {
+                console.log('wallet not found when return approve')
             }
 
         }

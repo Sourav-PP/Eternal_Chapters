@@ -76,6 +76,7 @@ router.get('/order-history', userAuth, orderController.orderHistory)
 router.post('/cancel-order/:id/:productId', userAuth, orderController.cancelOrder)
 router.post('/return-order/:id/:productId', userAuth, orderController.returnOrder)
 router.post('/apply-coupon', userAuth, orderController.applyCoupon)
+router.post('/remove-coupon', userAuth, orderController.removeCoupon)
 
 //payment management
 router.post('/create-order', userAuth, paymentController.createOrder)
@@ -84,12 +85,14 @@ router.post('/create-wallet-order', userAuth, paymentController.createWalletOrde
 //wallet management
 router.get('/wallet-page', userAuth, walletController.getWallet)
 router.post('/update-wallet', userAuth, walletController.updateWallet)
+router.get('/wallet-transction-history', userAuth, walletController.getHistory)
 
 //category
-router.get('/romance/:id', userAuth, categoryController.romance)
+router.get('/category/:id', userAuth, categoryController.categoryPage)
 
 //filter product
 router.get('/filter', userAuth, productController.filterProduct)
+router.get('/filterHome', userAuth, productController.filterHome)
 
 
 

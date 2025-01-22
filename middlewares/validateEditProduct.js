@@ -1,6 +1,6 @@
 const { body } = require('express-validator')
 
-const addProductValidation = [
+const editProductValidation = [
     body('title')
         .notEmpty().withMessage('Title is required.'),
     body('author_name')
@@ -29,13 +29,6 @@ const addProductValidation = [
         .isIn(['malayalam', 'english']).withMessage('Invalid language value.'),
     body('description')
         .notEmpty().withMessage('Description is required.'),
-    body('product_images')
-        .custom((value, { req }) => {
-          if (!req.files || req.files.length === 0) {
-            throw new Error('At least one image is required.');
-          }
-          return true;
-        }),
 ]
 
-module.exports = addProductValidation
+module.exports = editProductValidation

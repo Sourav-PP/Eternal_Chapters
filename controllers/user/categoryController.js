@@ -5,18 +5,23 @@ const Banner = require('../../models/bannerSchema')
 const Cart = require('../../models/cartSchema')
 
 
-const romance = async(req,res) => {
+const categoryPage = async(req,res) => {
     try {
         const categoryName = req.params.id
         const name = categoryName.toLowerCase()
-        const banner = await Banner.findOne({name:'Romance'})
+        const banner = await Banner.findOne({name: categoryName})
         const category = await Category.findOne({name: categoryName})
     
         if(!category) {
             req.flash('error', 'category not found')
             return res.redirect('/')
         }
-        const products = await Product.find({category_id: category._id})
+        const products = await Product.find({ category_id: category._id })
+
+        if (category.is_deleted) {
+            req.flash('error', 'This category is not available');
+            return res.redirect('/');
+        }
 
         // Check if there are products to display
         if (products.length === 0) {
@@ -31,7 +36,7 @@ const romance = async(req,res) => {
                 .join(' ')
         }));
 
-        return res.render('romance', {
+        return res.render('categoryPage', {
             products: updatedProducts,
             name,
             banner,
@@ -44,5 +49,5 @@ const romance = async(req,res) => {
 }
 
 module.exports = {
-    romance,
+    categoryPage,
 }

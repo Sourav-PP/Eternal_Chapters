@@ -99,7 +99,7 @@ button {
 
 
 .image-upload-container {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .preview-container {
@@ -109,16 +109,48 @@ button {
   margin: 10px 0;
 }
 
-.preview {
+/* .preview {
   width: 100%;
   height: 200px;
   object-fit: contain;
   border: 2px dashed #ccc;
   border-radius: 5px;
   background-color: #f8f9fa;
+} */
+
+.preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  background-color: #f8f9fa;
 }
 
-.image-cropper {
+.preview-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+.preview-close:hover {
+  background-color: #c82333;
+}
+
+/* .image-cropper {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -130,21 +162,53 @@ button {
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
+} */
+
+.image-cropper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050; /* Increased z-index to appear above navbar */
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: auto;
 }
+
+
+/* .image-cropper img {
+  max-width: 100%;
+  max-height: 400px;
+} */
 
 .image-cropper img {
   max-width: 100%;
-  max-height: 400px;
+  display: block;
+  margin: 0 auto;
 }
 
-.cropper-actions {
+/* .cropper-actions {
   display: flex;
   gap: 10px;
   margin-top: 15px;
   justify-content: center;
+} */
+
+.cropper-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: center;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
 }
 
-.modal-backdrop {
+/* .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -153,9 +217,21 @@ button {
   background: rgba(0,0,0,0.5);
   z-index: 999;
   display: none;
+} */
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 1040; /* Just below the cropper */
+  display: none;
 }
 
-.btn-crop {
+/* .btn-crop {
   background-color: #82c341;
   color: white;
   border: none;
@@ -171,4 +247,38 @@ button {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+} */
+
+.btn-crop,
+.btn-cancel {
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-crop {
+  background-color: #82c341;
+  color: white;
+  border: none;
+}
+
+.btn-crop:hover {
+  background-color: #6daa2b;
+}
+
+.btn-cancel {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333;
+}
+
+.cropper-container {
+  max-width: 100% !important;
+  max-height: 70vh !important;
 }

@@ -39,7 +39,8 @@
                                     <h5><%= item.title %></h5>
                                     <p class="text-success fw-bold">&#8377;<%= item.price %></p>
                                 </div>
-                                <div class="col-12 col-md-4 text-end mt-3 mt-md-0">
+                                <div class="col-12 col-md-4 text-end mt-3 mt-md-0 d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm"><a class="text-decoration-none text-white" href="/productDetails?id=<%= item._id %>">View</a></button>
                                     <form action="/remove-wishlist/<%= item._id %>" method="post">
                                         <button class="btn btn-danger btn-sm">Remove</button>
                                     </form>

@@ -63,7 +63,65 @@ const updateWallet = async(req,res) => {
     }
 }
 
+//transction history
+const getHistory = async(req,res) => {
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = 2
+        const skip = (page - 1) * limit
+
+        const userId = req.session.user
+        const wallet = await Wallet.findOne({user_id: userId})
+
+        //extract filter adn sorts
+        const {dateFilter, sortBy} = req.query;
+        let query = {wallet_id: wallet._id}
+
+        //filter by date
+        if(dateFilter) {
+            const date = new Date(dateFilter)
+            const nextDay = new Date(date)
+            nextDay.setDate(nextDay.getDate() + 1) 
+            query.created_at = {
+                $gte: date,
+                $lt: nextDay
+            }
+        }
+
+        //sorting order
+        let sort = {created_at: -1}
+        if(sortBy === 'date_asc') {
+            sort = {created_at: 1}
+        }else if (sortBy === 'amount_desc') {
+            sort = {amount: -1}
+        }else if (sortBy === 'amount_asc') {
+            sort = {amount: 1}
+        }
+    
+        const walletTransaction = await WalletTransaction.find(query).sort(sort).skip(skip).limit(limit)
+        const totalTransactions = await WalletTransaction.countDocuments();
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        console.log('weeee',walletTransaction)
+
+        return res.render('walletTransactionHistory', {
+            walletTransaction,
+            currentPage: page,
+            itemsPerPage: limit,
+            totalPages,
+            dateFilter,
+            sortBy,
+        })
+    } catch (error) {
+        console.log('error loading wallet history page',error)
+    }
+}
+
+
+
+
 module.exports = {
     getWallet,
     updateWallet,
+    getHistory,
 }

@@ -62,7 +62,7 @@
             <!-- Search bar -->
             <div class="d-flex justify-content-between mb-3">
               <h3>Coupon Management</h3>
-              <input type="text" class="form-control w-25" placeholder="Search...">
+              <input type="text" class="form-control w-25" placeholder="Search..." id="search" oninput="search()">
             </div>
           
             <!-- Coupon Table -->
@@ -90,8 +90,14 @@
                   <td><%= items.limit %></td>
                   <td><%= items.expiry_date.toLocaleDateString() %></td>
                   <td>
-                    <a href="#" class="btn btn-warning btn-sm">Edit</a>
-                    <a href="#" class="btn btn-danger btn-sm">Delete</a>
+                    <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editCouponModal" 
+                      onclick="loadCouponDetails('<%= items._id %>', '<%= items.code %>', '<%= items.discount_value %>', '<%= items.coupon_type %>', '<%= items.description %>', '<%= items.limit %>', '<%= items.expiry_date.toISOString() %>', '<%= items.is_active %>')">
+                      Edit
+                    </a>
+                    <form action="/admin/delete-coupon" method="POST" style="display:inline;">
+                      <input type="hidden" name="coupon_id" value="<%= items._id %>"> <!-- Hidden input with coupon id -->
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                   </td>
                 </tr>
 
@@ -105,18 +111,35 @@
           <div class="container mt-5">
             <div class="form-holder">
             <h4 class="text-center mb-3 fw-bold">Add New Coupon</h4>
-            <form action="/admin/create-coupon" method="post">
+            <form action="/admin/create-coupon" method="post" id="addCoupon">
               <div class="row">
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="coupon-code" class="form-label">Coupon Code</label>
-                    <input name="code" type="text" class="form-control" id="coupon-code" placeholder="Coupon Code" required>
+                 
+                    <input value="" name = "code" type="text" class="form-control" id="coupon-code" placeholder="Coupon Code" required>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'code'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors1"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="coupon-amount" class="form-label">Discount value</label>
                     <input name="discount_value" type="number" class="form-control" id="coupon-amount" placeholder="Amount" required>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'discount_value'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors2"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
               </div>
@@ -128,12 +151,28 @@
                       <option value="fixed">Fixed Amount</option>
                       <option value="percentage">Percentage</option>
                     </select>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'coupon_type'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors3"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <input name="description" type="text" class="form-control" id="description" placeholder="Description" required>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'description'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors4"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
               </div>
@@ -142,12 +181,28 @@
                   <div class="mb-3">
                     <label for="limit" class="form-label">Usage Limit</label>
                     <input name="limit" type="number" class="form-control" id="limit" placeholder="Limit" required>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'limit'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors5"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="expiry-date" class="form-label">Expiry Date</label>
                     <input name="expiry_date" type="date" class="form-control" id="expiry-date" required>
+
+                    <% if (typeof validationError !=='undefined' && validationError) { %>
+                      <% const error = validationError.find(err=> err.path === 'expiry_date'); %>
+                        <% if (error) { %>
+                        <small class="error" id="errors6"> <%= error.msg %> </small>
+                      <% } %>
+                    <% } %>
+
                   </div>
                 </div>
               </div>
@@ -159,6 +214,133 @@
           </div>
 
 
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Edit Coupon Modal -->
+    <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editCouponModalLabel">Edit Coupon</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Edit Coupon Form -->
+            <form id="editCouponForm" action="/admin/edit-coupon" method="POST" >
+              <input type="hidden" id="coupon-id" name="coupon_id">
+              
+              <!-- Coupon Code -->
+              <div class="mb-3">
+                <label for="coupon-code-edit" class="form-label">Coupon Code</label>
+                <input name="code" type="text" class="form-control" id="coupon-code-edit" required>
+
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'code'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error1"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- Discount Value -->
+              <div class="mb-3">
+                <label for="coupon-amount-edit" class="form-label">Discount Value</label>
+                <input name="discount_value" type="number" class="form-control" id="coupon-amount-edit" required>
+
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'discount_value'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error2"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- Coupon Type -->
+              <div class="mb-3">
+                <label for="coupon-type-edit" class="form-label">Coupon Type</label>
+                <select name="coupon_type" class="form-select" id="coupon-type-edit" required>
+                  <option value="fixed">Fixed Amount</option>
+                  <option value="percentage">Percentage</option>
+                </select>
+                
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'coupon_type'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error3"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label for="description-edit" class="form-label">Description</label>
+                <input name="description" type="text" class="form-control" id="description-edit" required>
+                
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'description'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error4"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- Usage Limit -->
+              <div class="mb-3">
+                <label for="limit-edit" class="form-label">Usage Limit</label>
+                <input name="limit" type="number" class="form-control" id="limit-edit" required>
+                
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'limit'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error5"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- Expiry Date -->
+              <div class="mb-3">
+                <label for="expiry-date-edit" class="form-label">Expiry Date</label>
+                <input name="expiry_date" type="date" class="form-control" id="expiry-date-edit" required>
+                
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'expiry_date'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error6"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <!-- is_active (active/inactive) -->
+              <div class="mb-3">
+                <label for="is-active-edit" class="form-label">Status</label>
+                <select name="is_active" class="form-select" id="is-active-edit" required>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                
+                <% if (typeof validationError !=='undefined' && validationError) { %>
+                  <% const error = validationError.find(err=> err.path === 'is_active'); %>
+                    <% if (error) { %>
+                    <small class="text-danger error-message" id="error7"> <%= error.msg %> </small>
+                  <% } %>
+                <% } %>
+
+              </div>
+
+              <div class="d-flex justify-content-center mt-3">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -195,21 +377,103 @@
 
     <script>
 
+      //validate the forms
+      document.getElementById('editCouponForm').addEventListener('submit', (event) => {
+          event.preventDefault()
+
+          let isValid = true;
+
+          //coupon code validation
+          const couponCode = document.getElementById('coupon-code-edit').value
+          if(couponCode.trim() === '') {
+            document.getElementById('error1').textContent = "Coupon code is required"
+            isValid = false
+          }
+
+          //discound value validation
+          const discount = document.getElementById('coupon-amount-edit').value
+          if(discount.trim() === '') {
+            document.getElementById('error2').textContent = "Discount value is required"
+            isValid = false
+          }else if(discount <= 0) {
+            document.getElementById('error2').textContent = "Discount value must be positive number"
+            isValid = false
+          }
+
+          // Coupon Type Validation
+          const couponType = document.getElementById("coupon-type-edit").value;
+          if (couponType === "") {
+            document.getElementById("error3").textContent = "Please select a coupon type.";
+            isValid = false;
+          }
+
+          // Description Validation
+          const description = document.getElementById("description-edit");
+          if (description.value.trim() === "") {
+            document.getElementById("error4").textContent = "Description is required.";
+            isValid = false;
+          }
+
+          // Usage Limit Validation
+          const limit = document.getElementById("limit-edit");
+          if (limit.value.trim() === "") {
+            document.getElementById("error5").textContent = "Usage limit is required.";
+            isValid = false;
+          } else if (limit.value <= 0) {
+            document.getElementById("error5").textContent = "Usage limit must be a positive number.";
+            isValid = false;
+          }
+
+          // Expiry Date Validation
+          const expiryDate = document.getElementById("expiry-date-edit");
+          if (expiryDate.value.trim() === "") {
+            document.getElementById("error6").textContent = "Expiry date is required.";
+            isValid = false;
+          }
+
+          // is_active Validation
+          const isActive = document.getElementById("is-active-edit");
+          if (isActive.value === "") {
+            document.getElementById("error7").textContent = "Status selection is required.";
+            isValid = false;
+          }
+
+          // If the form is valid, submit the form
+          if (isValid) {
+              // Submit the form manually if validation passes
+              document.getElementById('editCouponForm').submit();
+          }
+            
+      })
+
       function search() {
         const input = document
           .getElementById("search")
           .value.toLowerCase()
           .trim(); // Get search input and convert to lowercase
-        const rows = document.querySelectorAll("#searchData"); // Get all rows to search
+        const rows = document.querySelectorAll("tbody tr"); // Get all rows to search
 
         rows.forEach((row) => {
-          const user = row.children[1].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
+          const user = row.children[0].textContent.toLowerCase().trim(); // Get user name in the second column (index 1)
           if (user.includes(input)) {
             row.style.display = ""; // Show row if it matches the search
           } else {
             row.style.display = "none"; // Hide row if it doesn't match
           }
         });
+      }
+
+
+      function loadCouponDetails(id, code, discount_value, coupon_type, description, limit, expiry_date, is_active) {
+        // Populate the modal with the existing coupon details
+        document.getElementById('coupon-id').value = id;
+        document.getElementById('coupon-code-edit').value = code;
+        document.getElementById('coupon-amount-edit').value = discount_value;
+        document.getElementById('coupon-type-edit').value = coupon_type;
+        document.getElementById('description-edit').value = description;
+        document.getElementById('limit-edit').value = limit;
+        document.getElementById('expiry-date-edit').value = expiry_date.split('T')[0]; // Format date to YYYY-MM-DD
+        document.getElementById('is-active-edit').value = is_active;
       }
 
     </script>

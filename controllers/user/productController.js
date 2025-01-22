@@ -102,8 +102,70 @@ const filterProduct = async (req, res) => {
     }
 }
 
+//filter the home page
+const filterHome = async(req,res) => {
+    try {
+        const { price, author, stock_state, sort, categoryName } = req.query;
+        const bannerData = await Banner.find({ name: "Home Banner" }); 
+
+        const query = {};
+
+        // Filter by price
+        if (price) {
+            const priceParts = price.split("-");
+
+            if (priceParts.length === 2) {
+                const [min, max] = priceParts.map(Number);
+                if (!isNaN(min) && !isNaN(max)) {
+                    query.price = { $gte: min, $lte: max };
+                }
+            } else if (priceParts.length === 1) {
+                const min = Number(priceParts[0]);
+                if (!isNaN(min) && price.endsWith("+")) {
+                    query.price = { $gte: min };
+                }
+            }
+        }
+
+        // Filter by author
+        if (author) {
+            query.author_name = new RegExp(author, "i");
+        }
+
+        // Filter by category (if provided)
+        const category = await Category.findOne({name: categoryName})
+        if (category) {
+            query.category_id = category._id;
+        }
+
+        let products = await Product.find(query);
+
+        // Filter by sort
+        if (sort === "asc") {
+            products = products.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+        } else if (sort === "desc") {
+            products = products.sort((a, b) => b.title.toLowerCase().localeCompare(a.title.toLowerCase()));
+        }
+
+        // Filter by stock state
+        if (stock_state) {
+            products = products.filter(product => product.stock_state === stock_state);
+        }
+
+        // Render homepage with filtered products
+        return res.render("home", {
+            products,
+            banner: bannerData[0], 
+            name: "Home",
+            category,
+        });
+    } catch (error) {
+        
+    }
+}
 
 module.exports = {
     getProductDetails,
-    filterProduct
+    filterProduct,
+    filterHome,
 }

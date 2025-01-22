@@ -106,11 +106,13 @@ const addProduct = async (req, res) => {
 //edit product page
 const getEditProduct = async (req, res) => {
     try {
+
         const id = req.query.id;
         const productData = await Product.findOne({ _id: id })
         const categoryData = await Category.find()
 
         res.render('editProduct', {
+            validationError: req.flash('validationError'),
             product: productData,
             category: categoryData
         })
@@ -122,6 +124,17 @@ const getEditProduct = async (req, res) => {
 const editProduct = async (req, res) => {
     try {
         const productId = req.params.id
+        console.log('suiii',productId)
+        const errors = validationResult(req)
+        console.log('edit error' ,errors)
+
+        if(!errors.isEmpty()) {
+            req.flash('validationError', errors.array())
+            req.flash('data', req.body)
+            return res.redirect(`/admin/editProduct?id=${productId}`)
+        }
+
+        
         const { title, author_name, price, available_quantity, category_id, status, language, publishing_date, publisher, page, description } = req.body
         const productExist = await Product.findOne({ title: title })
 

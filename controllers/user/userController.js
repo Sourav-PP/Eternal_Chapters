@@ -302,7 +302,8 @@ const loadHomepage = async (req, res) => {
         res.render('home', {
             products,
             banner: bannerData,
-            error: req.flash('error')
+            error: req.flash('error'),
+            category: []
         })
     } catch (error) {
         console.log('user load homepage error', error.message);

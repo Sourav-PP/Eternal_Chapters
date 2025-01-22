@@ -7,7 +7,9 @@ const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema')
 const Razorpay = require('razorpay');
 const Transaction = require('../../models/transactionSchema');
-const Coupon = require('../../models/couponSchema')
+const Coupon = require('../../models/couponSchema');
+const Wallet = require('../../models/walletSchema');
+const WalletTransaction = require('../../models/walletTransactionSchema');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -52,40 +54,40 @@ const checkout = async (req, res) => {
 }
 
 //apply coupon code
-const applyCoupon = async(req,res) => {
+const applyCoupon = async (req, res) => {
     try {
-        const {couponCode} = req.body;
+        const { couponCode } = req.body;
         const userId = req.session.user
 
-        const coupon = await Coupon.findOne({code: couponCode})
-        if(!coupon) {
+        const coupon = await Coupon.findOne({ code: couponCode })
+        if (!coupon) {
             return res.json({ success: false, message: 'Invalid coupon code.' });
         }
 
-        if(new Date() > new Date(coupon.expiry_date)) {
+        if (new Date() > new Date(coupon.expiry_date)) {
             return res.json({ success: false, message: 'Coupon has expired.' });
         }
 
         //retrieve cart
-        const cart = await Cart.findOne({user_id: userId })
-        if(!cart) {
+        const cart = await Cart.findOne({ user_id: userId })
+        if (!cart) {
             return res.json({ success: false, message: 'Your cart is empty.' });
         }
 
         //fetch all product ids
         const productIds = cart.items.map(item => item.product_id)
 
-        const products = await Product.find({'_id': {$in: productIds}})
+        const products = await Product.find({ '_id': { $in: productIds } })
         //total cart amount
         const totalAmount = cart.items.reduce((total, item) => {
-            const product = products.find( p => p._id.toString() === item.product_id.toString())
+            const product = products.find(p => p._id.toString() === item.product_id.toString())
             return total + (product ? product.price * item.quantity : 0)
-        },0)
+        }, 0)
 
         let discountAmount = 0
-        if(coupon.coupon_type === 'percentage') {
+        if (coupon.coupon_type === 'percentage') {
             discountAmount = (totalAmount * coupon.discount_value) / 100
-        }else if(coupon.coupon_type === 'fixed') {
+        } else if (coupon.coupon_type === 'fixed') {
             discountAmount = coupon.discount_value
         }
 
@@ -100,8 +102,40 @@ const applyCoupon = async(req,res) => {
 
         res.json({ success: true, discountAmount, newTotalAmount });
     } catch (error) {
-        console.log('error applying coupon' , error)
+        console.log('error applying coupon', error)
         res.json({ success: false, message: 'An error occurred. Please try again.' });
+    }
+}
+
+//remove coupon
+const removeCoupon = async(req,res) => {
+    try {
+        delete req.session.coupon;
+        const userId = req.session.user
+
+        //retrieve cart
+        const cart = await Cart.findOne({ user_id: userId })
+        if (!cart) {
+            return res.json({ success: false, message: 'Your cart is empty.' });
+        }
+
+        //fetch all product ids
+        const productIds = cart.items.map(item => item.product_id)
+
+        const products = await Product.find({ '_id': { $in: productIds } })
+        //total cart amount
+        const totalAmount = cart.items.reduce((total, item) => {
+            const product = products.find(p => p._id.toString() === item.product_id.toString())
+            return total + (product ? product.price * item.quantity : 0)
+        }, 0)
+
+        const shippingCharge = 100
+        const newTotalAmount = totalAmount + shippingCharge;
+
+        return res.status(200).json({success: true, newTotalAmount})
+
+    } catch (error) {
+        console.log('error removing the coupon',error)
     }
 }
 
@@ -145,7 +179,7 @@ const placeOrder = async (req, res) => {
         const shippingCharges = 100;
         let discount = 0;
         let netAmount = totalAmount + shippingCharges;
-        console.log('dfdfdnnnnn',netAmount)
+        console.log('dfdfdnnnnn', netAmount)
 
         // Apply coupon if available
         if (req.session.coupon) {
@@ -154,7 +188,7 @@ const placeOrder = async (req, res) => {
             netAmount -= discount;
         }
 
-        console.log('netttttttttt',netAmount)
+        console.log('netttttttttt', netAmount)
 
         //handle online payments
         let payment = null;
@@ -273,8 +307,23 @@ const orderHistory = async (req, res) => {
             const orderItems = await OrderItems.find({ order_id: order._id }).populate('items.product_id')
             order.orderItems = orderItems
         }
+
+        const getBadgeClass = (status) => {
+            const classes = {
+                delivered: 'bg-success',
+                pending: 'bg-warning',
+                shipped: 'bg-primary',
+                canceled: 'bg-danger',
+                return_requested: 'bg-info',
+                return_approved: 'bg-success',
+                return_rejected: 'bg-secondary',
+            }
+            return classes[status] || 'bg-dark';
+        }
+
         res.render('orderHistory', {
             orders,
+            getBadgeClass,
         })
     } catch (error) {
         console.log("error loading order history", error)
@@ -359,7 +408,33 @@ const cancelOrder = async (req, res) => {
             } else {
                 console.error('Payment record not found for order:', orderId);
             }
+            //update the wallet
+            const user = await User.findById(order.user_id)
+            const wallet = await Wallet.findOne({ user_id: user._id })
+
+            if (wallet) {
+                wallet.balance += refundAmount
+                await wallet.save()
+
+
+                //update the transaction of wallet
+                const walletTransaction = new WalletTransaction({
+                    wallet_id: wallet._id,
+                    amount: refundAmount,
+                    order_id: orderId,
+                    transaction_type: 'refund',
+                    balance_after_transaction: wallet.balance,
+                    payment_status: 'successful',
+                    razorpay_payment_id: payment.razorpay_payment_id || null,
+                    razorpay_signature: payment.razorpay_signature || null,
+                })
+
+                await walletTransaction.save()
+            }
+
         }
+
+
 
         res.json({ success: true, message: 'Order cancelled successfully' })
     } catch (error) {
@@ -418,4 +493,5 @@ module.exports = {
     success,
     returnOrder,
     applyCoupon,
+    removeCoupon,
 }

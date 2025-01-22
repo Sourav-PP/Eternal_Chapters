@@ -58,7 +58,7 @@ const wishlist = async(req,res) => {
         }
 
         //check if the product is already in the wishlist
-        const productIndex = wishlist.products.findIndex((item) => item.productId.toString() === productId)  
+        const productIndex = wishlist.products.findIndex((item) => item.product_id.toString() === productId)  
         
         if(productIndex >= 0) {
             wishlist.products.splice(productIndex, 1)

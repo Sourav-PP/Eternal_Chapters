@@ -10,6 +10,8 @@ const couponController = require('../controllers/admin/couponController')
 //validation
 const validateAdminSignin = require('../middlewares/validateAdminSignin')
 const validateAddProduct = require('../middlewares/validateAddProduct')
+const validateEditProduct = require('../middlewares/validateEditProduct')
+const validateCoupon = require('../middlewares/validateCoupon')
 const { userAuth, adminAuth } = require('../middlewares/auth')
 const multer = require('multer')
 const path = require('path')
@@ -36,6 +38,7 @@ router.get('/page-error', adminController.pageError)
 router.get('/login', adminController.loadLogin)
 router.post('/login',validateAdminSignin, adminController.login)
 router.get('/', adminAuth, adminController.loadDashboard)
+// router.get('//sales/data', adminAuth, adminController.getGraph)
 router.get('/logout', adminController.logout)
 
 //customer management
@@ -60,7 +63,7 @@ router.post('/add-product', adminAuth, upload.array('product_images', 4), valida
 router.post('/soft-deleteProduct/:id', adminAuth, productController.softDeleteProduct)
 router.post('/restoreProduct/:id', adminAuth, productController.restoreProduct)
 router.get('/editProduct',adminAuth,productController.getEditProduct)
-router.post('/edit-product/:id',adminAuth,upload.array('product_images', 4), productController.editProduct)
+router.post('/edit-product/:id',adminAuth,upload.array('product_images', 4), validateEditProduct, productController.editProduct)
 router.post('/deleteProduct/:id',adminAuth, productController.deleteProduct)
 
 //order management
@@ -71,7 +74,12 @@ router.post('/reject-return/:orderId/:productId', adminAuth, orderController.rej
 
 //coupon management
 router.get('/coupon-page', adminAuth, couponController.getPage)
-router.post('/create-coupon', adminAuth, couponController.createCoupon)
+router.post('/create-coupon', adminAuth, validateCoupon, couponController.createCoupon)
+router.post('/edit-coupon', adminAuth, couponController.editCoupon)
+router.post('/delete-coupon', adminAuth, couponController.deleteCoupon)
+
+//offer management
+// router.post('/addOffer/:productId', adminAuth, offerController.addOffer)
 
 //banner management
 router.get('/banners', adminAuth, bannerController.getBannerPage)
