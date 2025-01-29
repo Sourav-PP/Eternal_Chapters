@@ -21,6 +21,21 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
 
+    <style>
+
+    .filled-heart {
+        color: red; 
+    }
+    .heart {
+        color: gray; 
+        transition: color 0.3s ease; 
+    }
+    .h{
+        color: red;
+    }
+
+    </style>
+
 </head>
 
 <body>
@@ -40,14 +55,16 @@
             
             <div class="product-container">
                 <div class="product-image-section">
-                    <div id="imageZoom" class="mb-2" style="--url: url('/uploads/<%= product.product_imgs[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --opacity: 0">
-                        <img id="main-img" src="/uploads/<%= product.product_imgs[0] %>" alt="Book Cover" class="main-image">
+                    <div id="imageZoom" class="mb-2" style="--url: url('/uploads/product-images/<%= product.product_imgs[0] %>'); --zoom-x: 0%; --zoom-y: 0%; --opacity: 0">
+                        
+                        <img id="main-img" src="/uploads/product-images/<%= product.product_imgs[0] %>" alt="Book Cover" class="main-image"  >
+                        
                     </div>
                     <div class="thumbnails">
                         
                          <% product.product_imgs.forEach(element => { %>
                           
-                        <img onclick="imageAdd('/uploads/<%= element %>')" src="/uploads/<%= element %>" alt="Thumbnail 2">
+                        <img onclick="imageAdd('/uploads/product-images/<%= element %>')" src="/uploads/product-images/<%= element %>" alt="Thumbnail 2">
                             
                         <% }) %>
                     </div>
@@ -99,9 +116,26 @@
                             <% } %>
                         </li>
                     </ul>
-                    <p class="price">
-                        <%= "₹" +product.price %>
-                    </p>
+
+                    <% if (offerDiscount > 0) { %>
+                        <p class="text-muted mb-0">
+                            <strike>₹<%= originalPrice %>.00</strike>
+                            <span class=" fw-bold price">₹<%= discountedPrice %></span>
+                          </p>
+                          
+
+                          <% if (product.offer_id && product.offer_id.discount_value) { %>
+                            <p class="text-danger small mb-4">
+                              <strong>Offer: <%= product.offer_id.discount_value %>% OFF</strong>
+                            </p>
+                          <% } else if (product.category_id && product.category_id.offer_id && product.category_id.offer_id.discount_value ) { %>
+                              <p class="text-danger small mb-4">
+                                <strong>Offer: <%= product.category_id.offer_id.discount_value %>% OFF</strong>
+                              </p>
+                          <% } %>
+                    <% } else { %>
+                            <p class="text-success fw-bold mb-4">₹<%= originalPrice %>.00</p>
+                    <% } %>
                     
                     <div class="action-buttons">
                     <form action="/addCart" method="post">
@@ -116,7 +150,7 @@
                     </form>
                         <button class="buy-now">Buy Now</button>
                         <div class="wishlist">
-                            <button onclick="wishlishBtn('<%= product._id %>')" class="btn love-btn"><i class="fas fa-heart heart"></i></button>
+                            <button onclick="wishlishBtn('<%= product._id %>')" class="btn love-btn" ><i id="wish-btn" class="fas fa-heart h"></i></button>
                         </div>
                     </div>
 
@@ -133,26 +167,50 @@
                     <div class="col-md-3 mb-4">
                       <div class="card shadow-sm">
                         <a class="text-decoration-none text-dark" href="/productDetails?id=<%= element._id %>">
-                        <img src="/uploads/<%= element.product_imgs[0] %>" class="card-img-top" alt="<%= element.title %>">
+                        <img src="/uploads/product-images/<%= element.product_imgs[0] %>" class="card-img-top" alt="<%= element.title %>">
                         <div class="card-body">
-                          <h5 class="card-title fw-bold mb-0 rel">
+                          <h5 class="card-title fw-bold mb-1 rel">
                             <%= element.title %>
                           </h5>
-                          <p class="text-success fw-bold mb-0">₹<%= element.price %>.00</p>
+
+                          <% if (element.relatedOfferDiscount > 0) { %>
+                            <p class="text-muted mb-0">
+                                <strike>₹<%= element.originalPrice %>.00</strike>
+                                <span class=" fw-bold text-success">₹<%= element.relatedDiscountedPrice %></span>
+                              </p>
+                              
+
+                              <% if (element.offer_id && element.offer_id.discount_value) { %>
+                                <p class="text-danger small mb-2">
+                                  <strong>Offer: <%= element.offer_id.discount_value %>% OFF</strong>
+                                </p>
+                              <% } else if (element.category_id && element.category_id.offer_id && element.category_id.offer_id.discount_value ) { %>
+                                  <p class="text-danger small mb-2">
+                                    <strong>Offer: <%= element.category_id.offer_id.discount_value %>% OFF</strong>
+                                  </p>
+                              <% } %>
+
+                          <% } else { %>
+                                <p class="text-success fw-bold mb-0">₹<%= element.originalPrice %>.00</p>
+                          <% } %>
+
+
                           <p class="text-muted small">
                             <%= element.author_name %>
                           </p>
-                          <% if (product.stock_state === "Blocked") { %>
+                          <% if (element.stock_state === "Blocked") { %>
                             <p class="text-danger small mb-0">Blocked</p>
-                            <% } else if (product.stock_state === "Sold out") { %>
+                            <% } else if (element.stock_state === "Sold out") { %>
                             <p class="text-danger small mb-0">Sold out</p>
-                            <% } else if (product.stock_state === "Out of stock") { %>
+                            <% } else if (element.stock_state === "Out of stock") { %>
                             <p class="text-danger small mb-0">Out of stock</p>
-                            <% } else if (product.stock_state === "Unavailable") { %>
+                            <% } else if (element.stock_state === "Unavailable") { %>
                             <p class="text-danger small mb-0">Unavailable</p>
-                            <% } else if (product.stock_state === "Available") { %>
+                            <% } else if (element.stock_state === "Available") { %>
                             <p class="text-success small mb-0">Available</p>
                             <% } %>
+
+                            
                         </div>
                       </a>
                       </div>
@@ -264,7 +322,9 @@
 
     function imageAdd(img) {
         const imgPath = document.getElementById('main-img')
+        const zoomImg = document.getElementById('imageZoom')
         imgPath.src = img
+        zoomImg.style.setProperty('--url', `url('${img}')`);
     }
 
     function validateQuantity(input) {
@@ -298,7 +358,11 @@
         })
 
         const result = await response.json()
+        const button = document.getElementById('wish-btn')
         if(result.listed) {
+            // button.classList.add('filled-heart');
+            button.classList.add('fas'); // Solid heart (filled)
+            button.classList.remove('far');
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
@@ -307,6 +371,9 @@
                 timer: 1500,
             })
         } else {
+            // button.classList.remove('filled-heart')
+            button.classList.add('far'); // Solid heart (filled)
+            button.classList.remove('fas');
             Swal.fire({
                 icon: 'success',
                 title: 'Success',

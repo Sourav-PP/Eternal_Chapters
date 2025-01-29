@@ -1,4 +1,4 @@
-const Cart = require('../../models/cartSchema')
+    const Cart = require('../../models/cartSchema')
 const User = require('../../models/userSchema')
 const Product = require('../../models/productSchema')
 
@@ -63,7 +63,23 @@ const addToCart = async (req, res) => {
 const getCartPage = async (req, res) => {
     try {
         const userId = req.session.user
-        const cart = await Cart.findOne({ user_id: userId }).populate('items.product_id')
+        const cart = await Cart.findOne({ user_id: userId })
+            .populate({
+                path: 'items.product_id',
+                populate: [
+                    {
+                        path: 'offer_id', // Populate the product's offer
+                        match: { _id: { $ne: null } },
+                    },
+                    {
+                        path: 'category_id', // Populate the category
+                        populate: {
+                            path: 'offer_id', // Populate the category's offer
+                            match: { _id: { $ne: null } },
+                        },
+                    },
+                ],
+            }); 
 
         if(!cart) {
             return res.render('cart',{
@@ -74,25 +90,68 @@ const getCartPage = async (req, res) => {
             })
         }
 
-        //calculate the total price
-        let totalPrice = 0;
+        
+        let rawSubtotal = 0;
+        let totalOfferDiscount = 0
+
         const cartItems = cart.items.map(item => {
             const product = item.product_id;
-            const shippingCharges = 100;
-            const subTotal = (product.price * item.quantity);
-            
-            totalPrice += subTotal + shippingCharges;;
+
+            let productPrice = product.price
+            let productOfferDiscount = 0
+            let categoryOfferDiscount = 0
+
+            // check for product level offer
+            if(product.offer_id && product.offer_id.status === 'active' &&
+                (!product.offer_id.end_date || new Date(product.offer_id.end_date) > new Date()))
+            {
+                productOfferDiscount = (productPrice * product.offer_id.discount_value) / 100
+            }
+
+            // check for category level offer
+            if((!product.offer_id || product.offer_id.status !== 'active') &&
+                product.category_id &&
+                product.category_id.offer_id &&
+                product.category_id.offer_id.status === 'active' &&
+                (!product.category_id.offer_id.end_date || new Date(product.category_id.offer_id.end_date) > new Date()))
+            {
+                categoryOfferDiscount = (productPrice * product.category_id.offer_id.discount_value) / 100
+            }
+
+            // Apply the higher discount between product and category
+            if (categoryOfferDiscount > productOfferDiscount) {
+                productOfferDiscount = categoryOfferDiscount;
+            }
+
+            const discountedPrice = productPrice - productOfferDiscount;
+            const subTotal = discountedPrice * item.quantity;
+            rawSubtotal += subTotal
+            totalOfferDiscount += productOfferDiscount * item.quantity
+
             return {
                 product,
                 quantity: item.quantity,
+                discountedPrice,
                 subTotal,
+                OfferDiscount: productOfferDiscount * item.quantity
             }
+
+            
         })
 
+        // Add shipping charges to the total price
+        const taxRate = 0.12;
+        const taxAmount = rawSubtotal * taxRate
+        const shippingCharges = 100;
+        const totalPrice = rawSubtotal + shippingCharges + taxAmount
+
         res.render('cart', {
-            shippingCharges: 100,
+            shippingCharges,
             items: cartItems,
-            totalPrice,
+            totalPrice: totalPrice.toFixed(2),
+            taxAmount: taxAmount.toFixed(2),
+            rawSubtotal: rawSubtotal.toFixed(2),
+            offerDiscount: totalOfferDiscount.toFixed(2),
             success: req.flash('success'),
             error: req.flash('error')
         })

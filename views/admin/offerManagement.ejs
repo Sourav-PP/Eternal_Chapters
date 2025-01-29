@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customers Dashboard</title>
+    <!-- font awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="/admin/adminDashboard.css" />
+    <link rel="stylesheet" href="/admin/admin.css" />
+    <link rel="stylesheet" href="/admin/customer.css">
+
+    <style>
+      .apply {
+        width: 50%;
+        margin: auto;
+      }
+      .card-header{
+        border-top-right-radius: 20px !important;
+        border-top-left-radius: 20px !important;
+        background-color: #3C2712;
+        padding: 20px;
+      }
+      .card {
+        border-radius: 20px;
+      }
+      .bt {
+        background-color: #8E4700;
+      }
+      .main-content {
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            margin-top: 20px;
+        }
+        .btn-create {
+            margin-bottom: 20px;
+        }
+    </style>
+
+  </head>
+
+  <body>
+    <div class="container-fluid holder">
+      <!-- Header -->
+      <%- include('../../views/partials/admin/header') %>
+
+      <div class="row side">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
+          <%- include('../../views/partials/admin/sidebar') %>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
+                    <h2 class="fw-bold mb-3 mt-3">Manage Offers</h2>
+                    <a href="/admin/create-offer" class="btn btn-primary btn-create">Create New Offer</a>
+    
+                    <% if (offers.length === 0) { %>
+                     <div class="text-danger fs-5">There is no offers! Plese create one.</div>
+                     <% } else { %>
+                      <table class="table table-striped table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Discount Value</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% offers.forEach(offer => { %>
+                                <tr>
+                                    <td><%= offer.name %></td>
+                                    <td><%= offer.offer_type %></td>
+                                    <td><%= offer.discount_value %></td>
+                                    <td><%= offer.start_date.toLocaleDateString() %></td>
+                                    <td><%= offer.end_date.toLocaleDateString() %></td>
+                                    <td><%= offer.status %></td>
+                                    <td><%= offer._id %></td>
+                                    <td>
+                                        <a href="/admin/edit-offer/<%= offer._id %>" class="btn btn-sm btn-warning">Edit</a>
+                                        <form action="/admin/delete-offer" method="POST" style="display:inline;">
+                                            <input type="hidden" name="offer_id" value="<%= offer._id %>">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>            
+                        </tbody>
+                    </table>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <!--  -->
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <% if (error && error.length > 0) { %>
+        <script>
+            Swal.fire({
+                title: "Error",
+                text: "<%= error[0] %>",
+                icon: 'error',
+                showConfirmButton: false,
+                timer: 2000,
+            }) 
+        </script>
+    <% } %>
+
+    <% if (success && success.length > 0) { %>
+     <script>
+        Swal.fire({
+            title: 'Success',
+            text: '<%= success[0] %>',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 2000,
+        })
+     </script>
+    <% } %>
+  </body>
+</html>
+
+
+

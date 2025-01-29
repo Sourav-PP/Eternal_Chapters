@@ -19,17 +19,20 @@ const getPage = async(req,res) => {
 //create coupon
 const createCoupon = async( req, res ) => {
     try {
+        console.log('its coming here!')
         const errors = validationResult(req)
-
+        console.log('coupon error',errors)
+    
         if(!errors.isEmpty()) {
             req.flash('validationError', errors.array());
             req.flash('data', req.body);
             return res.redirect('/admin/coupon-page');
         }
 
-        const {code, discount_value, coupon_type, description, limit, expiry_date} = req.body
 
-        if(!code || !discount_value || !coupon_type || !description || !limit || !expiry_date) {
+        const {code, max_discount_amount, minimum_purchase_amount, discount_value, coupon_type, description, limit, expiry_date} = req.body
+
+        if(!code || !max_discount_amount || !minimum_purchase_amount || !discount_value || !coupon_type || !description || !limit || !expiry_date) {
             req.flash('error', 'all fields are requried')
             return res.redirect('/admin/coupon-page')
         }
@@ -44,6 +47,8 @@ const createCoupon = async( req, res ) => {
         //create new coupon
         const newCoupon = new Coupon({
             code,
+            max_discount_amount,
+            minimum_purchase_amount,
             discount_value,
             coupon_type,
             description,
@@ -64,13 +69,6 @@ const createCoupon = async( req, res ) => {
 //edit coupon
 const editCoupon = async(req,res)=> {
     try {
-        const errors = validationResult(req)
-
-        if(!errors.isEmpty()) {
-            req.flash('validationError', errors.array());
-            req.flash('data', req.body);
-            return res.redirect('/admin/coupon-page');
-        }
 
         const { coupon_id, code, discount_value, coupon_type, description, limit, expiry_date, is_active } = req.body;
 
@@ -82,10 +80,11 @@ const editCoupon = async(req,res)=> {
             limit,
             expiry_date: new Date(expiry_date),
             is_active
-          }, { new: true }); // Returns the updated document
+          }, { new: true });
       
           if (updatedCoupon) {
-            res.redirect('/admin/coupon-page'); // Redirect to coupon management page
+            req.flash('success','coupon updated successfully')
+            res.redirect('/admin/coupon-page');
           } else {
             res.status(404).send('Coupon not found');
           }

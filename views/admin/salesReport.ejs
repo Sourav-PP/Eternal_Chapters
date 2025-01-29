@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eternal chapters: sales report</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="/admin/adminDashboard.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+
+  <style>
+    body {
+      background-color: #fdf8ec;
+    }
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+    .status-completed {
+      color: green;
+    }
+    .status-processing {
+      color: orange;
+    }
+    .status-rejected {
+      color: red;
+    }
+    .card {
+        border: 3px solid rgb(227, 207, 156);
+    }
+    .table td {
+        vertical-align: middle;
+        word-wrap: break-word;
+        max-width: 300px; /* Adjust this value based on your needs */
+    }
+    
+    .text-wrap {
+        white-space: normal !important;
+        word-break: break-word;
+    }
+    
+    .list-unstyled li {
+        padding: 2px 0;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="container-fluid holder">
+
+    <!-- Header -->
+    <%- include('../../views/partials/admin/header') %>
+
+    <div class="row side">
+      <!-- Sidebar -->
+      <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
+        <%- include('../../views/partials/admin/sidebar') %>
+      </div>
+  
+      <!-- Main Content -->
+      <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
+        <!-- content goes here -->
+        <div class="container my-5">
+            <h1 class="text-center mb-4 fw-bold">Sales Report</h1>
+    
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Users</h5>
+                            <p class="card-text fs-4"><%= totalUsers %></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Orders</h5>
+                            <p class="card-text fs-4"><%= totalOrders %></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Sales</h5>
+                            <p class="card-text fs-4">₹<%= totalSales.toFixed(2) %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- filter -->
+            <div class="filter-container">
+              <div class="row">
+                  
+                <div class="col-md-2">
+                  <label for="monthFilter" class="form-label">Month</label>
+                  <select id="monthFilter" class="form-select">
+                    <option value="">All Months</option>
+                    <% for(let i = 1; i <= 12; i++) { %>
+                      <option value="<%= i %>" <%= parseInt(selectedMonth) === i ? 'selected' : '' %>>
+                        <%= new Date(0, i-1).toLocaleString('default', { month: 'long' }) %>
+                      </option>
+                    <% } %>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label for="yearFilter" class="form-label">Year</label>
+                  <select id="yearFilter" class="form-select">
+                    <option value="">All Years</option>
+                    <% const currentYear = new Date().getFullYear(); %>
+                    <% for(let year = currentYear; year >= currentYear - 5; year--) { %>
+                      <option value="<%= year %>" <%= parseInt(selectedYear) === year ? 'selected' : '' %>>
+                        <%= year %>
+                      </option>
+                    <% } %>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label for="fromDate" class="form-label">From Date</label>
+                  <input type="date" id="fromDate" class="form-control" value="<%= fromDate || '' %>">
+                </div>
+                <div class="col-md-2">
+                  <label for="toDate" class="form-label">To Date</label>
+                  <input type="date" id="toDate" class="form-control" value="<%= toDate || '' %>">
+                </div>
+                <div class="col-md-2 align-self-end">
+                  <button class="btn btn-info w-100" id="today">Today</button>
+                </div>
+                <div class="col-md-2 align-self-end">
+                  <button class="btn btn-warning w-100" id="weekly">This Week</button>
+                </div>
+                <div class="col-md-2 align-self-end mt-3 mb-3">
+                  <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
+                </div>
+                <div class="col-md-2 align-self-end mt-3 mb-3">
+                  <button class="btn btn-secondary w-100" id="removeFilters">Remove Filters</button>
+                </div>
+              </div>
+            </div>
+    
+              <!-- Export Buttons -->
+              <div class="row mb-4 mt-3">
+                <div class="col-md-3">
+                  <button class="btn btn-success w-100" id="downloadExcel">Download Excel</button>
+                </div>
+                <div class="col-md-3">
+                  <button class="btn btn-danger w-100" id="downloadPDF">Download PDF</button>
+                </div>
+              </div>
+
+            <!-- Sales Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="salesTable">
+                    <thead class="table-dark">
+                        <tr>
+                          <th>SI</th>
+                          <th>Order Date</th>
+                          <th>Customer</th>
+                          <th style="min-width: 200px;">Products</th>
+                          <th>Quantity</th>
+                          <th>Total Amount</th>
+                          <th>Discount</th>
+                          <th>Net Amount</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% if (salesReport.length === 0) { %>
+                          <tr>
+                            <td colspan="9" class="text-center">No records found</td>
+                          </tr>
+                        <% } else { %>
+                          <% salesReport.forEach((data, index) => { %>
+                            <tr>
+                              <td><%= (currentPage-1) * itemsPerPage + (index + 1) %></td>
+                              <td><%= new Date(data.order_date).toLocaleDateString() %></td>
+                              <td><%= data.user.first_name %></td>
+                              <td>
+                                <ul class="list-unstyled mb-0">
+                                    <% data.productDetails.forEach(product => { %>
+                                        <li class="text-wrap mb-1"><%= product.title %></li>
+                                    <% }); %>
+                                </ul>
+                              </td>
+                              <td>
+                                <ul class="list-unstyled mb-0">
+                                  <% if (data.orderItems && data.orderItems.items) { %>
+                                    <% data.orderItems.items.forEach(item => { %>
+                                      <li class="mb-1"><%= item.quantity %> pcs</li>
+                                    <% }); %>
+                                  <% } else { %>
+                                    <li class="mb-1">No items available</li>
+                                  <% } %>
+                                </ul>
+                              </td>
+                              <td><%= data.total.toFixed(2) %></td>
+                              <td><%= data.discount.toFixed(2) %></td>
+                              <td><%= data.netAmount.toFixed(2) %></td>
+                              <td>
+                                <ul class="list-unstyled mb-0">
+                                  <% if (data.orderItems && data.orderItems.items) { %>
+                                    <% data.orderItems.items.forEach(item => { %>
+                                      <li class="mb-1"><%= item.status %></li>
+                                    <% }); %>
+                                  <% } else { %>
+                                    <li class="mb-1">No items available</li>
+                                  <% } %>
+                                </ul>
+                              </td>
+                            </tr>
+                          <% }); %>
+                        <% } %>
+                      </tbody>
+                </table>
+            </div>
+            
+            <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+                <%= console.log(currentPage) %>
+                <%= console.log('total page',totalPages) %>
+                <!-- Previous Page Button -->
+                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage - 1 %>&fromDate=<%= fromDate || '' %>&toDate=<%= toDate || '' %>&month=<%= selectedMonth || '' %>&year=<%= selectedYear || '' %>" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+            
+                <!-- Dynamic Page Numbers -->
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&fromDate=<%= fromDate || '' %>&toDate=<%= toDate || '' %>&month=<%= selectedMonth || '' %>&year=<%= selectedYear || '' %>"><%= i %></a>
+                  </li>
+                <% } %>
+            
+                <!-- Next Page Button -->
+                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage + 1 %>&fromDate=<%= fromDate || '' %>&toDate=<%= toDate || '' %>&month=<%= selectedMonth || '' %>&year=<%= selectedYear || '' %>" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      // Apply Filters
+      $('#applyFilters').on('click', function () {
+        // const status = $('#statusFilter').val();
+        const month = $('#monthFilter').val();
+        const year = $('#yearFilter').val();
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
+        // Reload the page with filter parameters (modify as per backend implementation)
+        const queryParams = new URLSearchParams({
+            // status,
+            month, 
+            year,
+            fromDate,
+            toDate
+        }).toString();
+        window.location.href = `/admin/sales-report?${queryParams}`;
+      });
+
+      $('#removeFilters').on('click', function () {
+        // Clear filter inputs
+        $('#monthFilter').val('');
+        $('#yearFilter').val('');
+        $('#fromDate').val('');
+        $('#toDate').val('');
+
+        // Reload the page without query parameters
+        window.location.href = '/admin/sales-report';
+      });
+
+      $('#today').on('click', function() {
+        const today = new Date().toISOString().split('T')[0]
+        $('#fromDate').val(today)
+        $('#toDate').val(today)
+        $('#applyFilter').click()
+      })
+
+      $('#weekly').on('click', function() {
+        const today = new Date()
+        const dayOfWeek = today.getDay()
+        const startOfWeek = new Date(today)
+        startOfWeek.setDate(today.getDate() - dayOfWeek)
+        const formattedStartOfWeek = startOfWeek.toISOString().split('T')[0]
+        const formattedToday = today.toISOString().split('T')[0]
+        
+        $('#fromDate').val(formattedStartOfWeek)
+        $('#toDate').val(formattedToday)
+        $('#applyFilter').click()
+      })
+
+      // Export to Excel
+      $('#downloadExcel').on('click', function () {
+        const table = document.getElementById('salesTable');
+        const worksheet = XLSX.utils.table_to_sheet(table);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Report');
+        XLSX.writeFile(workbook, 'Sales_Report.xlsx');
+      });
+
+      // Export to PDF
+      $('#downloadPDF').on('click', function () {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromDate = urlParams.get('fromDate');
+        const toDate = urlParams.get('toDate');
+        const month = urlParams.get('month');
+        const year = urlParams.get('year');
+
+        // Build the title based on the filters
+        let title = 'Sales Report';
+
+        if (fromDate && toDate) {
+            title += ` (From ${fromDate} to ${toDate})`;
+        } else if (month && year) {
+            title += ` (Month: ${month}, Year: ${year})`;
+        } else if (month) {
+            title += ` (Month: ${month})`;
+        } else if (year) {
+            title += ` (Year: ${year})`;
+        } else if (window.location.search) {
+            title += ` (Filtered)`;
+        }
+
+        doc.text(title, 14, 15);
+
+        // Custom column widths
+        const columnWidths = {
+            0: 10,   // SI
+            1: 22,  // Order Date
+            2: 30,  // Customer
+            3: 25,  // Products
+            4: 10,  // Quantity
+            5: 20,  // Total Amount
+            6: 18,  // Discount
+            7: 20,  // Net Amount
+            8: 14   // Status
+        };
+
+        
+
+        doc.autoTable({
+          html: '#salesTable',
+        startY: 25,
+        styles: {
+            fontSize: 7,
+            cellPadding: 1,
+            overflow: 'linebreak',
+            halign: 'left',
+            valign: 'middle',
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0]
+        },
+        columnStyles: {
+            0: { cellWidth: columnWidths[0], halign: 'center' },  // SI
+            1: { cellWidth: columnWidths[1] },  // Order Date
+            2: { cellWidth: columnWidths[2] },  // Customer
+            3: { 
+                cellWidth: columnWidths[3],
+                overflow: 'linebreak',
+                cellPadding: {top: 2, right: 2, bottom: 2, left: 2}
+            },  // Products
+            4: { cellWidth: columnWidths[4], halign: 'center' },  // Quantity
+            5: { cellWidth: columnWidths[5], halign: 'right' },   // Total Amount
+            6: { cellWidth: columnWidths[6], halign: 'right' },   // Discount
+            7: { cellWidth: columnWidths[7], halign: 'right' },   // Net Amount
+            8: { cellWidth: columnWidths[8], halign: 'center' }   // Status
+        },
+            // Preprocessing the data to ensure proper line breaks
+            didParseCell: function(data) {
+                // Special handling for Products column
+                if (data.column.index === 3 && data.cell.raw) {
+                    // Force line breaks for long product names
+                    if (typeof data.cell.raw === 'string') {
+                        data.cell.text = data.cell.raw.split(' ').reduce((acc, word) => {
+                            if (acc[acc.length - 1].length + word.length > 20) {
+                                acc.push(word);
+                            } else {
+                                acc[acc.length - 1] += ' ' + word;
+                            }
+                            return acc;
+                        }, ['']).filter(line => line);
+                    }
+                }
+            },
+            // Handle table head
+            headStyles: {
+                fontSize: 8,
+                fillColor: [51, 51, 51],
+                textColor: 255,
+                halign: 'center',
+                valign: 'middle'
+            },
+            // Set margins to ensure content fits within A4
+            margin: { top: 25, right: 7, bottom: 15, left: 7 },
+            // Enable automatic page breaks
+            pageBreak: 'auto',
+            // Ensure table header is repeated on new pages
+            showHead: 'everyPage'
+        });
+        doc.save('Sales_Report.pdf');
+      });
+    });
+  </script>
+</body>
+</html>

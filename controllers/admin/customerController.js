@@ -17,8 +17,10 @@ const customerInfo = async (req, res) => {
                 { email: { $regex: ".*" + search + ".*" } }
             ]
         })
+        
         res.render('customers', {
             users: userData,
+            error: req.flash('error'),
             success: req.flash('success'),
         })
 
@@ -81,7 +83,8 @@ const deleteUser = async(req,res) => {
     try {
         const userId = req.params.id;
     const user = await User.findByIdAndDelete(userId)
-
+    
+    req.flash('success','User has been deleted successfully')
     res.redirect("/admin/users")
     } catch (error) {
         console.log("error deleting user", error)

@@ -134,8 +134,6 @@ body {
 }
 
 .wishlist {
-  
-  color: #ff4d4d;
   cursor: pointer;
   text-align: center;
   padding: 0;
@@ -222,7 +220,7 @@ footer a:hover {
   height: 100%;
   background-color: black;
   background-image: var(--url);
-  background-size: 200%;
+  background-size: 250%;
   background-position: var(--zoom-x) var(--zoom-y);
   position: absolute;
   left: 0px;
@@ -232,4 +230,8 @@ footer a:hover {
 .love-btn {
   border: none;
   font-size: 35px;
+}
+
+.love-btn:hover {
+  color: rgb(206, 0, 0);
 }

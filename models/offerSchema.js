@@ -13,11 +13,6 @@ const offerSchema = new Schema(
       required: true,
       enum: ['product', 'category', 'referral']
     },
-    discount_type: {
-      type: Number,
-      enum: ['percentage', 'fixed'],
-      required: true,
-    },
     discount_value: {
       type: Number,
       required: true,
@@ -36,18 +31,6 @@ const offerSchema = new Schema(
       enum: ['active', 'inactive'],
       default: 'active'
     },
-    related_products: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Product'
-      }
-    ],
-    related_categories: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Category'
-      }
-    ],
   },
   { timestamps: true }
 );

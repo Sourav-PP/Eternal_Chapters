@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="userDetails.css">
     <link rel="stylesheet" href="userHome.css"/>
     <link rel="stylesheet" href="user/header.css">
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
 
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -40,10 +41,20 @@
                                     <div class="col-md-6">
                                         <label for="firstName" class="form-label">First Name</label>
                                         <input type="text" class="form-control" name="first_name" value="<%= user.first_name %>" id="firstName" placeholder="Enter your first name">
+                                        <% if (validationErrors) { 
+                                            const firstNameError = validationErrors.find(err => err.path === 'first_name'); 
+                                            if (firstNameError) { %>
+                                                <small class="text-danger"><%= firstNameError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="lastName" class="form-label">Last Name</label>
                                         <input type="text" class="form-control" name="last_name" value="<%= user.last_name %>" id="lastName" placeholder="Enter your last name">
+                                        <% if (validationErrors) { 
+                                            const lastNameError = validationErrors.find(err => err.path === 'last_name'); 
+                                            if (lastNameError) { %>
+                                                <small class="text-danger"><%= lastNameError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
                                 
@@ -52,10 +63,20 @@
                                     <div class="col-md-6">
                                         <label for="dob" class="form-label">Date of Birth</label>
                                         <input type="date" name="date_of_birth" value="<%= user.date_of_birth ? user.date_of_birth.toISOString().slice(0, 10) : '' %>" class="form-control" id="dob">
+                                        <% if (validationErrors) { 
+                                            const dateError = validationErrors.find(err => err.path === 'date_of_birth'); 
+                                            if (dateError) { %>
+                                                <small class="text-danger"><%= dateError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email</label>
                                         <input type="email" name="email" class="form-control" value="<%= user.email %>" id="email" placeholder="Enter your email">
+                                        <% if (validationErrors) { 
+                                            const emailError = validationErrors.find(err => err.path === 'email'); 
+                                            if (emailError) { %>
+                                                <small class="text-danger"><%= emailError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
                                 

@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt')
 const { validationResult } = require('express-validator')
 const Banner = require('../../models/bannerSchema')
 const Wallet = require('../../models/walletSchema')
+const Category = require('../../models/categorySchema')
 
 
 
@@ -69,7 +70,7 @@ const securePassword = async (password) => {
 //load signup page
 const loadSignup = async (req, res) => {
     try {
-        if(req.session.user) {
+        if (req.session.user) {
             return res.redirect('/')
         }
         return res.render('signup', {
@@ -117,8 +118,8 @@ const signup = async (req, res) => {
         req.session.otpGeneratedAt = Date.now()
         req.session.userData = { first_name, last_name, email, phone_no, password }
 
-        
-        res.redirect('/verify-otp') 
+
+        res.redirect('/verify-otp')
         console.log("OTP sent", otp)
 
     } catch (error) {
@@ -136,10 +137,10 @@ const getOtpPage = async (req, res) => {
         }
 
         const error = req.flash('error') || [];
-        res.render('verify-otp', { 
+        res.render('verify-otp', {
             error,
         })
-    }catch(error){
+    } catch (error) {
         console.error("error loading verify otp page", error)
         res.redirect('/page_404')
     }
@@ -162,7 +163,7 @@ const verifyOtp = async (req, res) => {
             })
             await newUser.save()
 
-            
+
             req.session.userOtp = null
             req.session.userData = null
 
@@ -183,10 +184,11 @@ const verifyOtp = async (req, res) => {
 //resend otp
 const resendSignupOtp = async (req, res) => {
     try {
-
+        console.log('its here')
         if (!req.session.userOtp || !req.session.userData) {
             return res.redirect('/signup');
         }
+        console.log('and its here')
 
         const newOtp = gererateOtp(); // Generate new OTP
         req.session.userOtp = newOtp; // Update session with new OTP
@@ -223,7 +225,7 @@ const loadLogin = async (req, res) => {
             data: req.flash('data'),
             success: req.flash('success'),
         });
-        
+
     } catch (error) {
         console.error("error loading login page", error)
     }
@@ -264,7 +266,7 @@ const login = async (req, res) => {
             req.flash('error', 'Invalid Email or Password')
             return res.redirect('/login');
         }
-        
+
         //session
         req.session.user = user._id;
 
@@ -291,25 +293,134 @@ const login = async (req, res) => {
 const loadHomepage = async (req, res) => {
     try {
         if (!req.session.user) {
-            return res.redirect('/login')
+            return res.redirect('/login');
         }
 
-        const products = await Product.find({ is_deleted: false })
+        const { price, author, stock_state, sort, categoryName, page } = req.query;
 
-        const bannerData = await Banner.findOne({ name: 'Home Banner' })
+        const currentPage = parseInt(page) || 1;
+        const itemsPerPage = 8;
+        const skip = (currentPage - 1) * itemsPerPage;
 
+        const query = { is_deleted: false };
 
-        res.render('home', {
-            products,
-            banner: bannerData,
-            error: req.flash('error'),
-            category: []
-        })
+        // Filter by price
+        if (price) {
+            const priceParts = price.split("-");
+            if (priceParts.length === 2) {
+                const [min, max] = priceParts.map(Number);
+                if (!isNaN(min) && !isNaN(max)) {
+                    query.price = { $gte: min, $lte: max };
+                }
+            } else if (priceParts.length === 1) {
+                const min = Number(priceParts[0].replace("+", "").trim());
+                if (!isNaN(min) && price.endsWith("+")) {
+                    query.price = { $gte: min };
+                }
+            }
+        }
+
+        // Filter by author
+        if (author) {
+            query.author_name = new RegExp(author, "i");
+        }
+
+        // Filter by category (if provided)
+        let category = null;
+        if (categoryName === "All Categories" || !categoryName) {
+            const categories = await Category.find({ is_deleted: false }).select('_id');
+            if (categories && categories.length > 0) {
+                query.category_id = { $in: categories.map(cat => cat._id) };
+            }
+        } else {
+            category = await Category.findOne({ name: categoryName });
+            if (category) {
+                query.category_id = category._id;
+            }
+        }
+
+        // Apply filters and pagination
+        let products = await Product.find(query).populate('offer_id').populate({path: 'category_id',populate: {path: 'offer_id'}}).skip(skip).limit(itemsPerPage);
+
+        // Sort products
+        if (sort === "asc") {
+            products = products.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+        } else if (sort === "desc") {
+            products = products.sort((a, b) => b.title.toLowerCase().localeCompare(a.title.toLowerCase()));
+        }
+
+        // Filter by stock state
+        if (stock_state) {
+            products = products.filter(product => product.stock_state === stock_state);
+        }
+
+        // apply offer logic
+        products = products.map(product => {
+            let offerDiscount = 0
+            let discountedPrice = product.price
+
+            if(product.offer_id && product.offer_id.status === 'active' &&
+                (!product.offer_id.end_date || new Date(product.offer_id.end_date) > new Date()))
+            {
+                offerDiscount = (product.price * product.offer_id.discount_value) / 100
+                discountedPrice = product.price - offerDiscount
+            }
+
+            // Check category offer (if no product offer exists or if category offer is higher)
+            if((!product.offer_id || product.offer_id.status !== 'active') &&
+                product.category_id && product.category_id.offer_id &&
+                product.category_id.offer_id.status === 'active' &&
+                (!product.category_id.offer_id.end_date || new Date(product.category_id.offer_id.end_date) > new Date()))
+            {
+                const categoryDiscount = (product.price * product.category_id.offer_id.discount_value) / 100
+                //apply higher discount between product and category
+                if(categoryDiscount > offerDiscount) {
+                    offerDiscount = categoryDiscount
+                    discountedPrice = product.price - categoryDiscount
+                }
+            }
+
+            return {
+                ...product.toObject(),
+                offerDiscount,
+                discountedPrice,
+                originalPrice: product.price
+            }
+        }) 
+
+        const totalCount = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+        const bannerData = await Banner.findOne({ name: 'Home Banner' });
+
+        // Define the title
+        const title = categoryName ? categoryName : 'Best Sellers';
+
+        // If the request is an AJAX request, return just the product list
+        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+            return res.render("productList", {
+                products,
+                totalPages,
+                currentPage,
+                title
+            });
+        } else {
+            // Otherwise, render the full homepage
+            return res.render('home', {
+                products,
+                banner: bannerData,
+                error: req.flash('error'),
+                category,
+                totalPages,
+                currentPage,
+                title
+            });
+        }
     } catch (error) {
         console.log('user load homepage error', error.message);
-        res.status(500).send('Server error')
+        res.status(500).send('Server error');
     }
-}
+};
 
 //logout
 const logout = async (req, res) => {

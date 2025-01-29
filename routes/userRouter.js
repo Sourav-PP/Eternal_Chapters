@@ -13,6 +13,7 @@ const walletController = require('../controllers/user/walletController')
 const validateSignup = require('../middlewares/validateSignup')
 const validateSignin = require('../middlewares/validateSignin')
 const validateAddAddress = require('../middlewares/validateAddAddress')
+const validateUpdateProfile = require('../middlewares/validateUpdateProfile')
 const validateOtpInput = require('../middlewares/validateOtp')
 const { userAuth, adminAuth } = require('../middlewares/auth')
 
@@ -30,7 +31,7 @@ router.get('/login', userController.loadLogin)
 router.post('/login', validateSignin, userController.login)
 router.get('/verify-otp', userController.getOtpPage)
 router.post('/verify-otp', validateOtpInput, userController.verifyOtp)
-router.post('/resend-signup-otp', validateOtpInput, userController.resendSignupOtp)
+router.post('/resend-signup-otp', userController.resendSignupOtp)
 router.get('/logout', userController.logout)
 
 //blocked user page
@@ -44,14 +45,14 @@ router.post('/resend-forgot-otp', validateOtpInput, profileController.resendOtp)
 router.get('/reset-password', profileController.getResetPassword)
 router.post('/reset-password', profileController.resetPassword)
 router.get('/userProfile', userAuth, profileController.userProfile)
-router.post('/updateProfile', userAuth, profileController.updateProfile) //update profile
+router.post('/updateProfile', userAuth,validateUpdateProfile, profileController.updateProfile) //update profile
 
 //address management
 router.get('/addressManagent', userAuth, profileController.manageAddress)
 router.get('/addAddress', userAuth, profileController.getAddAddress)
 router.post('/addAddress', userAuth, validateAddAddress, profileController.addAddress)
 router.get('/editAddress/:id', userAuth, profileController.getEditAddress)
-router.post('/editAddress/:id', userAuth, profileController.editAddress)
+router.post('/editAddress/:id', userAuth,validateAddAddress, profileController.editAddress)
 router.post('/deleteAdress/:id', userAuth, profileController.deleteAddress)
 
 //product management
@@ -89,10 +90,6 @@ router.get('/wallet-transction-history', userAuth, walletController.getHistory)
 
 //category
 router.get('/category/:id', userAuth, categoryController.categoryPage)
-
-//filter product
-router.get('/filter', userAuth, productController.filterProduct)
-router.get('/filterHome', userAuth, productController.filterHome)
 
 
 

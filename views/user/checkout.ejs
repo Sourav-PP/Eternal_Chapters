@@ -10,11 +10,17 @@
     <link rel="stylesheet" href="cart.css" />
     <link rel="stylesheet" href="user/header.css" />
     <link rel="stylesheet" href="user/checkout.css" />
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
     <style>
         .success-message {
             color: green;
         }
+        .dis {
+            float: right !important;
+            color: green;
+        }
+        
     </style>
 </head>
 <body>
@@ -52,7 +58,14 @@
 
                         <div class="coupon-section mt-4 bg">
                             <h4 class="mb-3">Apply Coupon</h4>
-                            <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" />
+                            <!-- <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" /> -->
+                             <select name="" id="coupon-code" class="form-control" style="width: 300px; border-radius: 20px;">
+                                <option value="" disabled selected>Select a Coupon</option>
+                                <% coupons.forEach(item => { %>
+                                    <option value="<%= item.code %>"><%= item.code %></option>
+                                <% }) %>
+                                
+                             </select>
                             <button type="button" id="apply-coupon" class="btn btn-success mt-2">Apply Coupon</button>
                             <button type="button" id="remove-coupon" class="btn btn-danger mt-2" style="display: none;">Remove Coupon</button>
                             <div id="coupon-message" class="mt-2 text-danger"></div>
@@ -85,10 +98,13 @@
                     <div class="col-md-4 price-holder">
                         <div class="price-details">
                             <h5>PRICE DETAILS</h5>
-                            <p>Price ( <%= cart.items.length %> Items ) <span class="float-end">&#8377;<%= totalAmount %></span></p>
-                            <p>Delivery Charges <span class="float-end">&#8377;<%= shippingCharges %></span></p>
+                            <p>Price ( <%= numberOfItems %> Items ) <span class="float-end">&#8377;<%= originalPrice.toFixed(2)  %></span></p>
+                            <p>Tax Amount <span class="float-end">&#8377;<%= taxAmount.toFixed(2) %></span></p>
+                            <p>Delivery Charges <span class="float-end">&#8377;<%= shippingCharge.toFixed(2)  %></span></p>
+                            <p>Offer Discount <span class="float-end text-success">-&#8377;<%= offerDiscount.toFixed(2) %></span></p>
+                            <p id="discount-holder">Coupon Discount <span id="discount"></span></p>
                             <hr />
-                            <p class="fw-bold">Total Amount <span class="float-end total">&#8377;<%= netAmount %></span></p>
+                            <p class="fw-bold">Total Amount <span class="float-end total">&#8377;<%= netAmount.toFixed(2) %></span></p>
                             <button type="submit" class="btn-checkout w-100 mt-3">Place Order</button>
                         </div>
                     </div>
@@ -123,14 +139,37 @@
                 return;
             }
 
-            const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            if (selectedPaymentMethod === 'COD') {
-                this.submit();
+            const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked')
+            if(!selectedPaymentMethod) {
+                Swal.fire({
+                    title: "Error!",
+                    text: "Please select a Payment method.",
+                    icon: "error",
+                    showConfirmButton: true
+                });
+                return;
+            }
+
+            if (selectedPaymentMethod.value === 'COD') {
+                setTimeout(() => {
+                    this.submit();
+                }, 0);
                 return;
             }
 
             const amountElement = document.querySelector('.total');
-            const amount = parseFloat(amountElement.textContent.replace('₹', ''));  
+            const amount = parseFloat(amountElement.textContent.replace('₹', '').replace(',', '').trim());
+
+            // Ensure amount is valid
+            if (isNaN(amount) || amount <= 0) {
+                Swal.fire({
+                    title: "Error!",
+                    text: "Invalid amount format.",
+                    icon: "error",
+                    showConfirmButton: true
+                });
+                return;
+            }
 
             try {
                 const response = await fetch('/create-order', {
@@ -213,10 +252,13 @@
                 const data = await response.json()
 
                 if(data.success) {
-                    document.getElementById('coupon-message').innerHTML = `Coupn applied! discount: ₹${data.discountAmount}`;
+                    document.getElementById('coupon-message').innerHTML = `Coupon applied! discount: ${data.discountValue}%`;
                     document.getElementById('coupon-message').className = 'success-message'
                     //update the total amount displayed on the page
-                    document.querySelector('.total').innerHTML = `₹${data.newTotalAmount}`
+                    document.querySelector('.total').innerHTML = `₹${data.formattedTotalAmount}`
+                    // document.getElementById('discount-holder').style.display = 'block'
+                    document.getElementById('discount').innerHTML = `-₹${data.couponDiscount}`
+                    document.getElementById('discount').className = 'dis'
 
                     document.getElementById('apply-coupon').style.display = 'none'
                     document.getElementById('remove-coupon').style.display = 'inline-block'
@@ -248,10 +290,12 @@
                     document.getElementById('coupon-code').value = ''
 
                     //update the total amount displayed on the page
-                    document.querySelector('.total').innerHTML = `₹${data.newTotalAmount}`
+                    document.querySelector('.total').innerHTML = `₹${data.formattedTotalAmount}`
 
                     document.getElementById('apply-coupon').style.display = 'inline-block'
                     document.getElementById('remove-coupon').style.display = 'none'
+                    // document.getElementById('discount-holder').style.display = 'none'
+                    document.getElementById('discount').innerHTML = ''
                 }else{
                     document.getElementById('coupon-message').innerHTML = data.message
                 }

@@ -14,10 +14,13 @@ const razorpay = new Razorpay({
 
 const createOrder = async (req, res) => {
     try {
+
         const {amount} = req.body
 
+        const amountInPaise = parseInt(amount) * 100
+
         const options = {
-            amount: amount * 100, // amount in the smallest currency unit
+            amount: amountInPaise, // amount in the smallest currency unit
             currency: "INR",
             receipt: req.body.receipt,
             payment_capture: 1

@@ -34,16 +34,16 @@ const loadLogin = async (req, res) => {
 //login admin
 const login = async (req, res) => {
     try {
-        const errors = validationResult(req);  // Validation errors
+        const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            // Store validation errors and form data
             req.flash('validationError', errors.array());
             req.flash('data', req.body);
-            return res.redirect('/admin/login'); // Redirect to login page
+            return res.redirect('/admin/login');
         }
 
-        const { email, password } = req.body
+        const { email, password } = req.body;
+
         const admin = await User.findOne({ email, is_admin: true })
         if (admin) {
             const passwordMatch = await bcrypt.compare(password, admin.password)
@@ -151,8 +151,6 @@ const loadDashboard = async (req, res) => {
                 { $sort: { order_date: -1 } } // Sort by recent orders first
             ]);
 
-            console.log('salesReport',salesReport)
-
             // Render the dashboard with the fetched data
             res.render('dashboard', {
                 totalUsers,
@@ -168,34 +166,6 @@ const loadDashboard = async (req, res) => {
         res.redirect('/admin/error-page')
     }
 }
-
-//get sales data for the graph
-// const getGraph = async (req, res) => {
-//     try {
-//         const { startDate, endDate } = req.body
-
-//         const match = {}
-//         if (startDate) match.order_date = { $gte: new Date(startDate) }
-//         if (endDate) match.order_date = { ...match.order_date, $lte: new Date(endDate) };
-
-//         const salesData = await Order.aggregate([
-//             { $match: match },
-//             {
-//                 $group: {
-//                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$order_date" } },
-//                     totalSales: { $sum: '$netAmount' },
-//                     totalOrder: { $sum: 1 }
-//                 },
-//             },
-//             { $sort: { _id: 1 } },
-//         ])
-
-//         res.json(salesData);
-//     } catch (error) {
-//         console.log('error gettin the graph data', error)
-//         res.status(500).json({ error: 'Failed to fetch sales data' });
-//     }
-// }
 
 const logout = async (req, res) => {
     try {

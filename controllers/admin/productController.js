@@ -122,11 +122,10 @@ const getEditProduct = async (req, res) => {
 }
 
 const editProduct = async (req, res) => {
+    let productId
     try {
-        const productId = req.params.id
-        console.log('suiii',productId)
-        const errors = validationResult(req)
-        console.log('edit error' ,errors)
+        productId = req.params.id;
+        const errors = validationResult(req);
 
         if(!errors.isEmpty()) {
             req.flash('validationError', errors.array())
@@ -134,33 +133,100 @@ const editProduct = async (req, res) => {
             return res.redirect(`/admin/editProduct?id=${productId}`)
         }
 
-        
-        const { title, author_name, price, available_quantity, category_id, status, language, publishing_date, publisher, page, description } = req.body
-        const productExist = await Product.findOne({ title: title })
+        const { 
+            title, author_name, price, available_quantity, 
+            category_id, status, language, publishing_date, 
+            publisher, page, description, 
+            delete_images, existing_images
+        } = req.body;
 
-
-        const categoryId = await Category.findOne({ _id: category_id })
-        if (!categoryId) {
-            return res.status(400).join("Invalid category")
+        const productExist = await Product.findById(productId);
+        if (!productExist) {
+            return res.status(404).send('Product not found');
         }
 
-        const images = productExist.product_imgs;
-        if (req.files && req.files.length > 0) {
-            images = [];
-            for (let i = 0; i < req.files.length; i++) {
-                const originalImagePath = req.files[i].path
+        const categoryId = await Category.findOne({ _id: category_id });
+        if (!categoryId) {
+            return res.status(400).send("Invalid category");
+        }
 
-                const resizedImagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', req.files[i].filename)
-                await sharp(originalImagePath).resize({ width: 300, height: 450 }).toFile(resizedImagePath)
-                images.push(req.files[i].filename);
+        // Convert existing_images to array if it's not already
+        const existingImagesArray = Array.isArray(existing_images) ? existing_images : [existing_images];
+
+        // Create a map of current images with their positions
+        const currentImagesMap = new Map();
+        existingImagesArray.forEach((img, index) => {
+            if (img) currentImagesMap.set(img, index);
+        });
+
+        // Handle deleted images
+        if (delete_images) {
+            const imagesToDelete = Array.isArray(delete_images) 
+                ? delete_images.map(img => decodeURIComponent(img))
+                : [decodeURIComponent(delete_images)];
+            
+            // Remove deleted images from filesystem
+            imagesToDelete.forEach(imgName => {
+                const imagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', imgName);
+                try {
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                        console.log('Deleted file:', imgName);
+                    }
+                } catch (err) {
+                    console.error('Error deleting file:', imgName, err);
+                }
+            });
+
+            // Remove deleted images from the map
+            imagesToDelete.forEach(img => currentImagesMap.delete(img));
+        }
+
+        // Process new images
+        const newImages = [];
+        if (req.files && req.files.length > 0) {
+            for (let file of req.files) {
+                const originalImagePath = file.path;
+                const resizedImagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', file.filename);
+                
+                try {
+                    await sharp(originalImagePath)
+                        .resize({ width: 300, height: 450 })
+                        .toFile(resizedImagePath);
+
+                    if (fs.existsSync(originalImagePath)) {
+                        fs.unlinkSync(originalImagePath);
+                    }
+                    
+                    newImages.push(file.filename);
+                } catch (error) {
+                    console.error('Error processing image:', file.filename, error);
+                    continue;
+                }
             }
         }
 
-        const lowerCase = language.toLowerCase();
-        const lowerCaseTitle = title.toLowerCase();
+        // Create final images array maintaining order
+        const finalImages = new Array(4).fill(null);
+        
+        // First, place existing images in their original positions
+        for (const [img, pos] of currentImagesMap.entries()) {
+            if (pos < 4) finalImages[pos] = img;
+        }
+        
+        // Then, fill empty slots with new images
+        let newImageIndex = 0;
+        for (let i = 0; i < 4; i++) {
+            if (finalImages[i] === null && newImageIndex < newImages.length) {
+                finalImages[i] = newImages[newImageIndex++];
+            }
+        }
+
+        // Remove null values
+        const images = finalImages.filter(img => img !== null);
 
         const updateFields = {
-            title: lowerCaseTitle,
+            title: title.toLowerCase(),
             category_id,
             author_name,
             price,
@@ -169,19 +235,31 @@ const editProduct = async (req, res) => {
             publishing_date,
             publisher,
             page,
-            language: lowerCase,
+            language: language.toLowerCase(),
             product_imgs: images,
             status
         };
 
-        await Product.findByIdAndUpdate(productId, updateFields, { new: true })
-        req.flash("success", "The product has been updated successfully")
-        return res.redirect("/admin/products")
+        const result = await Product.updateOne(
+            { _id: productId },
+            { 
+                $set: updateFields,
+                $currentDate: { updated_at: true }
+            }
+        );
+
+        if (!result.modifiedCount) {
+            console.log('Warning: No changes were made to the document');
+        }
+
+        req.flash("success", "The product has been updated successfully");
+        return res.redirect("/admin/products");
     } catch (error) {
-        console.error('error updating the product!', error)
+        console.error('Error updating the product!', error);
+        req.flash('error', 'Failed to update the product');
+        return res.redirect(`/admin/editProduct?id=${productId}`);
     }
 }
-
 //soft delete product
 const softDeleteProduct = async (req, res) => {
     try {
@@ -235,4 +313,5 @@ module.exports = {
     getEditProduct,
     editProduct,
     deleteProduct,
+
 }

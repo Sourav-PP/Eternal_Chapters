@@ -4,16 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customers Dashboard</title>
+    <title>Eternal chapters: product details</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="/admin/admin.css">
+    <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
     <link rel="stylesheet" href="/admin/adminProducts.css">
 
 
     <style>
+        .ad-offer {
+            background-color: rgb(255, 0, 153);
+            border: none;
+        }
+        .remove-offer {
+            background-color: red;
+            border: none;
+        }
     </style>
 </head>
 
@@ -63,7 +72,7 @@
 
                                     <tr id="searchData">
                                         <td>
-                                            <img src="/uploads/<%= product.product_imgs[0] %>" alt="<%= product.title %>" width="50" height="84">
+                                            <img src="/uploads/product-images/<%= product.product_imgs[0] %>" alt="<%= product.title %>" width="50" height="84">
                                         </td>
                                         <td>
                                             <%= product.title %>
@@ -88,7 +97,17 @@
                                             
                                         </td> -->
                                         <td class="bt-td">
+                                            <% if (product.offer_id) { %>
+                                                <button class="offer-btn rounded-pill me-3 ps-3 pe-3 remove-offer text-white" data-product-id="<%= product._id %>">
+                                                 Remove Offer
+                                                </button>
+                                                <% } else { %>
+                                                <button class="offer-btn rounded-pill me-3 ps-3 pe-3 ad-offer">
+                                                    <a class="text-decoration-none text-white" href="/admin/add-offer-product?id=<%= product._id %>">Add Offer</a>
+                                                </button>
+                                            <% } %>
                                             <button class="edit-btn rounded-pill me-3 ps-3 pe-3"><a class="text-decoration-none text-white" href="/admin/editProduct?id=<%= product._id %>">Edit</a></button>
+                                            
 
                                             <% if(product.is_deleted){ %>
 
@@ -100,8 +119,8 @@
                                                     <button type="submit" class="btn btn-danger rounded-pill soft-bt">Active</button>
                                                 </form>
                                             <% } %>
-                                            <form action="/admin/deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
-                                                <button type="submit" class="delete-btn ms-3"><i class="bi bi-archive-fill"></i></button>
+                                            <form id="deleteForm-<%= product._id %>" action="/admin/deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
+                                                <button type="button" class="delete-btn ms-3" onclick="confirmDelete('<%= product._id %>')"><i class="bi bi-archive-fill"></i></button>
                                             </form>
                                             
                                         </td>
@@ -142,6 +161,47 @@
     <% } %>
 
     <script>
+        function confirmDelete(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit the form if confirmed
+                document.getElementById(`deleteForm-${productId}`).submit();
+            }
+        });
+    }
+
+
+        document.querySelectorAll('.remove-offer').forEach(button => {
+                button.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default button click action
+                const productId = this.getAttribute('data-product-id'); // Get the category ID
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'This action will remove the offer from the product!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, remove it!',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirect to the remove offer route
+                        window.location.href = `/admin/remove-offer-product?id=${productId}`;
+                    }
+                });
+            });
+        });            
+
 
         function search() {
             const input = document.getElementById("search").value.toLowerCase().trim(); // Get search input and convert to lowercase

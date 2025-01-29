@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="userDetails.css">
     <link rel="stylesheet" href="user/wallet.css">
     <link rel="stylesheet" href="user/header.css">
-    
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
@@ -29,7 +29,7 @@
             <div class="col-md-6">
                 <div class="wallet-box">
                   <h4>Available Balance</h4>
-                  <h2 id="walletBalance">₹ <%= wallet.balance %></h2>
+                  <h2 id="walletBalance">₹ <%= wallet.balance.toFixed() %></h2>
                   <div class="payment-box shadow-sm">
                     <h5 class="text-start mb-0">Payment Method</h5>
                     <p class="text-muted text-start">Select any payment method</p>

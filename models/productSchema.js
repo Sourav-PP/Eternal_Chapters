@@ -6,14 +6,15 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
+    offer_id: {
+        type: Schema.Types.ObjectId,
+        ref:"Offer",
+        required:false,
+    },
     category_id: {
         type: Schema.Types.ObjectId,
         ref: "Category",
         required: true,
-    },
-    offer_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Offer'
     },
     author_name: {
         type: String,
@@ -82,6 +83,9 @@ productSchema.virtual("stock_state").get(function() {
     if(this.status === "unavailable") return "Unavailable"
     return "Available"
 })
+
+productSchema.set('toObject', { virtuals: true });
+productSchema.set('toJSON', { virtuals: true });
 
 const Product = mongoose.model('Product', productSchema)
 

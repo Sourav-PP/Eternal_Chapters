@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Customers Dashboard</title>
+    <title>Eternal chapters: order details</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
@@ -62,6 +63,12 @@
         .reject {
             width: 100px
         }
+
+        .no-order {
+            font-size: 2rem;
+            margin-top: 14rem;
+            color: brown;
+        }
     </style>
 </head>
 
@@ -78,66 +85,137 @@
 
         <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
             <!-- content goes here -->
-            <div class="container my-5 table-holder">
-                <h3 class="fw-bold mb-4">Orders</h3>
-                <table class="table table-bordered table-hover table-responsive-md custom-table">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <% orders.forEach(order => { %>
-                        <% order.orderItems.forEach(orderItem => { %>
-                            <% orderItem.items.forEach(item => { %>
-                                <tr>
-                                    <td>
-                                        <img src="/uploads/<%= item.product_id.product_imgs[0] %>" alt="<%= item.product_id.title %>" class="img-thumbnail" />
-                                    </td>
-                                    <td><%= item.product_id.title %></td>
-                                    <td><%= order.address_id ? order.address_id.city : 'No City Provided' %></td>
-                                    <td><%= order.order_date.toLocaleDateString('en-GB') %></td>
-                                    <td><%= item.product_id.category_id.name %></td>
-                                    <td>
-                                        <form action="/admin/update-order-status/<%= order._id %>/<%= item.product_id._id %>" method="POST">
-                                            <% if (item.status === 'pending') { %>
-                                                <select name="status" class="form-select" onchange="this.form.submit()">
-                                                    <option value="pending" <%= item.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                                                    <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                                                    <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
-                                                </select>
-                                            <% } else if (item.status === 'shipped') { %>
-                                                <select name="status" class="form-select" onchange="this.form.submit()">
-                                                    <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                                                    <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                                                    <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
-                                                </select>
-                                            <% } else if (item.status === 'return_requested') { %>
-                                              <div class="d-flex flex-column">
-                                                <p class="form-text fw-bold text-dark">Return Requested</p>
-                                                <button class="btn btn-success btn-sm mb-2 approve" formaction="/admin/approve-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Approve</button>
-                                                <button class="btn btn-danger rounded-pill btn-sm reject" formaction="/admin/reject-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Reject</button>
-                                            </div>
-                                            <% } else if (item.status === 'ret') { %>
-                                             
-                                            <% } else { %>
-                                                <!-- Display plain text for 'delivered' and 'canceled' statuses -->
-                                                <p class="form-text fw-bold ms-2 text-danger cncl"><%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %></p>
+            <% if (orders.length === 0) { %>
+             <div class="text-center no-order fw-bold"> There is no orders to show!</div>
+             <% } else { %>
+                <div class="container my-5 table-holder">
+                    <h3 class="fw-bold mb-4">Orders</h3>
+                    <table class="table table-bordered table-hover table-responsive-md custom-table">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <% orders.forEach(order => { %>
+                            <% order.orderItems.forEach(orderItem => { %>
+                                <% orderItem.items.forEach(item => { %>
+                                    <tr>
+                                        <td>
+                                            <% if (item.product_id && item.product_id.product_imgs && item.product_id.product_imgs[0]) { %>
+                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" alt="<%= item.product_id.title %>" class="img-thumbnail" />
                                             <% } %>
-                                        </form>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td><%= item.product_id.title %></td>
+                                        <td><%= order.address_id ? order.address_id.city : 'No City Provided' %></td>
+                                        <td><%= order.order_date.toLocaleDateString('en-GB') %></td>
+                                        <td><%= item.product_id.category_id.name %></td>
+                                        <td><button class="btn btn-secondary p-1" data-bs-toggle="modal" data-bs-target="#orderDetailsModal<%= order._id %>">
+                                            View Details
+                                        </button></td>
+                                        <td>
+                                            <form action="/admin/update-order-status/<%= order._id %>/<%= item.product_id._id %>" method="POST">
+                                                <% if (item.status === 'pending') { %>
+                                                    <select name="status" class="form-select" onchange="this.form.submit()">
+                                                        <option value="pending" <%= item.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+                                                    </select>
+                                                <% } else if (item.status === 'shipped') { %>
+                                                    <select name="status" class="form-select" onchange="this.form.submit()">
+                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                                                        <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+                                                    </select>
+                                                <% } else if (item.status === 'return_requested') { %>
+                                                  <div class="d-flex flex-column">
+                                                    <p class="form-text fw-bold text-dark">Return Requested</p>
+                                                    <button class="btn btn-success btn-sm mb-2 approve" formaction="/admin/approve-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Approve</button>
+                                                    <button class="btn btn-danger rounded-pill btn-sm reject" formaction="/admin/reject-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Reject</button>
+                                                </div>
+                                                <% } else if (item.status === 'ret') { %>
+                                                 
+                                                <% } else { %>
+                                                    <!-- Display plain text for 'delivered' and 'canceled' statuses -->
+                                                    <p class="form-text fw-bold ms-2 text-danger cncl"><%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %></p>
+                                                <% } %>
+                                            </form>
+                                        </td>
+                                    </tr>
+    
+                                    <!-- Modal for Order Details -->
+                                    <div class="modal fade" id="orderDetailsModal<%= order._id %>" tabindex="-1" aria-labelledby="orderDetailsLabel<%= order._id %>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="orderDetailsLabel<%= order._id %>">Order Details</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <p><strong>Order ID:</strong> <%= order._id %></p>
+                                                        <p><strong>Order Date:</strong> <%= new Date(order.order_date).toLocaleDateString() %></p>
+                                                        <p><strong>Payment Method:</strong> <%= order.payment_method %></p>
+                                                    </div>
+                                                    <div class="p-3 border rounded bg-light mb-3">
+                                                        <p><strong>Total:</strong> ₹<%= order.total %></p>
+                                                        <p><strong>Shipping Charge:</strong> ₹<%= order.shipping_chrg %></p>
+                                                        <p><strong>Discount:</strong> ₹<%= order.discount %></p>
+                                                        <p><strong>Net Amount:</strong> ₹<%= order.netAmount %></p>
+                                                    </div>
+                                                    <hr>
+                                                    <h5 class="mb-4">Items in this Order:</h5>
+                                                    <% if (order.orderItems && order.orderItems.length > 0) { %>
+                                                        <% order.orderItems.forEach(orderItem => { %>
+                                                            <% if (orderItem.items && orderItem.items.length > 0) { %>
+                                                                <% orderItem.items.forEach(item => { %>
+                                                                    <div class="card mb-3 shadow-sm">
+                                                                        <div class="row g-0 align-items-center">
+                                                                            <div class="col-md-4">
+                                                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
+                                                                                    alt="Product Image" 
+                                                                                    class="img-fluid rounded-start ms-3" 
+                                                                                    style="height: 150px; width: auto;" />
+                                                                            </div>
+                                                                            <div class="col-md-8">
+                                                                                <div class="card-body">
+                                                                                    <h5 class="card-title fw-bold"><%= item.product_id.title %></h5>
+                                                                                    <p class="card-text"><em>By: <%= item.product_id.author_name %></em></p>
+                                                                                    <p class="card-text"><strong>Quantity:</strong> <%= item.quantity %></p>
+                                                                                    <p class="card-text"><strong>Price:</strong> ₹<%= item.product_id.price %></p>
+                                                                                    <p class="card-text"><strong>Subtotal:</strong> ₹<%= item.total_amount %></p>
+                                                                                    <p class="card-text"><strong>Status:</strong> <%= item.status %></p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                <% }) %>
+                                                            <% } %>
+                                                        <% }) %>
+                                                    <% } else { %>
+                                                        <p class="text-center text-muted">No items found in this order.</p>
+                                                    <% } %>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                <% }) %>
                             <% }) %>
                         <% }) %>
-                    <% }) %>
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
         </div>
     </div>
 </div>

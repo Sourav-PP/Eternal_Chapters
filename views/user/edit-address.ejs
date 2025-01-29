@@ -10,6 +10,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/userDetails.css">
     <link rel="stylesheet" href="/user/header.css">
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
 
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -39,12 +40,20 @@
                                     <div class="col-md-6">
                                         <label for="firstName" class="form-label">Name</label>
                                         <input type="text" class="form-control" name="name" value="<%= address.name %>" id="Name" placeholder="Enter your first name">
-                                        
+                                        <% if (validationErrors) { 
+                                            const nameError = validationErrors.find(err => err.path === 'name'); 
+                                            if (nameError) { %>
+                                                <small class="text-danger"><%= nameError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="lastName" class="form-label">Pincode</label>
                                         <input type="text" class="form-control" name="pin_code" value="<%= address.pin_code %>" id="pin_code" placeholder="Enter your last name">
-                                        
+                                        <% if (validationErrors) { 
+                                            const pinCodeError = validationErrors.find(err => err.path === 'pin_code'); 
+                                            if (pinCodeError) { %>
+                                                <small class="text-danger"><%= pinCodeError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
                                 
@@ -53,12 +62,20 @@
                                     <div class="col-md-6">
                                         <label for="dob" class="form-label">City / District / Town</label>
                                         <input type="text" name="city" value="<%= address.city %>" class="form-control" id="dob">
-                                        
+                                        <% if (validationErrors) { 
+                                            const cityError = validationErrors.find(err => err.path === 'city'); 
+                                            if (cityError) { %>
+                                                <small class="text-danger"><%= cityError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">State</label>
                                         <input type="text" class="form-control" name="state" value="<%= address.state %>" id="email" placeholder="Enter your email">
-                                        
+                                        <% if (validationErrors) { 
+                                            const stateError = validationErrors.find(err => err.path === 'state'); 
+                                            if (stateError) { %>
+                                                <small class="text-danger"><%= stateError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
  
@@ -69,20 +86,28 @@
                                         <label>Address Type:</label>
                                         <div class="type">
                                         <div>
-                                            <input type="radio" id="home" name="address_type" value="home" />
+                                            <input type="radio" id="home" name="address_type" value="work" <% if (address.address_type === 'home') { %>checked<% } %> />
                                             <label for="home">Home</label>
                                         </div>
                                         <div>
-                                            <input type="radio" id="work" name="address_type" value="work" />
+                                            <input type="radio" id="work" name="address_type" value="work" <% if (address.address_type === 'work') { %>checked<% } %> />
                                             <label for="work">Work</label>
                                         </div>
                                         </div>
-                                        
+                                        <% if (validationErrors) { 
+                                            const addressTypeError = validationErrors.find(err => err.param === 'address_type'); 
+                                            if (addressTypeError) { %>
+                                                <small class="text-danger"><%= addressTypeError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="pincode" class="form-label">Landmark</label>
                                         <input type="text" class="form-control" name="land_mark" value="<%= address.land_mark %>" id="pincode" placeholder="Enter your pincode">
-                                        
+                                        <% if (validationErrors) { 
+                                            const landMarkError = validationErrors.find(err => err.path === 'land_mark'); 
+                                            if (landMarkError) { %>
+                                                <small class="text-danger"><%= landMarkError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
                                 
@@ -91,12 +116,20 @@
                                     <div class="col-md-6">
                                         <label for="mobile" class="form-label">Mobile Number</label>
                                         <input type="tel" class="form-control" name="mobile_number" value="<%= address.mobile_number %>" id="mobile" placeholder="Enter your mobile number">
-                                        
+                                        <% if (validationErrors) { 
+                                            const mobileError = validationErrors.find(err => err.path === 'mobile_number'); 
+                                            if (mobileError) { %>
+                                                <small class="text-danger"><%= mobileError.msg %></small>
+                                        <% }} %>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="mobile" class="form-label">Alternative Number</label>
                                         <input type="tel" class="form-control" name="alternate_number" value="<%= address.alternate_number %>" id="mobile" placeholder="Enter your mobile number">
-                                        
+                                        <% if (validationErrors) { 
+                                            const alternateMobileError = validationErrors.find(err => err.path === 'alternate_number'); 
+                                            if (alternateMobileError) { %>
+                                                <small class="text-danger"><%= alternateMobileError.msg %></small>
+                                        <% }} %>
                                     </div>
                                 </div>
                                 

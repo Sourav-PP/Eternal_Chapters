@@ -21,20 +21,27 @@ const paymentSchema = new Schema({
   status: { 
     type: String, 
     enum: ['pending', 'completed', 'canceled', 'partially_refunded', 'refunded'],
-    required: true 
+    required: true ,
+    default: 'pending'
   }, 
+  currency: { 
+    type: String, 
+    default: 'INR' 
+  },
   payment_method: { 
     type: String, 
-    enum: ['COD', 'creditCard', 'bank', 'upi'],
+    enum: ['COD', 'creditCard', 'bank', 'upi','wallet'],
     required: true 
   }, 
   razorpay_order_id: {
     type: String,
     required: false,
+    index: true,
   },
   razorpay_payment_id: {
     type: String,
     required: false,
+    index: true,
   },
   refunded_amount: {
     type: Number,

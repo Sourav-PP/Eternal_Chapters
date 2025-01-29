@@ -12,6 +12,26 @@ const addCouponValidation = [
             }
             return true
         }),
+    body('max_discount_amount')
+        .trim()
+        .notEmpty().withMessage('Field is required')
+        .isNumeric().withMessage('Max discount must be a number')
+        .custom((value) => {
+            if(value < 0) {
+                throw new Error("Max discount must be positive number")
+            }
+            return true;
+        }),
+    body('minimum_purchase_amount')
+        .trim()
+        .notEmpty().withMessage('Field is required')
+        .isNumeric().withMessage('Min purchase must be a number')
+        .custom((value) => {
+            if(value < 0) {
+                throw new Error("Min purchase must be positive number")
+            }
+            return true;
+        }),
     body('discount_value')
         .trim()
         .notEmpty().withMessage('Discount value is required')
@@ -29,8 +49,8 @@ const addCouponValidation = [
         .trim()
         .notEmpty().withMessage('Description is required'),
     body('limit')
-        .isNumeric().withMessage('Usage limit must be a number.')
         .notEmpty().withMessage('Usage limit is required.')
+        .isNumeric().withMessage('Usage limit must be a number.')
         .custom((value) => {
             if (value <= 0) {
                 throw new Error('Usage limit must be a positive number.');
@@ -40,9 +60,5 @@ const addCouponValidation = [
     body('expiry_date')
         .notEmpty().withMessage('Expiry date is required.')
         .isDate().withMessage('Invalid expiry date.'),
-    body('is_active')
-        .notEmpty().withMessage('Status selection is required.')
-        .isIn(['active', 'inactive']).withMessage('Invalid status.')
 ]
-
 module.exports = addCouponValidation

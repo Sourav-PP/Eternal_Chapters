@@ -1,0 +1,75 @@
+<div class="row" id="product-container">
+    <% products.forEach(product => { %>
+    <div class="col-md-3 mb-4">
+      <div class="card shadow-sm book">
+        <a class="text-decoration-none text-dark" href="/productDetails?id=<%= product._id %>">
+          <img src="/uploads/product-images/<%= product.product_imgs[0] %>" class="card-img-top" alt="<%= product.title %>"/>
+          <div class="card-body">
+            <h5 class="card-title fw-bold mb-0"><%= product.title %></h5>
+
+            <% if (product.offerDiscount > 0) { %>
+              <p class="text-muted mb-0">
+                <strike>₹<%= product.originalPrice %>.00</strike>
+                <span class="text-success fw-bold">₹<%= product.discountedPrice.toFixed(2) %></span>
+              </p>
+              <% if (product.offer_id && product.offer_id.discount_value) { %>
+                <p class="text-danger small mb-0">
+                  <strong>Offer: <%= product.offer_id.discount_value %>% OFF</strong>
+                </p>
+                <% } else if (product.category_id.offer_id) { %>
+                  <p class="text-danger small mb-0">
+                    <strong>Offer: <%= product.category_id.offer_id.discount_value %>% OFF</strong>
+                  </p>
+              <% } %>
+              <% } else { %>
+                <p class="text-success fw-bold mb-0">₹<%= product.originalPrice %>.00</p>
+              <% } %>
+
+            <p class="text-muted small"><%= product.author_name %></p>
+            <% if (product.stock_state === "Blocked") { %>
+              <p class="text-danger small mb-0">Blocked</p>
+            <% } else if (product.stock_state === "Sold out") { %>
+              <p class="text-danger small mb-0">Sold out</p>
+            <% } else if (product.stock_state === "Out of stock") { %>
+              <p class="text-danger small mb-0">Out of stock</p>
+            <% } else if (product.stock_state === "Unavailable") { %>
+              <p class="text-danger small mb-0">Unavailable</p>
+            <% } else if (product.stock_state === "Available") { %>
+              <p class="text-success small mb-0">Available</p>
+            <% } %>
+          </div>
+        </a>
+      </div>
+    </div>
+    <% }) %>
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            <!-- Previous Page Button -->
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link pagination-link" href="#" data-page="<%= currentPage - 1 %>" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+    
+            <!-- Dynamic Page Numbers -->
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link pagination-link" href="#" data-page="<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+    
+            <!-- Next Page Button -->
+            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                <a class="page-link pagination-link" href="#" data-page="<%= currentPage + 1 %>" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+
+  </div>
+
+
+  

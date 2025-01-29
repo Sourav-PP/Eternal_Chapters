@@ -11,6 +11,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="userDetails.css">
     <link rel="stylesheet" href="user/header.css">
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
 
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -34,7 +35,7 @@
                             <p class="text-center mb-4">Fill in the below details to add new address</p>
                             
                             <!-- Form Starts -->
-                            <form action="/addAddress?from=checkout" method="post">
+                            <form action="/addAddress" method="post">
                                 <!-- Name and pincode -->
                                 <div class="row mb-2">
                                     <div class="col-md-6">
@@ -132,7 +133,7 @@
                                         <% }} %>
                                     </div>
                                 </div>
-                                
+                                <input type="hidden" name="fromCheckout" value="<%= fromCheckout %>">
                                 <!--Add Button--> 
                                 <div class="d-flex justify-content-center mt-4">
                                         <button type="submit" class="btn-add">Add</button>

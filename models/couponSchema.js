@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { type } = require('os');
 const {Schema} = mongoose
  
 // Define the Coupon schema
@@ -14,7 +15,7 @@ const couponSchema = new Schema({
     required: true, 
     unique: true, 
     trim: true 
-  }, // Unique coupon code
+  },
   coupon_type: { 
     type: String, 
     enum: ['fixed', 'percentage'],
@@ -25,19 +26,33 @@ const couponSchema = new Schema({
     required: true, 
     min: 0 
   }, 
+  max_discount_amount: { 
+    type: Number, 
+    required: false, 
+    min: 0 
+  },
+  minimum_purchase_amount: { 
+    type: Number, 
+    required: false, 
+    min: 0 
+  },
   description: { 
     type: String, 
     trim: true 
-  }, // Optional description
+  },
   limit: { 
     type: Number, 
     required: true, 
     min: 1 
-  }, // Maximum usage limit
+  },
   expiry_date: { 
     type: Date, 
     required: true 
   },
+  used_by: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   created_at: { 
     type: Date, 
     default: Date.now 
@@ -54,7 +69,6 @@ couponSchema.pre('save', function (next) {
   next();
 });
 
-// Create the Coupon model
 const Coupon = mongoose.model('Coupon', couponSchema);
 
 module.exports = Coupon;

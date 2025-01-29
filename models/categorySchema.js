@@ -11,6 +11,11 @@ const categorySchema = new Schema({
         type: String,
         required: true,
     },
+    offer_id: {
+        type: Schema.Types.ObjectId,
+        ref:"Offer",
+        required:false,
+    },
     is_deleted: {
         type: Boolean,
         default: false

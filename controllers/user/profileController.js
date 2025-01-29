@@ -162,11 +162,13 @@ const userProfile = async (req, res) => {
         const userId = req.session.user
         const userData = await User.findById(userId);
         const address = await Address.find({ user_id: userId })
+        const validationErrors = JSON.parse(req.flash('validationErrors')[0] || '[]')
 
         res.render('profile', {
             user: userData,
             address,
-            success: req.flash('success')
+            success: req.flash('success'),
+            validationErrors
 
         })
     } catch (error) {
@@ -177,8 +179,15 @@ const userProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const userId = req.session.user
-        const { first_name, last_name, date_of_birth, email } = req.body
 
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            req.flash('validationErrors', JSON.stringify(errors.array())); 
+            return res.redirect('/userProfile');
+        }
+
+        const { first_name, last_name, date_of_birth, email } = req.body
         const user = await User.findByIdAndUpdate(userId, {
             first_name,
             last_name,
@@ -213,6 +222,7 @@ const manageAddress = async (req, res) => {
 const getAddAddress = async (req, res) => {
     try {
         const userId = req.session.user
+        const fromCheckout = req.query.from === 'checkout';
         const userData = await User.findById(userId)
         const validationErrors = JSON.parse(req.flash('validationErrors')[0] || '[]'); // Parse back to an array
         const formData = JSON.parse(req.flash('formData')[0] || '{}'); // Parse back to an object
@@ -222,6 +232,7 @@ const getAddAddress = async (req, res) => {
             error: req.flash('error'), // General errors
             validationErrors,
             formData,
+            fromCheckout
         });
     } catch (error) {
         console.error("error loading the add address page", error)
@@ -233,7 +244,7 @@ const getAddAddress = async (req, res) => {
 //add address
 const addAddress = async (req, res) => {
     try {
-        const fromCheckout = req.query.from === 'checkout'
+        const fromCheckout = req.body.fromCheckout === 'true'
         const userId = req.session.user
         const userData = await User.findById(userId)
 
@@ -270,12 +281,11 @@ const addAddress = async (req, res) => {
 
         req.flash('success', 'Address added successfully!');
 
-        if(fromCheckout) {
-            return res.redirect('/checkout')
-        }else{
-            return res.redirect('/addAddress')
+        if (fromCheckout) {
+            return res.redirect('/checkout');
+        } else {
+            return res.redirect('/addAddress');
         }
-        
 
     } catch (error) {
         console.error("error adding the address", error)
@@ -289,13 +299,16 @@ const getEditAddress = async (req, res) => {
     try {
         const userId = req.session.user
         const addressId = req.params.id
+        const validationErrors = JSON.parse(req.flash('validationErrors')[0] || '[]'); // Parse back to an array
+
 
         const address = await Address.findById(addressId)
         const userData = await User.findById(userId)
 
         res.render('edit-address', {
             success: req.flash('success'),
-            error: req.flash('error'), // General errors
+            error: req.flash('error'),
+            validationErrors,
             address,
         });
     } catch (error) {
@@ -311,6 +324,14 @@ const editAddress = async (req, res) => {
         const userId = req.session.user
         const addressId = req.params.id
         const { name, pin_code, city, state, address_type, land_mark, mobile_number, alternate_number } = req.body
+
+        // Handle validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            req.flash('validationErrors', JSON.stringify(errors.array())); // Convert array to JSON string
+            req.flash('formData', JSON.stringify(req.body)); // Convert form data to JSON string
+            return res.redirect(`/editAddress/${addressId}`); // Redirect with errors and form data
+        }
 
         await Address.findByIdAndUpdate(addressId,
             {

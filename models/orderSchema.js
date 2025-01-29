@@ -48,6 +48,14 @@ const orderSchema = new Schema({
     discount: {
         type: Number,
         default: 0
+    }, // Coupon discount
+    offer_discount: {
+        type: Number,
+        default: 0
+    }, // Offer discount
+    coupon_discount: {
+        type: Number,
+        default: 0
     },
     created_at: {
         type: Date,

@@ -9,7 +9,6 @@ const getWallet = async(req,res) => {
         const wallet = await Wallet.findOne({user_id: userId})
 
         const user = await User.findById(userId)
-        console.log('wallet', wallet)
 
         return res.render('wallet', {
             success: [],
@@ -67,7 +66,7 @@ const updateWallet = async(req,res) => {
 const getHistory = async(req,res) => {
     try {
         const page = parseInt(req.query.page) || 1
-        const limit = 2
+        const limit = 10
         const skip = (page - 1) * limit
 
         const userId = req.session.user
@@ -99,10 +98,8 @@ const getHistory = async(req,res) => {
         }
     
         const walletTransaction = await WalletTransaction.find(query).sort(sort).skip(skip).limit(limit)
-        const totalTransactions = await WalletTransaction.countDocuments();
+        const totalTransactions = await WalletTransaction.countDocuments({wallet_id: wallet._id});
         const totalPages = Math.ceil(totalTransactions / limit);
-
-        console.log('weeee',walletTransaction)
 
         return res.render('walletTransactionHistory', {
             walletTransaction,

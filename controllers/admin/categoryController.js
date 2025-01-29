@@ -12,6 +12,7 @@ const categoryInfo = async(req,res) => {
         res.render('category', {
             category: categoryData,
             error: error,
+            success: req.flash('success')
         })
     } catch (error) {
         console.error("error loading the categories", error)

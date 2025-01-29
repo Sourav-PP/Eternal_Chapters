@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="userDetails.css">
     <link rel="stylesheet" href="manageAddress.css">
     <link rel="stylesheet" href="user/header.css">
-
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <style>
@@ -60,7 +60,7 @@
             <% if (orders.length === 0) { %>
                 <div class="alert alert-danger text-center">
                     <strong>No orders found!</strong>
-                    <a href="/" class="btn btn-primary mt-2">Shop Now</a>
+                    <a href="/" class="btn btn-primary mt-2 d-block m-auto" style="width: 100px;">Shop Now</a>
                 </div>
             <% } else { %>
                 <% orders.forEach(order => { %>
@@ -115,7 +115,7 @@
                                                                 <div class="card mb-3 shadow-sm">
                                                                     <div class="row g-0 align-items-center">
                                                                         <div class="col-md-4">
-                                                                            <img src="/uploads/<%= item.product_id.product_imgs[0] %>" 
+                                                                            <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
                                                                                 alt="Product Image" 
                                                                                 class="img-fluid rounded-start ms-3" 
                                                                                 style="height: 150px; width: auto;" />
@@ -127,6 +127,7 @@
                                                                                 <p class="card-text"><strong>Quantity:</strong> <%= item.quantity %></p>
                                                                                 <p class="card-text"><strong>Price:</strong> ₹<%= item.product_id.price %></p>
                                                                                 <p class="card-text"><strong>Subtotal:</strong> ₹<%= item.total_amount %></p>
+                                                                                <p class="card-text"><strong>Status:</strong> <%= item.status %></p>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -150,7 +151,7 @@
                                 <!-- Order Item -->
                                 <div class="order-item d-flex flex-column flex-md-row align-items-center mb-4">
                                     <!-- Product Image -->
-                                    <img src="/uploads/<%= item.product_id.product_imgs[0] %>" 
+                                    <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
                                         alt="<%= item.product_id.title %>" 
                                         class="img-fluid rounded border" 
                                         style="height: 150px; width: auto;" />
@@ -212,38 +213,42 @@
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Yes, cancel it!'
             }).then((result) => {
-                if (result.isConfirmed && result.value) {
+                if (result.isConfirmed) {
                     const cancelReason = result.value;
-                    fetch(`/cancel-order/${orderId}/${productId}`, {
+                    if(cancelReason) {
+                        fetch(`/cancel-order/${orderId}/${productId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type' : 'application/json'
                         },
                         body: JSON.stringify({cancelReason})
                     }).then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            Swal.fire({
-                                title: 'Success',
-                                text: data.message,
-                                icon: 'success'
-                            }).then(() => {
-                                location.reload();
-                            })
-                        } else {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Something went wrong. Please try again.',
-                                icon: 'error'
-                            })
-                        }
-                    })
+                        .then(data => {
+                            if(data.success) {
+                                Swal.fire({
+                                    title: 'Success',
+                                    text: data.message,
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Something went wrong. Please try again.',
+                                    icon: 'error'
+                                })
+                            }
+                        })
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: 'Return reason is required',
+                            icon: 'error',
+                        })
+                    }
                 } else {
-                    Swal.fire({
-                        title: "Error",
-                        text: 'Return reason is required',
-                        icon: 'error',
-                    })
+
                 }
             })
         }
@@ -261,41 +266,47 @@
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Yes, return it!'
             }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    const returnReason = result.value
-                    fetch(`/return-order/${orderId}/${productId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type' : 'application/json'
-                        },
-                        body: JSON.stringify({returnReason})
-                    }).then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            Swal.fire({
-                                title: 'Success',
-                                text: data.message,
-                                icon: 'success'
-                            }).then(() => {
-                                location.reload();
-                            })
-                        } else {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Something went wrong. Please try again.',
-                                icon: 'error'
-                            })
-                        }
-                    })
+                if (result.isConfirmed) {
+                    const returnReason = result.value;
+                    if (returnReason) {
+                        fetch(`/return-order/${orderId}/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ returnReason })
+                        }).then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Success',
+                                        text: data.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'Something went wrong. Please try again.',
+                                        icon: 'error'
+                                    });
+                                }
+                            });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: "Return reason is required",
+                            icon: 'error'
+                        });
+                    }
                 } else {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Return reason is required",
-                        icon: 'error'
-                    })
+                    // If user presses cancel, do nothing or show a message if needed
+                    console.log("Return canceled by user");
                 }
-            })
+            });
         }
+
     </script>
 </body>
 </html>

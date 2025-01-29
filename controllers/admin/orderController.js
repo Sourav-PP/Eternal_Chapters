@@ -21,8 +21,10 @@ const getOrders = async (req, res) => {
         for (const order of orders) {
             const orderItems = await OrderItems.find({ order_id: order._id })
                 .populate({ path: 'items.product_id', populate: { path: 'category_id' } })
+                // console.log('Populated OrderItems:', JSON.stringify(orderItems, null, 2));
             order.orderItems = orderItems
         }
+        // console.log('order in od',orders)
 
         return res.render('orders', {
             orders,
@@ -105,9 +107,9 @@ const updateOrderStatus = async (req, res) => {
                             const razorpayRefund = await razorpay.payments.refund(payment.razorpay_order_id, {
                                 amount: refundAmount * 100, // Amount in paise
                             });
-                            console.log('Razorpay partial refund:', razorpayRefund);
+
                         } catch (error) {
-                            console.error('Razorpay refund error:', razorpayError);
+                            console.error('Razorpay refund error in cancel:', error);
                             return res.status(500).json({
                                 success: false,
                                 message: 'Failed to process Razorpay refund. Please try again later.',
@@ -184,9 +186,9 @@ const approveReturn = async (req, res) => {
                         const razorpayRefund = await razorpay.payments.refund(payment.razorpay_payment_id, {
                             amount: refundAmount * 100, // Amount in paise
                         });
-                        console.log('Razorpay partial refund:', razorpayRefund);
+
                     } catch (razorpayError) {
-                        console.error('Razorpay refund error:', razorpayError);
+                        console.error('Razorpay refund error in return:', razorpayError);
                         return res.status(500).json({
                             success: false,
                             message: 'Failed to process Razorpay refund. Please try again later.',

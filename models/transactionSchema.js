@@ -23,7 +23,7 @@ const transactionSchema = new Schema({
   payment_id: {
     type: Schema.Types.ObjectId,
     ref: 'Payment',
-    required: true
+    required: false
   },
   created_at: { 
     type: Date, 

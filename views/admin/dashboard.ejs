@@ -8,6 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/admin/adminDashboard.css">
   <link rel="stylesheet" href="/admin/admin.css">
+  <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
 
   <style>
     body {
@@ -45,7 +46,8 @@
       <!-- Main Content -->
       <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
         <!-- content goes here -->
-        <div class="container mt-4">
+        <div class="container mt-5">
+          <h1 class="text-center mb-4 fw-bold">Dashboard</h1>
           <!-- Key Metrics Section -->
           <div class="row text-center">
             <div class="col-md-4">
@@ -65,7 +67,7 @@
             <div class="col-md-4">
               <div class="card p-3">
                 <h5>Total Sales</h5>
-                <h2>$<%= totalSales %></h2>
+                <h2>₹<%= totalSales.toFixed(2) %></h2>
                 <!-- <small class="text-danger">4.3% Down from last month</small> -->
               </div>
             </div>
@@ -80,47 +82,7 @@
           </div> -->
       
           <!-- Data Table Section -->
-          <div class="card mt-4 p-4">
-            <h5>Sales Records</h5>
-            <table class="table table-striped mt-3">
-              <thead class="table-dark">
-                <tr>
-                  <th>Order ID</th>
-                  <th>Order Date</th>
-                  <th>Customer Name</th>
-                  <th>Product Name</th>
-                  <th>Quantity</th>
-                  <th>Total Amount</th>
-                  <th>Discount</th>
-                  <th>Net Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% salesReport.forEach((data ,index) => { %>
-                  <tr>
-                    <td><%= index + 1 %></td>
-                    <td><%= data.order_date.toLocaleDateString() %></td>
-                    <td><%= data.user.first_name %></td>
-                    <td>
-                      <% data.productDetails.forEach(product => { %>
-                        <p><%= product.title %></p> <!-- Display product title -->
-                      <% }); %>
-                    </td>
-                    <td>
-                      <% data.orderItems.items.forEach((item, index) => { %>
-                        <p><%= item.quantity %> pcs</p> <!-- Display product title and quantity -->
-                      <% }); %>
-                    </td>
-                    <td><%= data.total %></td>
-                    <td><%= data.discount %></td>
-                    <td><%= data.netAmount %></td>
-                    <td><%= data.payment?.status || 'No payment information' %></td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
+          
 
           
         </div>

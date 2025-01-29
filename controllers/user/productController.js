@@ -15,29 +15,114 @@ const getProductDetails = async (req, res) => {
         if (!productId) {
             return res.status(400).send("Product ID is required");
         }
-        const productData = await Product.findById(productId).populate("category_id")
+
+        const productData = await Product.findById(productId)
+            .populate({
+                path: "category_id",
+                populate: {
+                    path: "offer_id",
+                },
+            })
+            .populate("offer_id");
+
+        let offerDiscount = 0
+        let discountedPrice = 0
+
+        //check for prodect-level offer
+        if(productData.offer_id && productData.offer_id.status === 'active' &&
+            (!productData.offer_id.end_date || new Date(productData.offer_id.end_date) > new Date())) 
+        {
+            offerDiscount = (productData.price * productData.offer_id.discount_value) / 100
+            discountedPrice = productData.price - offerDiscount
+        }
+
+        // Check for category-level offer
+        if ((!productData.offer_id || productData.offer_id.status !== 'active') &&
+            productData.category_id && productData.category_id.offer_id &&
+            productData.category_id.offer_id.status === 'active' &&
+            (!productData.category_id.offer_id.end_date || new Date(productData.category_id.offer_id.end_date) > new Date()))
+        {
+            const categoryDiscount = (productData.price * productData.category_id.offer_id.discount_value) / 100;
+
+            // Apply the higher discount between product and category-level offers
+            if (categoryDiscount > offerDiscount) {
+                offerDiscount = categoryDiscount;
+                discountedPrice = productData.price - categoryDiscount;
+            }
+        }
+
+        offerDiscount = offerDiscount.toFixed(2)
+        discountedPrice = discountedPrice.toFixed(2)
+
         const findCategory = productData.category_id;
         const stockState = productData.stock_state;
 
         //related products
-        const relatedProducts = await Product.find({
-            category_id: productData.category_id, // Use category_id for filtering
-            _id: { $ne: productData._id },        // Exclude the current product
-            is_deleted: false                 // Ensure the product is not marked as deleted
-        }).limit(4); // Limit the number of related products
+        let relatedProducts = await Product.find({
+            category_id: productData.category_id,
+            _id: { $ne: productData._id },
+            is_deleted: false 
+        })
+        .populate({
+            path: "category_id",
+            populate: {
+                path: "offer_id",
+            },
+        })
+        .populate("offer_id")
+        .limit(4);
 
+        // Calculate offer details for related products
+        relatedProducts = relatedProducts.map(item => {
+            let relatedOfferDiscount = 0
+            let relatedDiscountedPrice = 0
+
+            if(item.offer_id && item.offer_id.status === 'active' &&
+                (!item.offer_id.end_date || new Date(item.offer_id.end_date) > new Date()))
+            {
+                relatedOfferDiscount = (item.price * item.offer_id.discount_value) / 100
+                relatedDiscountedPrice = item.price - relatedOfferDiscount
+            }
+
+            // Check for category-level offer
+            if ((!item.offer_id || item.offer_id.status !== 'active') && 
+                item.category_id &&
+                item.category_id.offer_id &&
+                item.category_id.offer_id.status === 'active' &&
+                (!item.category_id.offer_id.end_date || new Date(item.category_id.offer_id.end_date) > new Date()))
+            {
+                const categoryDiscount = (item.price * item.category_id.offer_id.discount_value) / 100;
+
+                // Apply the higher discount between product and category-level offers
+                if (categoryDiscount > relatedOfferDiscount) {
+                    relatedOfferDiscount = categoryDiscount;
+                    relatedDiscountedPrice = item.price - categoryDiscount;
+                }
+            }
+            
+            return {
+                ...item.toObject(),
+                relatedOfferDiscount: relatedOfferDiscount.toFixed(2),
+                relatedDiscountedPrice: relatedDiscountedPrice.toFixed(2),
+                originalPrice: item.price
+            }
+        })
 
         const reviews = await Review.find({ product_id: productId })
 
         const formattedDate = new Date(productData.publishing_date).toLocaleDateString("en-GB"); // Format: DD-MM-YYYY
         productData.formattedDate = formattedDate;
 
+
         res.render("product_details", {
             user: userData,
             product: productData,
+            offerDiscount: offerDiscount,
+            discountedPrice: discountedPrice,
+            originalPrice: productData.price,
             category: findCategory,
             review: reviews,
-            relatedProducts: relatedProducts,
+            relatedProducts,
             stockState: stockState,
             success: req.flash('success'),
             error: req.flash('error')
@@ -101,71 +186,7 @@ const filterProduct = async (req, res) => {
         console.log('error filtering the products', error)
     }
 }
-
-//filter the home page
-const filterHome = async(req,res) => {
-    try {
-        const { price, author, stock_state, sort, categoryName } = req.query;
-        const bannerData = await Banner.find({ name: "Home Banner" }); 
-
-        const query = {};
-
-        // Filter by price
-        if (price) {
-            const priceParts = price.split("-");
-
-            if (priceParts.length === 2) {
-                const [min, max] = priceParts.map(Number);
-                if (!isNaN(min) && !isNaN(max)) {
-                    query.price = { $gte: min, $lte: max };
-                }
-            } else if (priceParts.length === 1) {
-                const min = Number(priceParts[0]);
-                if (!isNaN(min) && price.endsWith("+")) {
-                    query.price = { $gte: min };
-                }
-            }
-        }
-
-        // Filter by author
-        if (author) {
-            query.author_name = new RegExp(author, "i");
-        }
-
-        // Filter by category (if provided)
-        const category = await Category.findOne({name: categoryName})
-        if (category) {
-            query.category_id = category._id;
-        }
-
-        let products = await Product.find(query);
-
-        // Filter by sort
-        if (sort === "asc") {
-            products = products.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-        } else if (sort === "desc") {
-            products = products.sort((a, b) => b.title.toLowerCase().localeCompare(a.title.toLowerCase()));
-        }
-
-        // Filter by stock state
-        if (stock_state) {
-            products = products.filter(product => product.stock_state === stock_state);
-        }
-
-        // Render homepage with filtered products
-        return res.render("home", {
-            products,
-            banner: bannerData[0], 
-            name: "Home",
-            category,
-        });
-    } catch (error) {
-        
-    }
-}
-
 module.exports = {
     getProductDetails,
     filterProduct,
-    filterHome,
 }

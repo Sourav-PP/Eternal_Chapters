@@ -14,6 +14,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
       rel="stylesheet"
     />
+    <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
 
     <!-- SweetAlert2 CSS -->
     <link
@@ -132,6 +133,14 @@
         color: red;
         margin-top: 5px;
       }
+      .my-swal-popup {
+        background-color: #ffffff; /* Light red background */
+        border-radius: 15px; /* Rounded corners */
+        border: 2px solid #dfdfdf; /* Border matching the background */
+        padding: 25px 35px; /* More padding inside */
+        width: 400px; /* Set width */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+      }
     </style>
   </head>
 
@@ -196,6 +205,12 @@
         text: "<%= success[0] %>",
         icon: "success",
         confirmButtonText: "OK",
+        customClass: {
+            popup: 'my-swal-popup', // Custom class for the popup
+            title: 'my-swal-title', // Custom class for the title
+            content: 'my-swal-content', // Custom class for the content (text)
+            confirmButton: 'my-swal-btn' // Custom class for the button
+        },
       });
     </script>
     <% } %> <% if (error && error.length > 0) { %>
@@ -205,6 +220,12 @@
         text: "<%= error[0] %>",
         icon: "error",
         confirmButtonText: "OK",
+        customClass: {
+            popup: 'my-swal-popup', // Custom class for the popup
+            title: 'my-swal-title', // Custom class for the title
+            content: 'my-swal-content', // Custom class for the content (text)
+            confirmButton: 'my-swal-btn' // Custom class for the button
+        },
       });
     </script>
     <% } %>
