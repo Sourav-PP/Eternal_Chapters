@@ -86,11 +86,11 @@
                         <div class="price-details">
                             <h5>PRICE DETAILS</h5>
                             <p>
-                                Price ( <%= items.length %> Items ) <span class="float-end">&#8377;<%= rawSubtotal %></span>
+                                Price ( <%= numberOfItems %> Items ) <span class="float-end">&#8377;<%= originalPrice.toFixed(2) %></span>
                             </p>
-                            <p>Delivery Charges <span class="float-end">&#8377;<%= shippingCharges %></span></p>
-                            <p>Tax amount <span class="float-end">&#8377;<%= taxAmount %></span></p>
-
+                            <p>Delivery Charges <span class="float-end">&#8377;<%= shippingCharges.toFixed(2) %></span></p>
+                            <p>Tax amount <span class="float-end">&#8377;<%= taxAmount.toFixed(2) %></span></p>
+                            <p>Offer Discount <span class="float-end text-success">-&#8377;<%= offerDiscount%></span></p>
                             <hr />
                             <p class="fw-bold">
                                 Total Amount <span class="float-end">&#8377;<%= totalPrice %></span>

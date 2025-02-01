@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { type } = require('os');
 const { Schema } = mongoose
 
 
@@ -44,6 +45,10 @@ const orderSchema = new Schema({
     netAmount: {
         type: Number,
         required: true
+    },
+    tax_amount: {
+        type: Number,
+        default: 0,
     },
     discount: {
         type: Number,

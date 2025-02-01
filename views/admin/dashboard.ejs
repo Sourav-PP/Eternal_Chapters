@@ -28,6 +28,13 @@
     .status-rejected {
       color: red;
     }
+
+    .chart-container {
+        position: relative;
+        height: 70vh;
+        width: 80vw;
+        margin: auto;
+    }
   </style>
 
 </head>
@@ -46,6 +53,57 @@
       <!-- Main Content -->
       <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
         <!-- content goes here -->
+
+        <!-- filter section -->
+        <div class="filter-container">
+          <div class="row">
+              
+            <div class="col-md-2">
+              <label for="monthFilter" class="form-label">Month</label>
+              <select id="monthFilter" class="form-select">
+                <option value="">All Months</option>
+                <% for(let i = 1; i <= 12; i++) { %>
+                  <option value="<%= i %>" <%= parseInt(selectedMonth) === i ? 'selected' : '' %>>
+                    <%= new Date(0, i-1).toLocaleString('default', { month: 'long' }) %>
+                  </option>
+                <% } %>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="yearFilter" class="form-label">Year</label>
+              <select id="yearFilter" class="form-select">
+                <option value="">All Years</option>
+                <% const currentYear = new Date().getFullYear(); %>
+                <% for(let year = currentYear; year >= currentYear - 5; year--) { %>
+                  <option value="<%= year %>" <%= parseInt(selectedYear) === year ? 'selected' : '' %>>
+                    <%= year %>
+                  </option>
+                <% } %>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="fromDate" class="form-label">From Date</label>
+              <input type="date" id="fromDate" class="form-control" value="<%= fromDate || '' %>">
+            </div>
+            <div class="col-md-2">
+              <label for="toDate" class="form-label">To Date</label>
+              <input type="date" id="toDate" class="form-control" value="<%= toDate || '' %>">
+            </div>
+            <div class="col-md-2 align-self-end">
+              <button class="btn btn-info w-100" id="today">Today</button>
+            </div>
+            <div class="col-md-2 align-self-end">
+              <button class="btn btn-warning w-100" id="weekly">This Week</button>
+            </div>
+            <div class="col-md-2 align-self-end mt-3 mb-3">
+              <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
+            </div>
+            <div class="col-md-2 align-self-end mt-3 mb-3">
+              <button class="btn btn-secondary w-100" id="removeFilters">Remove Filters</button>
+            </div>
+          </div>
+        </div>
+
         <div class="container mt-5">
           <h1 class="text-center mb-4 fw-bold">Dashboard</h1>
           <!-- Key Metrics Section -->
@@ -73,16 +131,32 @@
             </div>
           </div>
       
-          <!-- Sales Graph Placeholder -->
-          <!-- <div class="card mt-4 p-4">
-            <h5>Sales Details</h5>
-            <div id="chart" class="text-center">
-              <img src="https://via.placeholder.com/800x400?text=Graph+Placeholder" alt="Graph Placeholder" class="img-fluid">
-            </div>
-          </div> -->
-      
-          <!-- Data Table Section -->
-          
+          <div class="chart-container mt-5">
+            <canvas style="width: 100vw;" id="salesChart"></canvas>
+          </div>
+    
+          <!-- Top 10 Best Selling Products Section -->
+          <div class="mt-5">
+            <h2>Top 10 Best Selling Products</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Product Name</th>
+                        <th>Total Quantity Sold</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% bestSellingProducts.forEach((product, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= product.productDetails.title %></td>
+                            <td><%= product.totalQuantity %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+          </div>
 
           
         </div>
@@ -91,8 +165,146 @@
   </div>
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-    
+    // Chart.js initialization
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesData = JSON.parse('<%- JSON.stringify(salesData) %>');
+    console.log('sales', salesData);
+
+    const salesChart = new Chart(ctx, {
+        type: 'bar', // or 'line', 'pie', etc.
+        data: {
+            labels: salesData.labels,
+            datasets: [{
+                label: "Total Sales",
+                data: salesData.data,
+                backgroundColor: 'rgba(75, 192, 192, 0.7)', // Custom color
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Monthly Sales Report',
+                    font: {
+                        size: 24
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    titleFont: {
+                        size: 16
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR' }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    labels: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Hide x-axis grid
+                    },
+                    ticks: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.2)' // Custom grid color
+                    },
+                    ticks: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    //filter functionality
+    $(document).ready(function() {
+      // apply filter
+      $("#applyFilters").on('click', function() {
+        console.log('clicked the apply filter')
+        const month = $('#monthFilter').val()
+        const year = $('#yearFilter').val()
+        const fromDate = $('#fromDate').val()
+        const toDate = $('#toDate').val()
+
+        const queryParams = new URLSearchParams({
+          month,
+          year,
+          fromDate,
+          toDate
+        }).toString()
+
+        window.location.href = `/admin?${queryParams}`
+      })
+
+      // remove filters
+      $('#removeFilters').on('click', function() {
+        console.log('remve')
+        // clear the filter inputs
+        $('#monthFilter').val('')
+        $('#yearFilter').val('');
+        $('#fromDate').val('');
+        $('#toDate').val('');
+
+        // Reload the page without query parameters
+        window.location.href = '/admin';
+      })
+
+      $('#today').on('click', function() {
+        const today = new Date().toISOString().split('T')[0]
+        $('#fromDate').val(today)
+        $('#toDate').val(today) 
+        $('#applyFilters').click()
+      })
+
+      $('#weekly').on('click', function() {
+        const today = new Date()
+        const dayOfWeek = today.getDay()
+        const startOfWeek = new Date(today)
+        startOfWeek.setDate(today.getDate() - dayOfWeek)
+        const formattedStartOfWeek = startOfWeek.toISOString().split('T')[0]
+        const formattedToday = today.toISOString().split('T')[0]
+        
+        $('#fromDate').val(formattedStartOfWeek)
+        $('#toDate').val(formattedToday)
+        $('#applyFilter').click()
+      })
+    })
   </script>
 </body>
 </html>

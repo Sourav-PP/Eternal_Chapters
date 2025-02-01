@@ -103,7 +103,7 @@
                                                 <div class="p-3 border rounded bg-light mb-3">
                                                     <p><strong>Total:</strong> ₹<%= order.total %></p>
                                                     <p><strong>Shipping Charge:</strong> ₹<%= order.shipping_chrg %></p>
-                                                    <p><strong>Discount:</strong> ₹<%= order.discount %></p>
+                                                    <p><strong>Discount:</strong> ₹<%= order.discount.toFixed(2) %></p>
                                                     <p><strong>Net Amount:</strong> ₹<%= order.netAmount %></p>
                                                 </div>
                                                 <hr>
@@ -169,7 +169,7 @@
                                 <div class="order-summary mt-4">
                                     <h5 class="fw-bold text-primary">Order Summary</h5>
                                     <p><strong>Shipping Charges:</strong> ₹<%= order.shipping_chrg %></p>
-                                    <p><strong>Discount:</strong> ₹<%= order.discount %></p>
+                                    <p><strong>Discount:</strong> ₹<%= order.discount.toFixed(2) %></p>
                                     <p><strong>Total Amount:</strong> ₹<%= order.netAmount %></p>
                                 </div>
                     
@@ -179,6 +179,7 @@
                                         <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>','<%= item.product_id._id %>')">Cancel Order</button>
                                     <% } else if (item.status === 'delivered') { %>
                                         <button class="btn btn-primary fw-bold" onclick="returnProducts('<%= order._id %>','<%= item.product_id._id %>')">Return</button>
+                                        <a href="/invoice/download/<%= order._id %>" class="btn btn-success fw-bold">Download Invoice</a>
                                     <% } else if (item.status === 'return_requested') { %>
                                         <h4 class="text-danger">Return request is sent</h4>
                                     <% } else if (item.status === 'returned') { %>

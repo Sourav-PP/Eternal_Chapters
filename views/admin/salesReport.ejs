@@ -45,6 +45,20 @@
     .list-unstyled li {
         padding: 2px 0;
     }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-size: 1.2em;
+    }
   </style>
 
 </head>
@@ -222,8 +236,6 @@
             
             <nav aria-label="Page navigation example">
               <ul class="pagination justify-content-center">
-                <%= console.log(currentPage) %>
-                <%= console.log('total page',totalPages) %>
                 <!-- Previous Page Button -->
                 <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
                   <a class="page-link" href="?page=<%= currentPage - 1 %>&fromDate=<%= fromDate || '' %>&toDate=<%= toDate || '' %>&month=<%= selectedMonth || '' %>&year=<%= selectedYear || '' %>" aria-label="Previous">
@@ -267,7 +279,7 @@
         const year = $('#yearFilter').val();
         const fromDate = $('#fromDate').val();
         const toDate = $('#toDate').val();
-        // Reload the page with filter parameters (modify as per backend implementation)
+        // Reload the page with filter parameters
         const queryParams = new URLSearchParams({
             // status,
             month, 
@@ -319,108 +331,159 @@
       });
 
       // Export to PDF
-      $('#downloadPDF').on('click', function () {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+      $('#downloadPDF').on('click', async function () {
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const fromDate = urlParams.get('fromDate');
-        const toDate = urlParams.get('toDate');
-        const month = urlParams.get('month');
-        const year = urlParams.get('year');
+          const loadingDiv = $('<div>').addClass('loading-overlay').text('Generating PDF...')
+          $('body').append(loadingDiv)
 
-        // Build the title based on the filters
-        let title = 'Sales Report';
+          try {
 
-        if (fromDate && toDate) {
-            title += ` (From ${fromDate} to ${toDate})`;
-        } else if (month && year) {
-            title += ` (Month: ${month}, Year: ${year})`;
-        } else if (month) {
-            title += ` (Month: ${month})`;
-        } else if (year) {
-            title += ` (Year: ${year})`;
-        } else if (window.location.search) {
-            title += ` (Filtered)`;
-        }
+            const response = await fetch('/admin/all-sales', {
+              method: 'POST',
+              headers: {
+                'Content-Type' : 'application/json'
+              },
+              body: JSON.stringify({
+                fromDate: new URLSearchParams(window.location.search).get('fromDate'),
+                toDate: new URLSearchParams(window.location.search).get('toDate'),
+                month: new URLSearchParams(window.location.search).get('month'),
+                year: new URLSearchParams(window.location.search).get('year')
 
-        doc.text(title, 14, 15);
+              })
+            })
 
-        // Custom column widths
-        const columnWidths = {
-            0: 10,   // SI
-            1: 22,  // Order Date
-            2: 30,  // Customer
-            3: 25,  // Products
-            4: 10,  // Quantity
-            5: 20,  // Total Amount
-            6: 18,  // Discount
-            7: 20,  // Net Amount
-            8: 14   // Status
-        };
+            if(!response.ok) {
+              throw new Error('Failed to fetch data')
+            }
 
-        
+            const resposeData = await response.json()
+            const allData = resposeData.data
+    
 
-        doc.autoTable({
-          html: '#salesTable',
-        startY: 25,
-        styles: {
-            fontSize: 7,
-            cellPadding: 1,
-            overflow: 'linebreak',
-            halign: 'left',
-            valign: 'middle',
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0]
-        },
-        columnStyles: {
-            0: { cellWidth: columnWidths[0], halign: 'center' },  // SI
-            1: { cellWidth: columnWidths[1] },  // Order Date
-            2: { cellWidth: columnWidths[2] },  // Customer
-            3: { 
-                cellWidth: columnWidths[3],
-                overflow: 'linebreak',
-                cellPadding: {top: 2, right: 2, bottom: 2, left: 2}
-            },  // Products
-            4: { cellWidth: columnWidths[4], halign: 'center' },  // Quantity
-            5: { cellWidth: columnWidths[5], halign: 'right' },   // Total Amount
-            6: { cellWidth: columnWidths[6], halign: 'right' },   // Discount
-            7: { cellWidth: columnWidths[7], halign: 'right' },   // Net Amount
-            8: { cellWidth: columnWidths[8], halign: 'center' }   // Status
-        },
-            // Preprocessing the data to ensure proper line breaks
-            didParseCell: function(data) {
-                // Special handling for Products column
-                if (data.column.index === 3 && data.cell.raw) {
-                    // Force line breaks for long product names
-                    if (typeof data.cell.raw === 'string') {
-                        data.cell.text = data.cell.raw.split(' ').reduce((acc, word) => {
-                            if (acc[acc.length - 1].length + word.length > 20) {
-                                acc.push(word);
-                            } else {
-                                acc[acc.length - 1] += ' ' + word;
-                            }
-                            return acc;
-                        }, ['']).filter(line => line);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let title = 'Sales Report';
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromDate = urlParams.get('fromDate');
+            const toDate = urlParams.get('toDate');
+            const month = urlParams.get('month');
+            const year = urlParams.get('year');
+
+            if (fromDate && toDate) {
+                title += ` (From ${fromDate} to ${toDate})`;
+            } else if (month && year) {
+                title += ` (Month: ${month}, Year: ${year})`;
+            } else if (month) {
+                title += ` (Month: ${month})`;
+            } else if (year) {
+                title += ` (Year: ${year})`;
+            } else if (window.location.search) {
+                title += ` (Filtered)`;
+            }
+
+            doc.text(title, 14, 15);
+
+            // Custom column widths
+            const columnWidths = {
+                0: 10,   // SI
+                1: 22,  // Order Date
+                2: 30,  // Customer
+                3: 25,  // Products
+                4: 10,  // Quantity
+                5: 20,  // Total Amount
+                6: 18,  // Discount
+                7: 20,  // Net Amount
+                8: 14   // Status
+            };
+
+            const headers = [];
+            $('#salesTable thead th').each(function() {
+                headers.push($(this).text().trim());
+            });
+
+            // Convert the API data to the format expected by autoTable
+            const tableData = allData.map((row, index) => [
+                (index + 1).toString(),  // SI
+                row.orderDate,
+                row.customer,
+                row.products,
+                row.quantity.toString(),
+                row.totalAmount.toFixed(2),
+                row.discount.toFixed(2),
+                row.netAmount.toFixed(2),
+                row.status
+            ]);
+
+            doc.autoTable({
+                head: [headers],
+                body: tableData,
+                startY: 25,
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 1,
+                    overflow: 'linebreak',
+                    halign: 'left',
+                    valign: 'middle',
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0]
+                },
+                columnStyles: {
+                    0: { cellWidth: columnWidths[0], halign: 'center' },  // SI
+                    1: { cellWidth: columnWidths[1] },  // Order Date
+                    2: { cellWidth: columnWidths[2] },  // Customer
+                    3: { 
+                        cellWidth: columnWidths[3],
+                        overflow: 'linebreak',
+                        cellPadding: {top: 2, right: 2, bottom: 2, left: 2}
+                    },  // Products
+                    4: { cellWidth: columnWidths[4], halign: 'center' },  // Quantity
+                    5: { cellWidth: columnWidths[5], halign: 'right' },   // Total Amount
+                    6: { cellWidth: columnWidths[6], halign: 'right' },   // Discount
+                    7: { cellWidth: columnWidths[7], halign: 'right' },   // Net Amount
+                    8: { cellWidth: columnWidths[8], halign: 'center' }   // Status
+                },
+                didParseCell: function(data) {
+                    if (data.column.index === 3 && data.cell.raw) {
+                        if (typeof data.cell.raw === 'string') {
+                            data.cell.text = data.cell.raw.split(' ').reduce((acc, word) => {
+                                if (acc[acc.length - 1].length + word.length > 20) {
+                                    acc.push(word);
+                                } else {
+                                    acc[acc.length - 1] += ' ' + word;
+                                }
+                                return acc;
+                            }, ['']).filter(line => line);
+                        }
                     }
-                }
-            },
-            // Handle table head
-            headStyles: {
-                fontSize: 8,
-                fillColor: [51, 51, 51],
-                textColor: 255,
-                halign: 'center',
-                valign: 'middle'
-            },
-            // Set margins to ensure content fits within A4
-            margin: { top: 25, right: 7, bottom: 15, left: 7 },
-            // Enable automatic page breaks
-            pageBreak: 'auto',
-            // Ensure table header is repeated on new pages
-            showHead: 'everyPage'
-        });
-        doc.save('Sales_Report.pdf');
+                },
+                headStyles: {
+                    fontSize: 8,
+                    fillColor: [51, 51, 51],
+                    textColor: 255,
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                margin: { top: 25, right: 7, bottom: 15, left: 7 },
+                pageBreak: 'auto',
+                showHead: 'everyPage'
+            });
+
+            // Add summary at the end if needed
+            const totalOrders = allData.length;
+            const totalAmount = allData.reduce((sum, row) => sum + row.netAmount, 0);
+            
+            const finalY = doc.lastAutoTable.finalY || doc.internal.pageSize.height - 20;
+            doc.text(`Total Orders: ${totalOrders}`, 14, finalY + 10);
+            doc.text(`Total Amount: ${totalAmount.toFixed(2)}`, 14, finalY + 20);
+
+            doc.save('Sales_Report.pdf');
+          } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again.',error);
+          } finally {
+            $('.loading-overlay').remove();
+          }          
       });
     });
   </script>

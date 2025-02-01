@@ -76,6 +76,7 @@ router.post('/reject-return/:orderId/:productId', adminAuth, orderController.rej
 
 //sales management
 router.get('/sales-report', adminAuth, salesController.loadSales)
+router.post('/all-sales', adminAuth, salesController.getAllSalesData)
 
 //coupon management
 router.get('/coupon-page', adminAuth, couponController.getPage)

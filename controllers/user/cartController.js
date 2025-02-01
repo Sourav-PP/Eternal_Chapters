@@ -85,14 +85,24 @@ const getCartPage = async (req, res) => {
             return res.render('cart',{
                 items: [],
                 totalPrice: 0,
+                taxAmount: 0,
+                shippingCharges: 0,
+                offerDiscount: 0,
+                netAmount: 0,
+                numberOfItems: 0,
+                originalPrice: 0,
                 success: req.flash('success'),
                 error: req.flash('error')
             })
         }
 
-        
-        let rawSubtotal = 0;
+        let originalPrice = 0; //netAmount
         let totalOfferDiscount = 0
+        let rawSubtotal = 0
+        let offerDiscount = 0
+        let netAmount = 0
+        let taxAmount = 0
+        let numberOfItems = 0
 
         const cartItems = cart.items.map(item => {
             const product = item.product_id;
@@ -127,6 +137,8 @@ const getCartPage = async (req, res) => {
             const subTotal = discountedPrice * item.quantity;
             rawSubtotal += subTotal
             totalOfferDiscount += productOfferDiscount * item.quantity
+            originalPrice = productPrice * item.quantity
+            numberOfItems += item.quantity
 
             return {
                 product,
@@ -141,16 +153,19 @@ const getCartPage = async (req, res) => {
 
         // Add shipping charges to the total price
         const taxRate = 0.12;
-        const taxAmount = rawSubtotal * taxRate
+        taxAmount = rawSubtotal * taxRate
         const shippingCharges = 100;
         const totalPrice = rawSubtotal + shippingCharges + taxAmount
+        console.log('number of items',numberOfItems)
 
         res.render('cart', {
             shippingCharges,
             items: cartItems,
             totalPrice: totalPrice.toFixed(2),
-            taxAmount: taxAmount.toFixed(2),
+            taxAmount,
             rawSubtotal: rawSubtotal.toFixed(2),
+            numberOfItems,
+            originalPrice,
             offerDiscount: totalOfferDiscount.toFixed(2),
             success: req.flash('success'),
             error: req.flash('error')

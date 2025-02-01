@@ -41,6 +41,27 @@
     .ad-bt{
         text-align: center;
     }
+
+    .table th, .table td {
+      vertical-align: middle;
+    }
+    .table .text-truncate {
+      word-wrap: break-word;
+      white-space: normal;
+    }
+    .table .btn {
+      white-space: nowrap;
+    }
+    .edit-btn{
+      width: 58px;
+    }
+
+    .custom-table {
+      border-color: #000000; /* Darker border color */
+    }
+    .custom-table th, .custom-table td {
+      border-color: #9c9c9c; /* Darker border color for cells */
+    }
     </style>
 
   </head>
@@ -68,34 +89,36 @@
           
             <!-- Coupon Table -->
             <% if (coupon.length === 0) { %>
-             <div class="text-center text-danger fs-5 mt-5">There is no coupon! Please create one</div>
-              <% } else { %>
-                <table class="table table-bordered table-striped">
-                  <thead class="t-head">
-                    <tr class="text-white">
-                      <th class="text-white">Code</th>
-                      <th class="text-white">Coupon Type</th>
-                      <th class="text-white">Coupon Amount</th>
-                      <th class="text-white">Description</th>
-                      <th class="text-white">Usage Limit</th>
-                      <th class="text-white">Expiry Date</th>
-                      <th class="text-white">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-            
-                     <% coupon.forEach(items => { %>
-                      
+              <div class="text-center text-danger fs-5 mt-5">There is no coupon! Please create one</div>
+            <% } else { %>
+              <table class="table table-bordered table-striped table-hover custom-table">
+                <thead class="thead-dark t-head">
+                  <tr>
+                    <th class="text-center text-white">Code</th>
+                    <th class="text-center text-white">Coupon Type</th>
+                    <th class="text-center text-white">Coupon Amount</th>
+                    <th class="text-center text-white">Maximum Discount</th>
+                    <th class="text-center text-white">Minimum Purchase</th>
+                    <th class="text-center text-white" style="width: 20%;">Description</th>
+                    <th class="text-center text-white">Usage Limit</th>
+                    <th class="text-center text-white">Expiry Date</th>
+                    <th class="text-center text-white">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% coupon.forEach(items => { %>
                     <tr>
-                      <td><%= items.code %></td>
-                      <td><%= items.coupon_type %></td>
-                      <td><%= items.discount_value %></td>
-                      <td><%= items.description %></td>
-                      <td><%= items.limit %></td>
-                      <td><%= items.expiry_date.toLocaleDateString() %></td>
-                      <td>
-                        <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editCouponModal" 
-                          onclick="loadCouponDetails('<%= items._id %>', '<%= items.code %>', '<%= items.discount_value %>', '<%= items.coupon_type %>', '<%= items.description %>', '<%= items.limit %>', '<%= items.expiry_date.toISOString() %>', '<%= items.is_active %>')">
+                      <td class="align-middle text-center"><%= items.code %></td>
+                      <td class="align-middle text-center"><%= items.coupon_type %></td>
+                      <td class="align-middle text-center"><%= items.discount_value %></td>
+                      <td class="align-middle text-center"><%= items.max_discount_amount %></td>
+                      <td class="align-middle text-center"><%= items.minimum_purchase_amount %></td>
+                      <td class="align-middle text-center text-truncate" style="max-width: 200px;"><%= items.description %></td>
+                      <td class="align-middle text-center"><%= items.limit %></td>
+                      <td class="align-middle text-center"><%= items.expiry_date.toLocaleDateString() %></td>
+                      <td class="align-middle text-center">
+                        <a href="#" class="btn btn-warning btn-sm mb-1 edit-btn" data-bs-toggle="modal" data-bs-target="#editCouponModal"
+                          onclick="loadCouponDetails('<%= items._id %>', '<%= items.code %>', '<%= items.discount_value %>','<%= items.max_discount_amount %>', '<%= items.minimum_purchase_amount %>', '<%= items.coupon_type %>', '<%= items.description %>', '<%= items.limit %>', '<%= items.expiry_date.toISOString() %>', '<%= items.is_active %>')">
                           Edit
                         </a>
                         <form action="/admin/delete-coupon" method="POST" style="display:inline;" id="deleteCouponForm">
@@ -104,11 +127,9 @@
                         </form>
                       </td>
                     </tr>
-    
-                    <% }) %>
-    
-                  </tbody>
-                </table>
+                  <% }) %>
+                </tbody>
+              </table>
             <% } %>
           </div>
           
@@ -284,6 +305,19 @@
                 <p class="text-danger error-message" id="error2"></p>
               </div>
 
+              <div class="mb-3">
+                <label for="max_discount_amount" class="form-label">Maximum discount amount</label>
+                <input value="" id="max_discount_amount-edit" type="number" class="form-control" placeholder="Enter the amount" required>
+                <p class="text-danger error-message" id="error3"></p>
+              </div>
+
+
+              <div class="mb-3">
+                <label for="minimum_purchase_amount" class="form-label">Minimum purchase amount</label>
+                <input type="number" class="form-control" id="minimum_purchase_amount-edit" placeholder="Enter the amount" >
+                <p class="text-danger error-message" id="error4"></p>
+              </div>
+
               <!-- Coupon Type -->
               <div class="mb-3">
                 <label for="coupon-type-edit" class="form-label">Coupon Type</label>
@@ -291,28 +325,28 @@
                   <option value="fixed">Fixed Amount</option>
                   <option value="percentage">Percentage</option>
                 </select>
-                <p class="text-danger error-message" id="error3"></p>
+                <p class="text-danger error-message" id="error5"></p>
               </div>
 
               <!-- Description -->
               <div class="mb-3">
                 <label for="description-edit" class="form-label">Description</label>
                 <input name="description" type="text" class="form-control" id="description-edit" required>
-                <p class="text-danger error-message" id="error4"></p>
+                <p class="text-danger error-message" id="error5"></p>
               </div>
 
               <!-- Usage Limit -->
               <div class="mb-3">
                 <label for="limit-edit" class="form-label">Usage Limit</label>
                 <input name="limit" type="number" class="form-control" id="limit-edit" required>
-                <p class="text-danger error-message" id="error5"></p>
+                <p class="text-danger error-message" id="error7"></p>
               </div>
 
               <!-- Expiry Date -->
               <div class="mb-3">
                 <label for="expiry-date-edit" class="form-label">Expiry Date</label>
                 <input name="expiry_date" type="date" class="form-control" id="expiry-date-edit" required>
-                <p class="text-danger error-message" id="error6"></p>
+                <p class="text-danger error-message" id="error8"></p>
               </div>
 
               <!-- is_active (active/inactive) -->
@@ -322,7 +356,7 @@
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
-                <p class="text-danger error-message" id="error7"></p>
+                <p class="text-danger error-message" id="error9"></p>
               </div>
 
               <div class="d-flex justify-content-center mt-3">
@@ -410,41 +444,63 @@
             isValid = false
           }
 
+          // maximum discount amount
+          const maxDiscont = document.getElementById('max_discount_amount-edit').value
+          document.getElementById('error3').textContent = ""
+          if(maxDiscont === '') {
+            document.getElementById('error3').textContent = "Max discount is required"
+            isValid = false
+          } else if (maxDiscont <= 0) {
+            document.getElementById('error3').textContent = "Max discount must be a positive number"
+            isValid = false
+          }
+
+          // minimum purchase amount
+          const minPurchase = document.getElementById('minimum_purchase_amount-edit').value
+          document.getElementById('error4').textContent = ""
+          if(minPurchase === '') {
+            document.getElementById('error4').textContent = "Min purchase is required"
+            isValid = false
+          } else if(minPurchase <= 0) {
+            document.getElementById('error4').textContent = "Min purchase must be positive number"
+            isValid = false
+          }
+
           // Coupon Type Validation
           const couponType = document.getElementById("coupon-type-edit").value;
           if (couponType === "") {
-            document.getElementById("error3").textContent = "Please select a coupon type.";
+            document.getElementById("error5").textContent = "Please select a coupon type.";
             isValid = false;
           }
 
           // Description Validation
           const description = document.getElementById("description-edit");
           if (description.value.trim() === "") {
-            document.getElementById("error4").textContent = "Description is required.";
+            document.getElementById("error6").textContent = "Description is required.";
             isValid = false;
           }
 
           // Usage Limit Validation
           const limit = document.getElementById("limit-edit");
           if (limit.value.trim() === "") {
-            document.getElementById("error5").textContent = "Usage limit is required.";
+            document.getElementById("error7").textContent = "Usage limit is required.";
             isValid = false;
           } else if (limit.value <= 0) {
-            document.getElementById("error5").textContent = "Usage limit must be a positive number.";
+            document.getElementById("error7").textContent = "Usage limit must be a positive number.";
             isValid = false;
           }
 
           // Expiry Date Validation
           const expiryDate = document.getElementById("expiry-date-edit");
           if (expiryDate.value.trim() === "") {
-            document.getElementById("error6").textContent = "Expiry date is required.";
+            document.getElementById("error8").textContent = "Expiry date is required.";
             isValid = false;
           }
 
           // is_active Validation
           const isActive = document.getElementById("is-active-edit");
           if (isActive.value === "") {
-            document.getElementById("error7").textContent = "Status selection is required.";
+            document.getElementById("error9").textContent = "Status selection is required.";
             isValid = false;
           }
 
@@ -474,11 +530,13 @@
       }
 
 
-      function loadCouponDetails(id, code, discount_value, coupon_type, description, limit, expiry_date, is_active) {
+      function loadCouponDetails(id, code, discount_value, max_discount_amount, minimum_purchase_amount, coupon_type, description, limit, expiry_date, is_active) {
         // Populate the modal with the existing coupon details
         document.getElementById('coupon-id').value = id;
         document.getElementById('coupon-code-edit').value = code;
         document.getElementById('coupon-amount-edit').value = discount_value;
+        document.getElementById('max_discount_amount-edit').value = max_discount_amount;
+        document.getElementById('minimum_purchase_amount-edit').value = minimum_purchase_amount;
         document.getElementById('coupon-type-edit').value = coupon_type;
         document.getElementById('description-edit').value = description;
         document.getElementById('limit-edit').value = limit;

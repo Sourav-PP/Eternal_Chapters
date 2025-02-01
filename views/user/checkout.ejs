@@ -38,24 +38,30 @@
                     <!-- Left Section: Address list -->
                     <div class="col-md-8">
                         <div class="add-div">
-                            <% addresses.forEach(address => { %>
-                            <div class="row align-items-center mb-3 address-card">
-                                <div class="col-12">
-                                    <label class="form-check-label d-flex align-items-center position-relative">
-                                        <input type="radio" name="addressId" class="form-check-input me-2 add-radio" value="<%= address.id %>" />
-                                        <div class="address">
-                                            <h5><%= address.name %></h5>
-                                            <h6><%= address.city %></h6>
-                                            <p><%= address.state %></p>
-                                            <p class="text-success fw-bold"><%= address.address_type %></p>
+                            <% if (addresses && addresses.length > 0) { %>
+                                <% addresses.forEach(address => { %>
+                                    <div class="row align-items-center mb-3 address-card">
+                                        <div class="col-12">
+                                            <label class="form-check-label d-flex align-items-center position-relative">
+                                                <input type="radio" name="addressId" class="form-check-input me-2 add-radio" value="<%= address.id %>" />
+                                                <div class="address">
+                                                    <h5><%= address.name %></h5>
+                                                    <h6><%= address.city %></h6>
+                                                    <p><%= address.state %></p>
+                                                    <p class="text-success fw-bold"><%= address.address_type %></p>
+                                                </div>
+                                            </label>
                                         </div>
-                                    </label>
-                                </div>
-                            </div>
-                            <% }) %>
+                                    </div>
+                                    <% }) %>
+                            <% } else { %>
+                                <p>No addresses found. Please add an address to continue.</p>
+                            <% } %>
+                            
                         </div>
-                        <a class="text-decoration-none text-dark btn btn-primary mt-3 text-white" href="/addAddress?from=checkout">Add address</a>
+                        <a class="text-decoration-none text-dark btn btn-primary mt-3 text-white" href="/addAddress?from=checkout&productId=<%= productId %>&quantity=<%= quantityForBuyNow %>">Add address</a>
 
+                        <!-- coupon section -->
                         <div class="coupon-section mt-4 bg">
                             <h4 class="mb-3">Apply Coupon</h4>
                             <!-- <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" /> -->
@@ -66,6 +72,8 @@
                                 <% }) %>
                                 
                              </select>
+                             <input type="hidden" id="product-id" name="productId" value="<%= productId %>">
+                             <input type="hidden" id="quantity" name="quantity" value="<%= quantityForBuyNow %>">
                             <button type="button" id="apply-coupon" class="btn btn-success mt-2">Apply Coupon</button>
                             <button type="button" id="remove-coupon" class="btn btn-danger mt-2" style="display: none;">Remove Coupon</button>
                             <div id="coupon-message" class="mt-2 text-danger"></div>
@@ -87,9 +95,13 @@
                                 </label>
                                 <label class="form-check mt-2">
                                     <input type="radio" name="paymentMethod" value="COD" class="form-check-input" /> Cash on Delivery
-                                    <input type="hidden" name="razorpayPaymentId" id="payment_id" />
+                                    <input type="hidden" name="razorpayPaymentId" id="payment_id"/>
                                 </label>
-                                <input type="hidden" name="productId" value="<%= cart.items[0].product_id._id %>" />
+                                
+                                <% if (false) { %>
+                                    <input type="hidden" name="productId" value="<%= cart.items[0].product_id._id %>" />
+                                <% } %>
+
                             </div>
                         </div>
                     </div>
@@ -196,7 +208,7 @@
                     currency: data.currency,
                     name: 'Eternal Chapters',
                     description: 'Test Transaction',
-                    image: '/path/to/logo.png',
+                    image: 'http://localhost:3000/img/favicon.png',
                     order_id: data.order_id,
                     handler: function (response) {
                         Swal.fire({
@@ -221,7 +233,43 @@
                 };
 
                 const rzp1 = new Razorpay(options);
+
+                // attach a failure event handler
+                rzp1.on('payment.failed', async function (response) {
+                    console.log('payment failed', response.error)
+
+                    // notify the user about the failed payment
+                    Swal.fire({
+                        title: 'Payment failed!',
+                        text: "Your payment did not go through. Please try again or choose a different payment method.",
+                        icon: 'error',
+                        showConfirmButton: true,
+                    })
+
+                    //update order status to pending
+                    try{
+                        const updateResponse = await fetch('/update-payment-status', {
+                            method: 'POST',
+                            headers: { 'Content-Type' : 'application/json'},
+                            body: JSON.stringify({
+                                orderId: options.order_id,
+                                paymentStatus: 'pending',
+                                paymentError: response.error
+                            })
+                        })
+
+                        const updateData = await updateResponse.json()
+                        if(!updateData.success) {
+                            console.error('Failed to update order status')
+                        }
+                    }catch (error) {
+                        console.error('error updating the payment status', error)
+                    }
+                })
+                
+                // open razorpay modal
                 rzp1.open();
+
             } catch (error) {
                 Swal.fire({
                     title: "Error!",
@@ -235,7 +283,10 @@
 
         //apply coupon
         document.getElementById('apply-coupon').addEventListener('click', async function() {
+            const productId = document.getElementById('product-id').value
+            const quantity = document.getElementById('quantity').value
             const couponCode = document.getElementById('coupon-code').value;
+            console.log(productId)
 
             if(!couponCode) {
                 document.getElementById('coupon-message').innerHTML = "Please enter a coupon code!"
@@ -246,7 +297,11 @@
                 const response = await fetch('/apply-coupon', {
                     method: 'POST',
                     headers: {'Content-type' : 'application/json'},
-                    body: JSON.stringify({couponCode})
+                    body: JSON.stringify({
+                        couponCode,
+                        productId: productId || undefined,
+                        quantity: quantity || undefined
+                    })
                 })
 
                 const data = await response.json()
@@ -279,8 +334,18 @@
         //remove coupon
         document.getElementById('remove-coupon').addEventListener('click' , async function() {
             try {
+
+                console.log('product id when remove', document.getElementById('product-id').value)
+                console.log('quantity when remove:',document.getElementById('quantity').value )
                 const response = await fetch('/remove-coupon', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type' : 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: document.getElementById('product-id').value,
+                        quantity: document.getElementById('quantity').value
+                    })
                 })
 
                 const data = await response.json()
@@ -318,7 +383,7 @@
           text: "<%= error[0] %>", // Display the success message
           icon: "error",
           showConfirmButton: false,
-          timer: 2000,
+          timer: 2500,
           customClass: {
             popup: "my-swal-popup", // Custom class for the popup
             title: "my-swal-title", // Custom class for the title

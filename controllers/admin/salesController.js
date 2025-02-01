@@ -95,8 +95,12 @@ const loadSales = async (req, res) => {
 
             // add filter to the pipeline
             const matchStage = {}
-            if(month) matchStage.orderMonth = parseInt(month)
-            if(year) matchStage.orderYear = parseInt(year)
+            if (month && !isNaN(month)) {
+                matchStage.orderMonth = parseInt(month);
+            }
+            if (year && !isNaN(year)) {
+                matchStage.orderYear = parseInt(year);
+            }
 
             //date range filter
             if(fromDate && toDate) {
@@ -151,7 +155,7 @@ const loadSales = async (req, res) => {
                 toDate
             })
         } else {
-            res.redirect('/admin/login') // Redirect if no admin session
+            return res.redirect('/admin/login') // Redirect if no admin session
         }
     } catch (error) {
         console.error('error loadin dashboard', error)
@@ -159,6 +163,133 @@ const loadSales = async (req, res) => {
     }
 }
 
+//get all sales data for downloading pdf
+const getAllSalesData = async(req,res) => {
+    try {
+
+        if(req.session.admin) {
+
+            const { fromDate, toDate, month, year } = req.body;
+
+            const pipeline = [
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'user_id',
+                        foreignField: '_id',
+                        as: 'user'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'payments',
+                        localField: 'payment_id',
+                        foreignField: '_id',
+                        as: 'payment'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'addresses',
+                        localField: 'address_id',
+                        foreignField: '_id',
+                        as: 'address'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'orderitems',
+                        localField: '_id',
+                        foreignField: 'order_id',
+                        as: 'orderItems'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'orderItems.items.product_id',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
+                },
+                {
+                    $unwind: { path: '$orderItems', preserveNullAndEmptyArrays: true }
+                },
+                {
+                    $unwind: { path: '$user', preserveNullAndEmptyArrays: true }
+                },
+                {
+                    $unwind: { path: '$payment', preserveNullAndEmptyArrays: true }
+                },
+                {
+                    $unwind: { path: '$address', preserveNullAndEmptyArrays: true }
+                },
+                {
+                    $project: {
+                        orderDate: { $dateToString: { format: "%Y-%m-%d", date: "$order_date" } },
+                        customer: { $concat: ["$user.first_name", " (", "$user.email", ")"] },
+                        products: { $arrayElemAt: ["$productDetails.title", 0] },
+                        quantity: { $size: "$orderItems.items" },
+                        totalAmount: "$total",
+                        discount: "$discount",
+                        netAmount: "$netAmount",
+                        status: "$payment.status",
+                        orderMonth: { $month: '$order_date' },
+                        orderYear: { $year: '$order_date' }
+                    }
+                }
+            ];
+    
+            // Add filters to the pipeline
+            const matchStage = {};
+            if (month && !isNaN(month)) {
+                matchStage.orderMonth = parseInt(month);
+            }
+            if (year && !isNaN(year)) {
+                matchStage.orderYear = parseInt(year);
+            }
+            if (fromDate && toDate) {
+                matchStage.order_date = {
+                    $gte: new Date(fromDate),
+                    $lte: new Date(toDate)
+                };
+            }
+    
+            if (Object.keys(matchStage).length > 0) {
+                pipeline.push({ $match: matchStage });
+            }
+    
+            // Sort by order date
+            pipeline.push({ $sort: { order_date: -1 } });
+    
+            // Execute the aggregation
+            const salesReport = await Order.aggregate(pipeline);
+    
+            // Calculate totals
+            const totals = {
+                totalOrders: salesReport.length,
+                totalAmount: salesReport.reduce((sum, order) => sum + order.netAmount, 0),
+                totalDiscount: salesReport.reduce((sum, order) => sum + order.discount, 0)
+            };
+    
+            res.json({
+                success: true,
+                data: salesReport,
+                totals
+            });
+        } else {
+            return res.redirect('/admin/login')
+        }
+    } catch (error) {
+        console.log('error geting the all sales',error)
+        res.status(500).json({
+            success: false,
+            error: 'Error generating sales report'
+        });
+    }
+}
+
 module.exports = {
     loadSales,
+    getAllSalesData,
 }

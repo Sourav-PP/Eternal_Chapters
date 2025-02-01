@@ -221,6 +221,9 @@ const manageAddress = async (req, res) => {
 
 const getAddAddress = async (req, res) => {
     try {
+        const productId = req.query.productId
+        const quantity = req.query.quantity
+
         const userId = req.session.user
         const fromCheckout = req.query.from === 'checkout';
         const userData = await User.findById(userId)
@@ -232,7 +235,9 @@ const getAddAddress = async (req, res) => {
             error: req.flash('error'), // General errors
             validationErrors,
             formData,
-            fromCheckout
+            fromCheckout,
+            productId,
+            quantity,
         });
     } catch (error) {
         console.error("error loading the add address page", error)
@@ -244,6 +249,10 @@ const getAddAddress = async (req, res) => {
 //add address
 const addAddress = async (req, res) => {
     try {
+        const productId = req.body.productId
+        const quantity = req.body.quantity
+        console.log('product id in add address', productId)
+        console.log('quantity in the add address', quantity)
         const fromCheckout = req.body.fromCheckout === 'true'
         const userId = req.session.user
         const userData = await User.findById(userId)
@@ -282,7 +291,7 @@ const addAddress = async (req, res) => {
         req.flash('success', 'Address added successfully!');
 
         if (fromCheckout) {
-            return res.redirect('/checkout');
+            return res.redirect(`/checkout?productId=${productId}&quantity=${quantity}`);
         } else {
             return res.redirect('/addAddress');
         }

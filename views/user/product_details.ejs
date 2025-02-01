@@ -138,20 +138,26 @@
                     <% } %>
                     
                     <div class="action-buttons">
-                    <form action="/addCart" method="post">
 
-                        <input type="hidden" name="product_id" value="<%= product._id %>">
+                        <!-- add to cart button -->
+                        <form action="/addCart" method="post">
+                            <input type="hidden" name="product_id" value="<%= product._id %>">
+                            <input type="number" class="q-inp me-2" id="quantity" name="quantity" value="1" min="1" required oninput="validateQuantity(this)">
+                            <input type="hidden" id="max-stock" value="<%= product.available_quantity %>">
+                            <button class="add-to-cart">Add to Cart</button>
+                        </form>
 
-                        <!-- Quantity input -->
-                        <input type="number" class="q-inp me-2" id="quantity" name="quantity" value="1" min="1" required oninput="validateQuantity(this)">
-                        <input type="hidden" id="max-stock" value="<%= product.available_quantity %>">
+                        <!-- buy now button -->
+                        <form action="/checkout" method="get" id="buy-now-form">
+                            <input type="hidden" name="productId" value="<%= product._id %>">
+                            <input type="hidden" id="buy-now-quantity" name="quantity" value="1">
+                            <button class="buy-now">Buy Now</button>
+                        </form>
 
-                        <button class="add-to-cart">Add to Cart</button>
-                    </form>
-                        <button class="buy-now">Buy Now</button>
                         <div class="wishlist">
                             <button onclick="wishlishBtn('<%= product._id %>')" class="btn love-btn" ><i id="wish-btn" class="fas fa-heart h"></i></button>
                         </div>
+
                     </div>
 
                 </div>
@@ -305,6 +311,13 @@
     <% } %>
 
 <script>
+    const quantityInput = document.getElementById('quantity')
+    const buyNowQuantity = document.getElementById('buy-now-quantity')
+
+    quantityInput.addEventListener('input', () => {
+        buyNowQuantity.value = quantityInput.value
+    })
+
     let imageZoom = document.getElementById('imageZoom')
     imageZoom.addEventListener('mousemove', (event) => {
         imageZoom.style.setProperty('--opacity', '1')

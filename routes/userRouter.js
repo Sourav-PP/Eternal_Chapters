@@ -78,6 +78,7 @@ router.post('/cancel-order/:id/:productId', userAuth, orderController.cancelOrde
 router.post('/return-order/:id/:productId', userAuth, orderController.returnOrder)
 router.post('/apply-coupon', userAuth, orderController.applyCoupon)
 router.post('/remove-coupon', userAuth, orderController.removeCoupon)
+router.get('/invoice/download/:id', userAuth, orderController.generateInvoice)
 
 //payment management
 router.post('/create-order', userAuth, paymentController.createOrder)
