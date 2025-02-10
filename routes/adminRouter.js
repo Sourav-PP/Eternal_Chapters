@@ -42,6 +42,7 @@ router.get('/login', adminController.loadLogin)
 router.post('/login',validateAdminSignin, adminController.login)
 router.get('/logout', adminController.logout)
 router.get('/', adminAuth, adminController.loadDashboard)
+router.get('/filter-data', adminAuth, adminController.filterDashboard)
 
 //customer management
 router.get('/users', adminAuth, customerController.customerInfo)
@@ -101,5 +102,6 @@ router.get('/remove-offer-category', adminAuth, offerController.removeOfferCateg
 //banner management
 router.get('/banners', adminAuth, bannerController.getBannerPage)
 router.post('/addBanner', adminAuth, upload.single('image'), bannerController.addBanner)
+router.get('/delete-banner', adminAuth, bannerController.deleteBanner)
 
 module.exports = router

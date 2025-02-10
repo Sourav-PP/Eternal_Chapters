@@ -17,14 +17,12 @@ const razorpay = new Razorpay({
 
 const getOrders = async (req, res) => {
     try {
-        const orders = await Order.find().populate('user_id').populate('address_id').populate('payment_id').sort({created_at: -1})
+        const orders = await Order.find({ payment_status: { $ne: 'failed' } }).populate('user_id').populate('address_id').populate('payment_id').sort({created_at: -1})
         for (const order of orders) {
             const orderItems = await OrderItems.find({ order_id: order._id })
                 .populate({ path: 'items.product_id', populate: { path: 'category_id' } })
-                // console.log('Populated OrderItems:', JSON.stringify(orderItems, null, 2));
             order.orderItems = orderItems
         }
-        // console.log('order in od',orders)
 
         return res.render('orders', {
             orders,

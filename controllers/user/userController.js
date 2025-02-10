@@ -22,12 +22,12 @@ const page_404 = async (req, res) => {
     }
 };
 
-//generatin a 6 digit otp
+// generatin a 6 digit otp
 function gererateOtp() {
     return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-//sending the verifiication mail
+// sending the verifiication mail
 async function sendVerficationEmail(email, otp) {
     try {
         const transporter = nodemailer.createTransport({
@@ -184,22 +184,19 @@ const verifyOtp = async (req, res) => {
 //resend otp
 const resendSignupOtp = async (req, res) => {
     try {
-        console.log('its here')
         if (!req.session.userOtp || !req.session.userData) {
             return res.redirect('/signup');
         }
-        console.log('and its here')
 
-        const newOtp = gererateOtp(); // Generate new OTP
+        const newOtp = gererateOtp();
         req.session.userOtp = newOtp; // Update session with new OTP
 
         console.log("Generated new OTP:", newOtp);
 
-        const email = req.session.userData.email; // Retrieve email from userData
+        const email = req.session.userData.email;
 
         const emailSent = await sendVerficationEmail(email, newOtp);
         if (!emailSent) {
-            // Send only one response, and avoid calling res.redirect() or res.send() after this.
             return res.status(500).json({ success: false, message: 'Failed to resend OTP. Please try again later.' });
         }
 
@@ -299,7 +296,7 @@ const loadHomepage = async (req, res) => {
         const { price, author, stock_state, sort, categoryName, page } = req.query;
 
         const currentPage = parseInt(page) || 1;
-        const itemsPerPage = 8;
+        const itemsPerPage = 12;
         const skip = (currentPage - 1) * itemsPerPage;
 
         const query = { is_deleted: false };
@@ -340,18 +337,26 @@ const loadHomepage = async (req, res) => {
         }
 
         // Apply filters and pagination
-        let products = await Product.find(query).populate('offer_id').populate({path: 'category_id',populate: {path: 'offer_id'}}).skip(skip).limit(itemsPerPage);
+        let products = await Product.find(query)
+            .populate('offer_id')
+            .populate({
+                path: 'category_id',
+                populate: {path: 'offer_id'}
+            })
+            .skip(skip)
+            .limit(itemsPerPage);
+
+        // Apply stock state filter in the application logic
+        if (stock_state) {
+            const stockStates = Array.isArray(stock_state) ? stock_state : [stock_state];
+            products = products.filter(product => stockStates.includes(product.stock_state));
+        }
 
         // Sort products
         if (sort === "asc") {
             products = products.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
         } else if (sort === "desc") {
             products = products.sort((a, b) => b.title.toLowerCase().localeCompare(a.title.toLowerCase()));
-        }
-
-        // Filter by stock state
-        if (stock_state) {
-            products = products.filter(product => product.stock_state === stock_state);
         }
 
         // apply offer logic
@@ -395,6 +400,7 @@ const loadHomepage = async (req, res) => {
 
         // Define the title
         const title = categoryName ? categoryName : 'Best Sellers';
+        const capTitle = title.toUpperCase()
 
         // If the request is an AJAX request, return just the product list
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
@@ -402,7 +408,7 @@ const loadHomepage = async (req, res) => {
                 products,
                 totalPages,
                 currentPage,
-                title
+                title: capTitle,
             });
         } else {
             // Otherwise, render the full homepage
@@ -413,7 +419,7 @@ const loadHomepage = async (req, res) => {
                 category,
                 totalPages,
                 currentPage,
-                title
+                title:capTitle,
             });
         }
     } catch (error) {

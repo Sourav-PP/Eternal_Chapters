@@ -15,6 +15,8 @@ const authRouter = require('./routes/authRouter')
 
 db() //function for connecting db
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(session({
@@ -36,7 +38,7 @@ app.set("views", [
     path.join(__dirname, 'views/partials/user')
 ])
 
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use(passport.initialize());
 app.use(passport.session());

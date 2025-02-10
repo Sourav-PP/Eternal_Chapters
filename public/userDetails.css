@@ -47,6 +47,42 @@ body {
   width: 150px;
 }
 
+
+/* custom mobile view */
+/* Custom Sidebar Styling */
+.custom-sidebar {
+  width: 300px; /* Adjust width */
+  background: #f8f9fa;
+}
+
+/* Profile Image */
+.profile-img img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 3px solid #007bff;
+  padding: 3px;
+}
+
+/* Sidebar Links */
+.sidebar-link {
+  padding: 10px;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  border-radius: 6px;
+}
+.sidebar-link:hover {
+  background: #007bff;
+  color: white;
+}
+
+/* Logout Button */
+.btn-danger a {
+  display: block;
+  width: 100%;
+}
+
 /* Footer Styling */
 footer {
   background-color: #341616; /* Dark background */
@@ -148,4 +184,10 @@ textarea {
 .up-bt:hover {
   transition: 500ms;
   background-color: #7c3e00;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
 }

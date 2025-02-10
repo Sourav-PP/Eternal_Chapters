@@ -67,31 +67,67 @@ const login = async (req, res) => {
 //load dashboard
 const loadDashboard = async (req, res) => {
     try {
-        if (req.session.admin) {
-            const page = parseInt(req.query.page) || 1
-            const limit = 10
-            const skip = (page - 1) * limit
+        if (!req.session.admin) {
+            return res.redirect('/admin/login');
+        }
 
-            // extract filter params
-            const { fromDate, toDate, month, year } = req.query
+        const { fromDate, toDate, month, year } = req.query;
 
-            const pipeline = [
+        // Base match stage for filtering
+        const baseMatchStage = {
+            payment_status: { $ne: 'failed' }
+        };
+
+        // Add date and month/year filters if provided
+        if (fromDate && toDate) {
+            baseMatchStage.order_date = {
+                $gte: new Date(fromDate),
+                $lte: new Date(toDate)
+            };
+        } else if (month && year) {
+            baseMatchStage.$expr = {
+                $and: [
+                    { $eq: [{ $month: '$order_date' }, parseInt(month)] },
+                    { $eq: [{ $year: '$order_date' }, parseInt(year)] }
+                ]
+            };
+        } else if (month) {
+            baseMatchStage.$expr = {
+                $eq: [{ $month: '$order_date' }, parseInt(month)]
+            };
+        } else if (year) {
+            baseMatchStage.$expr = {
+                $eq: [{ $year: '$order_date' }, parseInt(year)]
+            };
+        }
+
+        // Fetch all required data in parallel
+        const [totalUsers, totalOrders, totalSales, bestSellingProducts, bestSellingCategories, salesData] = await Promise.all([
+            // Total Users
+            User.countDocuments(fromDate && toDate ? {
+                createdAt: {
+                    $gte: new Date(fromDate),
+                    $lte: new Date(toDate)
+                }
+            } : {}),
+
+            // Total Orders
+            Order.countDocuments(baseMatchStage),
+
+            // Total Sales
+            Order.aggregate([
+                { $match: baseMatchStage },
                 {
-                    $lookup: {
-                        from: 'users',
-                        localField: 'user_id',
-                        foreignField: '_id',
-                        as: 'user'
+                    $group: {
+                        _id: null,
+                        totalSales: { $sum: '$netAmount' }
                     }
-                },
-                {
-                    $lookup: {
-                        from: 'addresses',
-                        localField: 'address_id',
-                        foreignField: '_id',
-                        as: 'address'
-                    }
-                },
+                }
+            ]),
+
+            // Best Selling Products
+            Order.aggregate([
+                { $match: baseMatchStage },
                 {
                     $lookup: {
                         from: 'orderitems',
@@ -100,6 +136,40 @@ const loadDashboard = async (req, res) => {
                         as: 'orderItems'
                     }
                 },
+                { $unwind: '$orderItems' },
+                { $unwind: '$orderItems.items' },
+                {
+                    $group: {
+                        _id: '$orderItems.items.product_id',
+                        totalQuantity: { $sum: '$orderItems.items.quantity' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
+                },
+                { $unwind: '$productDetails' },
+                { $sort: { totalQuantity: -1 } },
+                { $limit: 10 }
+            ]),
+
+            //best selling categories
+            Order.aggregate([
+                { $match: baseMatchStage },
+                {
+                    $lookup: {
+                        from: 'orderitems',
+                        localField: '_id',
+                        foreignField: 'order_id',
+                        as: 'orderItems'
+                    }
+                },
+                { $unwind: '$orderItems' },
+                { $unwind: '$orderItems.items' },
                 {
                     $lookup: {
                         from: 'products',
@@ -108,169 +178,276 @@ const loadDashboard = async (req, res) => {
                         as: 'productDetails'
                     }
                 },
+                { $unwind: '$productDetails' },
                 {
-                    $unwind: { path: '$orderItems', preserveNullAndEmptyArrays: true }
-                },
-                {
-                    $unwind: { path: '$orderItems.items', preserveNullAndEmptyArrays: true }
-                },  
-                {
-                    $unwind: { path: '$user', preserveNullAndEmptyArrays: true }
-                },
-                {
-                    $unwind: { path: '$address', preserveNullAndEmptyArrays: true }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        order_date: 1,
-                        delivery_date: 1,
-                        shipping_chrg: 1,
-                        total: 1,
-                        netAmount: 1,
-                        discount: 1,
-                        payment_method: 1,
-                        'user.first_name': 1,
-                        'user.email': 1,
-                        'address.city': 1,
-                        'address.pincode': 1,
-                        'payment.status': 1,
-                        'payment.transaction_id': 1,
-                        'orderItems.items': 1,
-                        productDetails: { title: 1 },
-                        orderMonth: { $month: '$order_date' },
-                        orderYear: { $year: '$order_date' }
+                    $group: {
+                        _id: '$productDetails.category_id',
+                        totalQuantity: { $sum: '$orderItems.items.quantity' }
                     }
                 },
-            ]
-
-            // add filter to the pipeline
-            const matchStage = {}
-            if (month && !isNaN(parseInt(month))) {
-                matchStage.orderMonth = parseInt(month)
-            }
-            if (year && !isNaN(parseInt(year))) {
-                matchStage.orderYear = parseInt(year)
-            }
-
-            // date range filter
-            if (fromDate && toDate) {
-                matchStage.order_date = {
-                    $gte: new Date(fromDate),
-                    $lte: new Date(toDate)
-                }
-            }
-
-            // Add match stage first if filters exist
-            if (Object.keys(matchStage).length > 0) {
-                pipeline.push({ $match: matchStage })
-            }
-
-            // sort and final aggregation
-            pipeline.push(
-                { $sort: { order_date: -1 } },
-                { $skip: skip },
-                { $limit: limit }
-            )
-
-            // get the number of total items after filteration
-            const totalItemsPipeline = [
-                { $match: matchStage },
-                { $count: 'totalItems' }
-            ]
-
-            const totalItemsResult = await Order.aggregate(totalItemsPipeline)
-            const totalItems = totalItemsResult[0]?.totalItems || 0
-            const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 1
-
-            // fetch data
-            const [ totalUsers, totalOrders, totalSales, salesReport,bestSellingProducts] = await Promise.all([
-                User.countDocuments(fromDate && toDate ? {
-                    createdAt: {
-                        $gte: new Date(fromDate),
-                        $lte: new Date(toDate)
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'categoryDetails'
                     }
-                } : {}),    
-                Order.countDocuments(),
-                Order.aggregate([{ $group: { _id: null, totalSales: { $sum: '$netAmount' }}}]),
-                Order.aggregate(pipeline),
-                Order.aggregate([
-                    {
-                        $lookup: {
-                            from: 'orderitems', // The name of the orderItems collection
-                            localField: '_id',
-                            foreignField: 'order_id', // Assuming order_id is the field in orderItems that references Order
-                            as: 'orderItems'
-                        }
-                    },
-                    { $unwind: '$orderItems' },
-                    { $unwind: '$orderItems.items' },
-                    {
-                        $group: {
-                            _id: '$orderItems.items.product_id',
-                            totalQuantity: { $sum: '$orderItems.items.quantity' }
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: 'products',
-                            localField: '_id',
-                            foreignField: '_id',
-                            as: 'productDetails'
-                        }
-                    },
-                    { $unwind: '$productDetails' },
-                    { $sort: { totalQuantity: -1 } },
-                    { $limit: 10 }
-                ])
+                },
+                {$unwind: '$categoryDetails'},
+                {$sort: {totalQuantity: -1}},
+                {$limit: 10}
+            ]),
 
+            // Sales Data for Chart
+            Order.aggregate([
+                { $match: baseMatchStage },
+                {
+                    $group: {
+                        _id: {
+                            month: { $month: '$order_date' },
+                            year: { $year: '$order_date' }
+                        },
+                        totalSales: { $sum: '$netAmount' }
+                    }
+                },
+                { $sort: { '_id.year': 1, '_id.month': 1 } }
             ])
+        ]);
 
-            console.log('sales report with orderItems', salesReport)
-            salesReport.forEach(order => {
-                console.log('Order ID:', order._id);
-                console.log('Order Items:', order.orderItems);
-            });
-            console.log('best selling', bestSellingProducts)
+        // Process sales data for chart
+        const chartData = salesData.reduce((acc, item) => {
+            const monthName = new Date(0, item._id.month - 1).toLocaleString('default', { month: 'long' });
+            const label = `${monthName} ${item._id.year}`;
+            return {
+                labels: [...acc.labels, label],
+                data: [...acc.data, item.totalSales]
+            };
+        }, { labels: [], data: [] });
 
-            // report data for the chart
-            const salesData = salesReport.reduce((acc,order) => {
-                const monthYear = `${order.orderMonth}-${order.orderYear}`
-                if(!acc[monthYear]) {
-                    acc[monthYear] = 0
-                }
-                acc[monthYear] += order.netAmount
-                return acc
-            }, {})
+        res.render('dashboard', {
+            totalUsers,
+            totalOrders,
+            totalSales: totalSales[0]?.totalSales || 0,
+            bestSellingProducts,
+            bestSellingCategories,
+            salesData: chartData,
+            selectedMonth: month,
+            selectedYear: year,
+            fromDate,
+            toDate
+        });
 
-            const chartLabels = Object.keys(salesData)
-            const chartData = Object.values(salesData)
-
-            res.render('dashboard', {
-                totalUsers,
-                totalOrders,
-                salesReport: salesReport || [],
-                totalSales: totalSales[0]?.totalSales || 0,
-                currentPage: page,
-                itemsPerPage: limit,
-                totalPages,
-                selectedMonth: month,
-                selectedYear: year,
-                fromDate,
-                toDate,
-                salesData: {
-                    labels: chartLabels,
-                    data: chartData
-                },
-                bestSellingProducts
-            })
-
-        } else {
-            res.redirect('/admin/login')
-        }
     } catch (error) {
-        console.error('error loadin dashboard', error)
-        res.redirect('/admin/error-page')
+        console.error('Error loading dashboard:', error);
+        res.redirect('/admin/error-page');
+    }
+};
+
+// filter dashboard
+const filterDashboard = async (req, res) => {
+
+    try {
+        const { fromDate, toDate, month, year, filterType } = req.query
+
+        // base matchStage
+        const baseMatchStage = {
+            payment_status: { $ne: 'failed' }
+        }
+
+        // date and month filter
+        if (fromDate && toDate) {
+            baseMatchStage.order_date = {
+                $gte: new Date(fromDate),
+                $lte: new Date(toDate)
+            }
+        } else if (month && year) {
+            baseMatchStage.$expr = {
+                $and: [
+                    { $eq: [{ $month: '$order_date' }, parseInt(month)] },
+                    { $eq: [{ $year: '$order_date' }, parseInt(year)] }
+                ]
+            }
+        } else if (month && !year) {
+            baseMatchStage.$expr = {
+                $eq: [{ $month: '$order_date' }, parseInt(month)]
+            }
+        } else if (year && !month) {
+            baseMatchStage.$expr = {
+                $eq: [{ $year: '$order_date' }, parseInt(year)]
+            }
+        }
+
+        // determine grouping based on filter type
+        let groupingStage;
+
+        if (filterType === 'weekly') {    
+            groupingStage = {
+                $group: {
+                    _id: {
+                        year: { $isoWeekYear: '$order_date' },
+                        week: { $isoWeek: '$order_date' },
+                        // get the fist day of the week
+                        firstDayOfWeek: {
+                            $dateFromParts: {
+                                isoWeekYear: { $isoWeekYear: '$order_date' },
+                                isoWeek: { $isoWeek: '$order_date' }, 
+                                isoDayOfWeek: 1
+                            }
+                        }
+                    },
+                    totalSales: {$sum: '$netAmount'},
+                    count: {$sum: 1}
+                }
+            }
+        } else if (filterType === 'monthly') {
+            groupingStage = {
+                $group: {
+                    _id: {
+                        month: { $month: '$order_date' },
+                        year: { $year: '$order_date' }
+                    },
+                    totalSales: {$sum: '$netAmount'},
+                    count: {$sum: 1}
+                }
+            }
+        } else {
+            // daily grouping
+            groupingStage = {
+                $group: {
+                    _id: {
+                        date: { $dateToString: { format: '%Y-%m-%d', date: '$order_date' } }
+                    },
+                    totalSales: {$sum: '$netAmount'},
+                    count: {$sum: 1}
+                }
+            }
+        }
+
+        // fetch filter data
+        const [totalOrders, totalSales, bestSellingProducts, bestSellingCategories, timeSeriesData] = await Promise.all([
+            Order.countDocuments(baseMatchStage),
+            Order.aggregate([
+                { $match: baseMatchStage },
+                {
+                    $group: {
+                        _id: null,
+                        totalSales: { $sum: '$netAmount' }
+                    }
+                }
+            ]),
+            // best selling products
+            Order.aggregate([
+                { $match: baseMatchStage },
+                {
+                    $lookup: {
+                        from: 'orderitems',
+                        localField: '_id',
+                        foreignField: 'order_id',
+                        as: 'orderItems'
+                    }
+                },
+                { $unwind: '$orderItems' },
+                { $unwind: '$orderItems.items' },
+                {
+                    $group: {
+                        _id: '$orderItems.items.product_id',
+                        totalQuantity: { $sum: '$orderItems.items.quantity' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
+                },
+                { $unwind: '$productDetails' },
+                { $sort: { totalQuantity: -1 } },
+                { $limit: 10 }
+            ]),
+            // best selling categories
+            Order.aggregate([
+                { $match: baseMatchStage },
+                {
+                    $lookup: {
+                        from: 'orderitems',
+                        localField: '_id',
+                        foreignField: 'order_id',
+                        as: 'orderItems'
+                    }
+                },
+                { $unwind: '$orderItems' },
+                { $unwind: '$orderItems.items' },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'orderItems.items.product_id',
+                        foreignField: '_id',
+                        as: 'productDetails'
+                    }
+                },
+                { $unwind: '$productDetails' },
+                {
+                    $group: {
+                        _id: '$productDetails.category_id',
+                        totalQuantity: { $sum: '$orderItems.items.quantity' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'categoryDetails'
+                    }
+                },
+                {$unwind: '$categoryDetails'},
+                {$sort: {totalQuantity: -1}},
+                {$limit: 10}
+            ]),
+
+            // time series data
+            Order.aggregate([
+                { $match: baseMatchStage },
+                groupingStage,
+                { $sort: filterType === 'weekly' ? { '_id.year': 1, '_id.week': 1 } : { '_id': 1 } }
+            ])
+        ])
+
+        // Process weekly sales data for chart
+        const chartData = timeSeriesData.reduce((acc, item) => {
+            let label;
+            if (filterType === 'weekly') {
+                const startDate = new Date(item._id.firstDayOfWeek);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                label = `${startDate.toLocaleDateString('default', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('default', { month: 'short', day: 'numeric' })}`;
+            } else if (filterType === 'monthly') {
+                label = new Date(item._id.year, item._id.month - 1).toLocaleDateString('default', { month: 'long', year: 'numeric' });
+            } else {
+                label = new Date(item._id.date).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            }
+
+            return {
+                labels: [...acc.labels, label],
+                data: [...acc.data, item.totalSales]
+            };
+        }, { labels: [], data: [] });
+
+
+        // Send JSON response
+        res.json({
+            totalOrders,
+            totalSales: totalSales[0]?.totalSales || 0,
+            bestSellingProducts,
+            bestSellingCategories,
+            salesData: chartData
+        });
+
+    } catch (error) {
+        console.error('Error fetching filtered data:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
 
@@ -294,5 +471,6 @@ module.exports = {
     loadDashboard,
     pageError,
     logout,
+    filterDashboard,
     // getGraph,
 }

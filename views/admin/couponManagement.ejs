@@ -171,21 +171,26 @@
               </div>
 
               <div class="row">
+
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label for="max_discount_amount" class="form-label">Maximum discount amount</label>
-                 
-                    <input value="" name = "max_discount_amount" type="number" class="form-control" id="max_discount_amount" placeholder="Enter the amount" >
+                    <label for="coupon-type" class="form-label">Coupon Type</label>
+                    <select name="coupon_type" class="form-select" id="coupon-type" >
+                      <option value="" disabled selected>Select a type</option>
+                      <option value="fixed">Fixed Amount</option>
+                      <option value="percentage">Percentage</option>
+                    </select>
 
                     <% if (typeof validationError !=='undefined' && validationError) { %>
-                      <% const error = validationError.find(err=> err.path === 'max_discount_amount'); %>
+                      <% const error = validationError.find(err=> err.path === 'coupon_type'); %>
                         <% if (error) { %>
-                        <small class="error" id="errors3"> <%= error.msg %> </small>
+                        <small class="error" id="errors5"> <%= error.msg %> </small>
                       <% } %>
                     <% } %>
 
                   </div>
                 </div>
+                
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="minimum_purchase_amount" class="form-label">Minimum purchase amount</label>
@@ -206,21 +211,20 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label for="coupon-type" class="form-label">Coupon Type</label>
-                    <select name="coupon_type" class="form-select" id="coupon-type" >
-                      <option value="fixed">Fixed Amount</option>
-                      <option value="percentage">Percentage</option>
-                    </select>
+                    <label for="max_discount_amount" class="form-label">Maximum discount amount</label>
+                 
+                    <input value="" name = "max_discount_amount" type="number" class="form-control" id="max_discount_amount" placeholder="Enter the amount" >
 
                     <% if (typeof validationError !=='undefined' && validationError) { %>
-                      <% const error = validationError.find(err=> err.path === 'coupon_type'); %>
+                      <% const error = validationError.find(err=> err.path === 'max_discount_amount'); %>
                         <% if (error) { %>
-                        <small class="error" id="errors5"> <%= error.msg %> </small>
+                        <small class="error" id="errors3"> <%= error.msg %> </small>
                       <% } %>
                     <% } %>
 
                   </div>
                 </div>
+
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
@@ -307,14 +311,14 @@
 
               <div class="mb-3">
                 <label for="max_discount_amount" class="form-label">Maximum discount amount</label>
-                <input value="" id="max_discount_amount-edit" type="number" class="form-control" placeholder="Enter the amount" required>
+                <input value="" id="max_discount_amount-edit" name="max_discount_amount" type="number" class="form-control" placeholder="Enter the amount" required>
                 <p class="text-danger error-message" id="error3"></p>
               </div>
 
 
               <div class="mb-3">
                 <label for="minimum_purchase_amount" class="form-label">Minimum purchase amount</label>
-                <input type="number" class="form-control" id="minimum_purchase_amount-edit" placeholder="Enter the amount" >
+                <input type="number" class="form-control" name="minimum_purchase_amount" id="minimum_purchase_amount-edit" placeholder="Enter the amount" >
                 <p class="text-danger error-message" id="error4"></p>
               </div>
 
@@ -420,6 +424,45 @@
       document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('editCouponForm');
 
+        const addCouponTypeField = document.getElementById('coupon-type')
+        const editCouponTypeField = document.getElementById('coupon-type-edit')
+        const addMaxDiscountField = document.getElementById('max_discount_amount')
+        const editMaxDiscountField = document.getElementById('max_discount_amount-edit')
+        const addDiscountValueField = document.getElementById('coupon-amount')
+        const editDiscountValueField = document.getElementById('coupon-amount-edit')
+
+
+        function updateMaxDiscount() {
+          if(addCouponTypeField.value === 'fixed') {
+            addMaxDiscountField.value = addDiscountValueField.value
+            addMaxDiscountField.readOnly  = true
+          }else{
+            addMaxDiscountField.readOnly  = false
+          }
+        }
+        
+        function updateEditMaxDiscount() {
+          if(editCouponTypeField.value === 'fixed') {
+            editMaxDiscountField.value = editDiscountValueField.value
+            editMaxDiscountField.readOnly  = true
+          }else{
+            editMaxDiscountField.readOnly  = false
+          }
+        }
+
+        updateMaxDiscount()
+        updateEditMaxDiscount()
+        if(addCouponTypeField.value === 'fixed') {
+          addCouponTypeField.addEventListener('change', updateMaxDiscount);
+          addDiscountValueField.addEventListener('input', updateMaxDiscount);
+        }
+        if(editCouponTypeField.value === 'fixed') {
+          editCouponTypeField.addEventListener('change', updateEditMaxDiscount);
+          editDiscountValueField.addEventListener('input', updateEditMaxDiscount);
+        }
+      
+        
+
         form.addEventListener('submit', (event) => {
           event.preventDefault()
 
@@ -507,8 +550,6 @@
           if (isValid) {
             form.submit();
           }
-
-
         })
       })    
 

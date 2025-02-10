@@ -9,13 +9,25 @@ const path = require('path')
 
 const productInfo = async (req, res) => {
     try {
-        const productdata = await Product.find()
+        const page = parseInt(req.query.page) || 1
+        const limit = 10
+        const skip = (page - 1) * limit
+        const searchQuery = req.query.search || '';
+        const query = searchQuery ? { title: { $regex: searchQuery, $options: 'i' } } : {};
+
+        const productCount = await Product.countDocuments(query)
+        const totalPages = Math.ceil(productCount / limit)
+
+        const productdata = await Product.find(query).skip(skip).limit(limit)
         const categoryData = await Category.find({ is_deleted: false })
 
         res.render("products", {
             category: categoryData,
             products: productdata,
-            success: req.flash('success')
+            success: req.flash('success'),
+            currentPage: page,
+            totalPages: totalPages,
+            searchQuery: searchQuery
         })
 
     } catch (error) {

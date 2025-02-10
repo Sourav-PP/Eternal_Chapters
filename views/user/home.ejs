@@ -3,23 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eternal Chapter</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      rel="stylesheet"
-    />
+    <title>Eternal Chapters</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
 
-    <link rel="stylesheet" href="userDetails.css" />
-    <link rel="stylesheet" href="userHome.css" />
-    <link rel="stylesheet" href="user/header.css" />
+    <link rel="stylesheet" href="userDetails.css"/>
+    <link rel="stylesheet" href="userHome.css"/>
+    <link rel="stylesheet" href="user/header.css"/>
     <link rel="shortcut icon" href="img/favicon.png" type="image/x-icon" />
   </head>
 
@@ -44,7 +35,7 @@
     <div class="container">
       <div class="row">
         <!-- Filter Section -->
-        <div class="col-md-3 filter-box pt-5">
+        <div class="col-md-3 filter-box pt-5 pb-4">
           <h4 class="mb-3">Filters</h4>
           <form id="filterForm">
             <!-- Sorting Dropdown -->
@@ -137,6 +128,18 @@
                   class="form-check-input"
                   type="checkbox"
                   name="stock_state"
+                  id="unavailable"
+                  value="Unavailable"
+                />
+                <label class="form-check-label" for="available"
+                  >Unavailable</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="stock_state"
                   id="soldout"
                   value="Sold out"
                 />
@@ -169,7 +172,6 @@
 
         <!-- Product List Section -->
         <div class="col-md-9">
-          <h2 class="text-center mb-4 best"><%= title %></h2>
           <div class="product-list">
             <%- include('../../views/partials/user/productList') %>
           </div>
@@ -184,66 +186,79 @@
 
     <script>
       $(document).ready(function () {
-  // Apply Filters Button
-  $("#applyFilters").on("click", function () {
-        let formData = $("#filterForm").serialize();
-        $.ajax({
-          url: "/",
-          method: "GET",
-          data: formData,
-          success: function (response) {
-            // Update the product list with the response
-            $(".product-list").html(response);
+        // Apply Filters Button
+        $("#applyFilters").on("click", function () {
+          let formData = $("#filterForm").serializeArray();
+          formData = formData.map((item) => encodeURIComponent(item.name) + "=" + encodeURIComponent(item.value)).join("&");
+
+          $.ajax({
+            url: "/",
+            method: "GET",
+            data: formData,
+            success: function (response) {
+              // check if the response is empty
+              if($.trim(response) === '') {
+                $(".product-list").html("<p class='text-center'>There are no books available</p>");
+              } else {
+                // Update the product list with the response
+                $(".product-list").html(response);
+
+                // Reattach event listeners to new pagination links
+                addPaginationEventListeners();
+              }
+            },
+            error: function (error) {
+              console.error("Error fetching filtered products:", error);
+            },
+          });
+        });
+
+        // Add event listeners for pagination links
+        const addPaginationEventListeners = () => {
+          const paginationLinks = document.querySelectorAll(".pagination-link");
+          paginationLinks.forEach((link) => {
+            link.removeEventListener("click", paginationClickHandler); // Remove any existing listeners
+            link.addEventListener("click", paginationClickHandler); // Add the listener again
+          });
+        };
+
+        const paginationClickHandler = async (event) => {
+          event.preventDefault(); // Prevent the default anchor click behavior
+
+          const page = event.currentTarget.getAttribute("data-page"); // Use currentTarget to target the <a> element
+          if (!page || isNaN(page) || page <= 0) return; // Validate the page number
+
+          // Serialize the form data and include the page number
+          let formData = $("#filterForm").serializeArray();
+          formData = formData.map((item) => encodeURIComponent(item.name) + "=" + encodeURIComponent(item.value)).join("&");
+          formData += `&page=${page}`;
+
+          try {
+            const response = await fetch(`/?${formData}`, {
+              headers: { Accept: "application/json" },
+            });
+            if (!response.ok) throw new Error("Failed to fetch data.");
+
+            const data = await response.text(); // Assuming "productList" is rendered
+            const productContainer = document.querySelector(".product-list");
+            if (productContainer) {
+              // Check if data is empty or contains no products
+              if ($.trim(data) === "") {
+                productContainer.innerHTML = "<p class='text-center'>There are no books available</p>";
+              } else {
+                productContainer.innerHTML = data; // Update the product list with the new page content
+              }
+            }
 
             // Reattach event listeners to new pagination links
             addPaginationEventListeners();
-          },
-          error: function (error) {
-            console.error("Error fetching filtered products:", error);
-          },
-        });
-      });
-
-      // Add event listeners for pagination links
-      const addPaginationEventListeners = () => {
-        const paginationLinks = document.querySelectorAll(".pagination-link");
-        paginationLinks.forEach((link) => {
-          link.removeEventListener("click", paginationClickHandler); // Remove any existing listeners
-          link.addEventListener("click", paginationClickHandler); // Add the listener again
-        });
-      };
-
-      const paginationClickHandler = async (event) => {
-        event.preventDefault(); // Prevent the default anchor click behavior
-
-        const page = event.currentTarget.getAttribute("data-page"); // Use currentTarget to target the <a> element
-        if (!page || isNaN(page) || page <= 0) return; // Validate the page number
-
-        // Serialize the form data and include the page number
-        let formData = $("#filterForm").serialize();
-        formData += `&page=${page}`;
-
-        try {
-          const response = await fetch(`/?${formData}`, {
-            headers: { Accept: "application/json" },
-          });
-          if (!response.ok) throw new Error("Failed to fetch data.");
-
-          const data = await response.text(); // Assuming "productList" is rendered
-          const productContainer = document.querySelector(".product-list");
-          if (productContainer) {
-            productContainer.innerHTML = data; // Update the product list with the new page content
+          } catch (error) {
+            console.error("Pagination error:", error.message);
           }
+        };
 
-          // Reattach event listeners to new pagination links
-          addPaginationEventListeners();
-        } catch (error) {
-          console.error("Pagination error:", error.message);
-        }
-      };
-
-      addPaginationEventListeners(); // Initial listener attachment
-    });
+        addPaginationEventListeners(); // Initial listener attachment
+      });
     </script>
   </body>
 </html>

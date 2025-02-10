@@ -70,10 +70,13 @@ const createCoupon = async( req, res ) => {
 const editCoupon = async(req,res)=> {
     try {
 
-        const { coupon_id, code, discount_value, coupon_type, description, limit, expiry_date, is_active } = req.body;
+        const { coupon_id, code, discount_value, max_discount_amount, minimum_purchase_amount, coupon_type, description, limit, expiry_date, is_active } = req.body;
+        console.log('coooo',coupon_id)
 
         const updatedCoupon = await Coupon.findByIdAndUpdate(coupon_id, {
             code,
+            max_discount_amount,
+            minimum_purchase_amount,
             discount_value,
             coupon_type,
             description,

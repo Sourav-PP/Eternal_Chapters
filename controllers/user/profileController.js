@@ -210,7 +210,7 @@ const manageAddress = async (req, res) => {
         const userData = await User.findById(userId)
         const address = await Address.find({ user_id: userId })
         res.render('manageAddress', {
-            user: [],
+            user: userData,
             address,
             success: req.flash('success')
         })
@@ -231,6 +231,7 @@ const getAddAddress = async (req, res) => {
         const formData = JSON.parse(req.flash('formData')[0] || '{}'); // Parse back to an object
 
         res.render('add-address', {
+            user: userData,
             success: req.flash('success'),
             error: req.flash('error'), // General errors
             validationErrors,
@@ -251,8 +252,6 @@ const addAddress = async (req, res) => {
     try {
         const productId = req.body.productId
         const quantity = req.body.quantity
-        console.log('product id in add address', productId)
-        console.log('quantity in the add address', quantity)
         const fromCheckout = req.body.fromCheckout === 'true'
         const userId = req.session.user
         const userData = await User.findById(userId)
@@ -315,6 +314,7 @@ const getEditAddress = async (req, res) => {
         const userData = await User.findById(userId)
 
         res.render('edit-address', {
+            user: userData,
             success: req.flash('success'),
             error: req.flash('error'),
             validationErrors,

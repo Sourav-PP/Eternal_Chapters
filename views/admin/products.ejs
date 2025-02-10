@@ -23,6 +23,54 @@
             background-color: red;
             border: none;
         }
+
+        .search-bar {
+            display: flex;
+            justify-content: right;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            /* margin: 0 auto; */
+            position: relative;
+        }
+        .search-bar form {
+            background-color: #b8b8b8;
+            border-radius: 30px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 20px;
+            border: 2px solid #007bff;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            border-color: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .search-bar button {
+            /* position: absolute; */
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #007bff;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            border-radius: 50%;
+            transition: color 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: #0056b3;
+        }
     </style>
 </head>
 
@@ -36,20 +84,29 @@
         <div class="col-md-3 col-lg-2 sidebar-container vh-100 position-fixed">
             <%- include('../../views/partials/admin/sidebar') %>
         </div>
-
-
             <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 main-content">
-
                 <!-- content goes here -->
                 <div class="main">
-                    <div class="top-bar">
-                        <button class="add-bt"><a href="/admin/addProduct" class=" text-decoration-none text-white pt-2 pb-2 me-3" >Add Product</a></button>
+                    <div class="top-bar d-flex justify-content-between align-items-center p-3 bg-light border">
+    
+                        <!-- Add Product Button -->
+                        <a href="/admin/addProduct" class="btn btn-primary d-flex align-items-center px-4">
+                            <i class="fas fa-plus me-2"></i> Add Product
+                        </a>
+                    
+                        <!-- Search Bar -->
                         <div class="search-bar">
-                            <!-- <form action="/admin/users"> -->
-                            <input type="text" id="search" onkeyup="search()" placeholder="Search by category name">
-                            <i class="fas fa-search"></i>
-                            <!-- </form> -->
+                            <form id="searchForm" class="d-flex border overflow-hidden">
+                                <input type="text" id="search" name="search" 
+                                       class="form-control border-0 px-3" 
+                                       placeholder="Search by product name" 
+                                       value="<%= searchQuery %>">
+                                <button type="button" class="btn btn-dark px-4" onclick="document.getElementById('searchForm').submit();">
+                                    <i class="fas fa-search text-white"></i>
+                                </button>
+                            </form>
                         </div>
+                    
                     </div>
 
                     <div class="table-container">
@@ -129,9 +186,32 @@
                                     <% }) %>
                             </tbody>
                         </table>
-
                     </div>
-
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation example" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous Page Button -->
+                            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                            <a class="page-link pagination-link" href="?page=<%= currentPage - 1 %>" data-page="" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
+                    
+                            <!-- Dynamic Page Numbers -->
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                <a class="page-link pagination-link" href="?page=<%= i %>" data-page=""><%= i %></a>
+                            </li>
+                            <% } %>
+                    
+                            <!-- Next Page Button -->
+                            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                            <a class="page-link pagination-link" href="?page=<%= currentPage + 1 %>" data-page="" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -216,16 +296,6 @@
                 }
             });
         }
-
-        // //edit category
-        // function editCategory(name) {
-        //     const editForm = document.getElementById('editForm')
-        //     editForm.style.display = "flex"
-
-
-        //     document.getElementById("editName").value = name;
-        //     document.getElementById("editDescription").value = ""
-        // }
 
         // Edit category modal function
         function editCategory(name,description,id) {

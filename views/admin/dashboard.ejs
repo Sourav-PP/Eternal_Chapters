@@ -3,21 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spike Admin Dashboard</title>
+  <title>Eternal chapters: dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <link rel="stylesheet" href="/admin/adminDashboard.css">
   <link rel="stylesheet" href="/admin/admin.css">
   <link rel="shortcut icon" href="/img/favicon.png" type="image/x-icon" />
 
   <style>
+    :root {
+      --primary-color: #4f46e5;
+      --secondary-color: #818cf8;
+      --background-color: #f8fafc;
+      --card-background: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+    }
+
     body {
       background-color: #fdf8ec;
     }
     .card {
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 18px rgba(0, 0, 0, 0.1);
       background-color: #fff;
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-11px);
+      background-color: rgb(251, 251, 251);
     }
     .status-completed {
       color: green;
@@ -34,6 +49,96 @@
         height: 70vh;
         width: 80vw;
         margin: auto;
+    }
+
+    .filter-container {
+      background-color: var(--card-background);
+      padding: 1.5rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-select, .form-control {
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn {
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .metric-card {
+      padding: 1.5rem;
+      transition: transform 0.3s;
+    }
+
+    .metric-card h5 {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .metric-card h2 {
+      color: var(--text-primary);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .chart-container {
+      background-color: var(--card-background);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      width: 78vw;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .table {
+      background-color: var(--card-background);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .table thead th {
+      background-color: #f8fafc;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding: 1rem;
+    }
+
+    .table tbody td {
+      padding: 1rem;
+      vertical-align: middle;
     }
   </style>
 
@@ -56,9 +161,19 @@
 
         <!-- filter section -->
         <div class="filter-container">
-          <div class="row">
-              
-            <div class="col-md-2">
+          <div class="row g-3">
+            <!-- Date Range Selection -->
+            <div class="col-md-3">
+              <label for="fromDate" class="form-label">From Date</label>
+              <input type="date" id="fromDate" class="form-control" value="<%= fromDate || '' %>">
+            </div>
+            <div class="col-md-3">
+              <label for="toDate" class="form-label">To Date</label>
+              <input type="date" id="toDate" class="form-control" value="<%= toDate || '' %>">
+            </div>
+
+            <!-- Month/Year Filters -->
+            <div class="col-md-3">
               <label for="monthFilter" class="form-label">Month</label>
               <select id="monthFilter" class="form-select">
                 <option value="">All Months</option>
@@ -69,7 +184,7 @@
                 <% } %>
               </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <label for="yearFilter" class="form-label">Year</label>
               <select id="yearFilter" class="form-select">
                 <option value="">All Years</option>
@@ -81,84 +196,115 @@
                 <% } %>
               </select>
             </div>
-            <div class="col-md-2">
-              <label for="fromDate" class="form-label">From Date</label>
-              <input type="date" id="fromDate" class="form-control" value="<%= fromDate || '' %>">
+
+            <!-- Quick Date Buttons -->
+            <div class="col-md-3 mt-3">
+              <div class="btn-group w-100" role="group" aria-label="Quick Filters">
+                <button class="btn btn-info" id="today">Today</button>
+              </div>
             </div>
-            <div class="col-md-2">
-              <label for="toDate" class="form-label">To Date</label>
-              <input type="date" id="toDate" class="form-control" value="<%= toDate || '' %>">
+            <div class="col-md-3 mt-3">
+              <div class="btn-group w-100" role="group" aria-label="Quick Filters">
+                <button class="btn btn-info" id="weekly">Weekly</button>
+              </div>
             </div>
-            <div class="col-md-2 align-self-end">
-              <button class="btn btn-info w-100" id="today">Today</button>
+            <div class="col-md-3 mt-3">
+              <div class="btn-group w-100" role="group" aria-label="Quick Filters">
+                <button class="btn btn-info" id="daily">Daily</button>
+              </div>
             </div>
-            <div class="col-md-2 align-self-end">
-              <button class="btn btn-warning w-100" id="weekly">This Week</button>
-            </div>
-            <div class="col-md-2 align-self-end mt-3 mb-3">
-              <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
-            </div>
-            <div class="col-md-2 align-self-end mt-3 mb-3">
-              <button class="btn btn-secondary w-100" id="removeFilters">Remove Filters</button>
+
+            <!-- Action Buttons -->
+            <div class="col-md-3 mt-3">
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                <button class="btn btn-secondary" id="removeFilters">Reset</button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="container mt-5">
+        <div class="container-fluid p-0">
           <h1 class="text-center mb-4 fw-bold">Dashboard</h1>
           <!-- Key Metrics Section -->
-          <div class="row text-center">
+          <div class="row text-center g-4 mb-4">
             <div class="col-md-4">
-              <div class="card p-3">
-                <h5>Total Users</h5>
-                <h2><%= totalUsers %></h2>
-                <!-- <small class="text-success">8.5% Up from last month</small> -->
+              <div class="card metric-card fade-in">
+                <h5><i class="fas fa-users me-2"></i>Total Users</h5>
+                <h2 id="totalUsers"><%= totalUsers %></h2>
+                <div class="metric-trend"></div>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card p-3">
-                <h5>Total Orders</h5>
-                <h2><%= totalOrders %></h2>
-                <!-- <small class="text-success">1.3% Up from last month</small> -->
+              <div class="card metric-card fade-in">
+                <h5><i class="fas fa-shopping-cart me-2"></i>Total Orders</h5>
+                <h2 id="totalOrders"><%= totalOrders %></h2>
+                <div class="metric-trend"></div>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card p-3">
-                <h5>Total Sales</h5>
-                <h2>₹<%= totalSales.toFixed(2) %></h2>
-                <!-- <small class="text-danger">4.3% Down from last month</small> -->
+              <div class="card metric-card fade-in">
+                <h5><i class="fas fa-rupee-sign me-2"></i>Total Sales</h5>
+                <h2 id="totalSales">₹<%= totalSales.toFixed(2) %></h2>
+                <div class="metric-trend"></div>
               </div>
             </div>
           </div>
       
-          <div class="chart-container mt-5">
-            <canvas style="width: 100vw;" id="salesChart"></canvas>
+          <div class="chart-container fade-in">
+            <canvas id="salesChart"></canvas>
           </div>
     
           <!-- Top 10 Best Selling Products Section -->
-          <div class="mt-5">
-            <h2>Top 10 Best Selling Products</h2>
-            <table class="table table-striped">
+          <div class="card p-4 fade-in">
+            <h2 class="mb-4"><i class="fas fa-crown me-2"></i>Top 10 Best Selling Products</h2>
+              <div class="table-responsive">
+              <table class="table table-hover" id="productTable">
                 <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Product Name</th>
-                        <th>Total Quantity Sold</th>
-                    </tr>
+                  <tr>
+                      <th>Rank</th>
+                      <th>Product Name</th>
+                      <th>Total Quantity Sold</th>
+                  </tr>
                 </thead>
                 <tbody>
-                    <% bestSellingProducts.forEach((product, index) => { %>
-                        <tr>
-                            <td><%= index + 1 %></td>
-                            <td><%= product.productDetails.title %></td>
-                            <td><%= product.totalQuantity %></td>
-                        </tr>
-                    <% }) %>
+                  <% bestSellingProducts.forEach((product, index) => { %>
+                      <tr>
+                          <td><span class="badge bg-primary"><%= index + 1 %></span></td>
+                          <td><%= product.productDetails.title %></td>
+                          <td><%= product.totalQuantity %></td>
+                      </tr>
+                  <% }) %>
                 </tbody>
-            </table>
+              </table>
+            </div>
           </div>
 
-          
+          <!-- best selling category -->
+
+          <div class="card p-4 fade-in mt-4">
+            <h2 class="mb-4"><i class="fas fa-crown me-2"></i>Top 10 Best Selling Categories</h2>
+              <div class="table-responsive">
+              <table class="table table-hover" id="categoryTable">
+                <thead>
+                  <tr>
+                      <th>Rank</th>
+                      <th>Category Name</th>
+                      <th>Total Quantity Sold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% bestSellingCategories.forEach((category, index) => { %>
+                      <tr>
+                          <td><span class="badge bg-primary"><%= index + 1 %></span></td>
+                          <td><%= category.categoryDetails.name %></td>
+                          <td><%= category.totalQuantity %></td>
+                      </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -174,29 +320,34 @@
     console.log('sales', salesData);
 
     const salesChart = new Chart(ctx, {
-        type: 'bar', // or 'line', 'pie', etc.
+        type: 'bar',
         data: {
             labels: salesData.labels,
             datasets: [{
                 label: "Total Sales",
                 data: salesData.data,
-                backgroundColor: 'rgba(75, 192, 192, 0.7)', // Custom color
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2
+                backgroundColor: '#818cf8',
+                borderColor: '#4f46e5',
+                borderWidth: 2,
+                borderRadius: 8
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
-                    text: 'Monthly Sales Report',
+                    text: 'Sales Report',
                     font: {
-                        size: 24
-                    }
+                        size: 20,
+                        weight: 'bold'
+                    },
+                    padding: 20
                 },
                 tooltip: {
                     enabled: true,
-                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    backgroundColor: 'rgba(0,0,0,0.8)',
                     titleFont: {
                         size: 16
                     },
@@ -205,46 +356,33 @@
                     },
                     callbacks: {
                         label: function(context) {
-                            let label = context.dataset.label || '';
-
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR' }).format(context.parsed.y);
-                            }
-                            return label;
+                            return `Sales: ₹${context.parsed.y.toLocaleString('en-IN', {
+                                maximumFractionDigits: 2
+                            })}`;
                         }
                     }
                 },
                 legend: {
                     display: true,
-                    labels: {
-                        font: {
-                            size: 14
-                        }
-                    }
+                    position: 'top'
                 }
             },
             scales: {
                 x: {
                     grid: {
-                        display: false // Hide x-axis grid
-                    },
-                    ticks: {
-                        font: {
-                            size: 14
-                        }
+                        display: false
                     }
                 },
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(200, 200, 200, 0.2)' // Custom grid color
+                        color: 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
-                        font: {
-                            size: 14
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString('en-IN', {
+                                maximumFractionDigits: 0
+                            });
                         }
                     }
                 }
@@ -252,24 +390,142 @@
         }
     });
 
-    //filter functionality
+    // filter functionality
     $(document).ready(function() {
+      // weekly filter
+      $('#weekly').on('click', function() {
+
+        //clear the month and year filter
+        $('#monthFilter').val('')
+        $('#yearFilter').val('')
+        $('#fromDate').val('')
+        $('#toDate').val('')
+
+        const filters = {
+          filterType: 'weekly'
+        }
+
+        //update the dashboard with weakly data
+        updateDashboard(filters)
+      })
+
+      $('#daily').on('click', function() {
+        //clear the month and year filter
+        $('#monthFilter').val('')
+        $('#yearFilter').val('')
+        $('#fromDate').val('')
+        $('#toDate').val('')
+
+        const filters = {
+          filterType: 'daily'
+        }
+
+        //update the dashboard with weakly data
+        updateDashboard(filters)
+      })
+
+
+      function updateDashboard(filters) {
+        console.log('filters', filters)
+        console.log('filter type', filters.filterType)
+        $.ajax({
+          url: '/admin/filter-data',
+          method: 'GET',
+          data: filters,
+          success: function(response) {
+            // update matrix
+            // $('#totalUsers').text(response.totalUsers)
+            $('#totalOrders').text(response.totalOrders)
+            $('#totalSales').text('₹' + response.totalSales.toFixed(2))
+
+            // update chart
+            salesChart.data.labels = response.salesData.labels
+            salesChart.data.datasets[0].data = response.salesData.data
+
+            // update the chart title if it's weekly data
+            let chartTitle = 'Sales Report'
+            if(filters.filterType === 'weekly') {
+              chartTitle = 'Weekly Sales Report'
+            }else if(filters.filterType === 'monthly') {
+              chartTitle = 'Monthly Sales Report'
+            }else if(filters.filterType === 'daily') {
+              chartTitle = 'Daily Sales Report'
+            }
+
+            salesChart.options.plugins.title.text = chartTitle
+            salesChart.update()
+
+            updateTable('#productTable', response.bestSellingProducts,
+              (product, index) => `
+                <tr>
+                  <td><span class="badge bg-primary">${index + 1}</span></td>
+                  <td>${product.productDetails.title}</td>
+                  <td>${product.totalQuantity}</td>
+                </tr>
+              `
+            )
+
+            //update category table
+            updateTable('#categoryTable', response.bestSellingCategories,
+              (category, index) => `
+                <tr>
+                  <td><span class="badge bg-primary">${index + 1}</span></td>
+                  <td>${category.categoryDetails.name}</td>
+                  <td>${category.totalQuantity}</td>
+                </tr>
+              `
+            )
+
+            // Add fade-in animation to updated elements
+            $('.metric-card, .chart-container, #productTable, #categoryTable').addClass('fade-in');
+          },
+          error: function(error) {
+            console.error('error fetching filter data', error)
+            Swal.fire({
+              title: 'Error',
+              text: error.message,
+              icon: 'error',
+              showConfirmButton: false,
+              timer: 2000
+            })
+          }
+        })
+      }
+
+      function updateTable(tableId, data, rowTemplate) {
+        const tableBody = $(`${tableId} tbody`);
+        tableBody.empty()
+        data.forEach((item, index) => {
+          tableBody.append(rowTemplate(item, index))
+        })
+      }
+
+
       // apply filter
       $("#applyFilters").on('click', function() {
-        console.log('clicked the apply filter')
-        const month = $('#monthFilter').val()
-        const year = $('#yearFilter').val()
-        const fromDate = $('#fromDate').val()
-        const toDate = $('#toDate').val()
 
-        const queryParams = new URLSearchParams({
+        const month = $('#monthFilter').val();
+        const year = $('#yearFilter').val();
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
+
+        let filterType = 'custom';
+        if (month && year) {
+            filterType = 'monthly';
+        } else if (fromDate && toDate) {
+            filterType = 'custom';
+        }
+        
+
+        const filters = {
           month,
           year,
           fromDate,
-          toDate
-        }).toString()
+          toDate,
+          filterType
+        };
 
-        window.location.href = `/admin?${queryParams}`
+        updateDashboard(filters);
       })
 
       // remove filters
@@ -281,28 +537,28 @@
         $('#fromDate').val('');
         $('#toDate').val('');
 
-        // Reload the page without query parameters
-        window.location.href = '/admin';
+        updateDashboard({ filterType: 'monthly' });
       })
 
       $('#today').on('click', function() {
-        const today = new Date().toISOString().split('T')[0]
-        $('#fromDate').val(today)
-        $('#toDate').val(today) 
-        $('#applyFilters').click()
-      })
-
-      $('#weekly').on('click', function() {
         const today = new Date()
-        const dayOfWeek = today.getDay()
-        const startOfWeek = new Date(today)
-        startOfWeek.setDate(today.getDate() - dayOfWeek)
-        const formattedStartOfWeek = startOfWeek.toISOString().split('T')[0]
-        const formattedToday = today.toISOString().split('T')[0]
+        const tomorrow = new Date()
+        tomorrow.setDate(today.getDate() + 1)
         
-        $('#fromDate').val(formattedStartOfWeek)
-        $('#toDate').val(formattedToday)
-        $('#applyFilter').click()
+        $('#fromDate').val(today.toISOString().split('T')[0])
+        $('#toDate').val(tomorrow.toISOString().split('T')[0])
+        
+        // Clear month and year filters
+        $('#monthFilter').val('');
+        $('#yearFilter').val('');
+
+        const filters = {
+          fromDate: today.toISOString().split('T')[0],
+          toDate: tomorrow.toISOString().split('T')[0],
+          filterType: 'daily'
+        };
+
+        updateDashboard(filters);
       })
     })
   </script>

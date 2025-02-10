@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Customers Dashboard</title>
+    <title>Eternal chapters: offer management</title>
     <!-- font awesome -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -99,7 +99,7 @@
                                     <td><%= offer.start_date.toLocaleDateString() %></td>
                                     <td><%= offer.end_date.toLocaleDateString() %></td>
                                     <td><%= offer.status %></td>
-                                    <td><%= offer._id %></td>
+                                    <!-- <td><%= offer._id %></td> -->
                                     <td>
                                         <a href="/admin/edit-offer/<%= offer._id %>" class="btn btn-sm btn-warning">Edit</a>
                                         <form action="/admin/delete-offer" method="POST" style="display:inline;">

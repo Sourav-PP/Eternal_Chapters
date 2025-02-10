@@ -16,22 +16,7 @@
 }
 
 .book:hover {
-  transform: scale(1.05);
-}
-
-footer {
-  background-color: #341616;
-  border-top: 1px solid #ddd;
-  color: #fff;
-}
-
-footer a {
-  color: #b8b8b8;
-  text-decoration: none;
-}
-
-footer a:hover {
-  text-decoration: underline;
+  transform: scale(1.02) translateY(-15px);
 }
 
 /* custom */
@@ -58,3 +43,85 @@ footer a:hover {
   background-color: rgb(247, 231, 212);
   border-radius: 20px;
 }
+
+.fixed-height-card {
+  height: 450px;
+  overflow: hidden;
+}
+
+.fixed-height-card .card-body {
+  height: calc(100% - 200px); /* Adjust this value based on your image height */
+  overflow-y: auto; /* Add a scrollbar if content overflows */
+}
+
+.fixed-height-card .card-img-top {
+  height: 260px; /* Adjust this value as needed */
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+
+  .b-row {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .b-img {
+    width: 100%;
+    height: auto;
+    margin-top: 20px;
+    object-fit: cover;
+    border-radius: 20px;
+  }
+  .navbar-toggler-icon {
+    width: 15px;
+    height: 15px;
+  }
+  .filter-box {
+    background-color: rgb(247, 231, 212);
+    border-radius: 20px;
+    margin: auto;
+    width: 90%;
+    height: auto;
+    padding-bottom: 20px;
+    font-size: 1rem;
+  }
+  .filter-box h5 {
+    font-size: 1rem;
+  }
+  .best {
+    font-size: 1.3rem;
+    margin-top: 15px;
+  }
+
+  /* card */
+  .fixed-height-card {
+    height: 300px; /* Reduce height for mobile */
+  }
+
+  .fixed-height-card .card-img-top {
+    height: 150px; /* Adjust image height */
+  }
+
+  .fixed-height-card .card-body {
+    height: calc(100% - 120px); /* Adjust remaining space */
+  }
+
+  /* Reduce font sizes for smaller screens */
+  .fixed-height-card .card-title {
+    font-size: 13px; /* Smaller title */
+  }
+
+  .fixed-height-card p {
+    font-size: 11px; /* Reduce paragraph font size */
+  }
+
+  .fixed-height-card .text-danger,
+  .fixed-height-card .text-success {
+    font-size: 10px; /* Adjust stock status and price font size */
+  }
+  .col-md-3 {
+    margin-bottom: .5rem !important; /* Equivalent to mb-3 */
+  }
+}
+
+

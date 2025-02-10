@@ -4,7 +4,8 @@ const addAddressValidation = [
     body('name')
         .trim()
         .notEmpty().withMessage('Name is required.')
-        .isLength({ min: 2 }).withMessage('Name must be at least 2 characters long.'),
+        .isLength({ min: 2 }).withMessage('Name must be at least 2 characters long.')
+        .matches(/^[A-Za-z\s]+$/).withMessage('Name must contain only letters and spaces.'),
     
     body('pin_code')
         .trim()

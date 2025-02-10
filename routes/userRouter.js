@@ -71,9 +71,12 @@ router.post('/remove-wishlist/:id', userAuth, wishlistController.remove)
 
 //order management
 router.get('/checkout', userAuth, orderController.checkout)
+router.post('/get-delivery-charges', userAuth, orderController.getDeliveryCharges)
 router.post('/place-order', userAuth, orderController.placeOrder)
+router.post ('/update-payment-status', userAuth, orderController.updatePaymentStatus)
 router.get('/success-page',userAuth, orderController.success)
 router.get('/order-history', userAuth, orderController.orderHistory)
+router.get('/retry-payment/:id', userAuth, orderController.retryPayment)
 router.post('/cancel-order/:id/:productId', userAuth, orderController.cancelOrder)
 router.post('/return-order/:id/:productId', userAuth, orderController.returnOrder)
 router.post('/apply-coupon', userAuth, orderController.applyCoupon)

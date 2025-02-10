@@ -4,31 +4,36 @@ const Product = require('../../models/productSchema')
 const Banner = require('../../models/bannerSchema')
 const Cart = require('../../models/cartSchema')
 const Offer = require('../../models/offerSchema')
+const { v4: uuidv4 } = require('uuid');
 
 
-const categoryPage = async(req,res) => {
+const categoryPage = async (req, res) => {
+    const requestId = uuidv4();
     try {
-        const categoryName = req.params.id
-        const name = categoryName.toLowerCase()
-        const banner = await Banner.findOne({name: categoryName})
-        const category = await Category.findOne({name: categoryName})
-        const offerCategory = await Offer.findById(category.offer_id)
-    
-        if(!category) {
-            req.flash('error', 'category not found')
-            return res.redirect('/')
+        const categoryName = req.params.id;
+        const name = categoryName.toLowerCase();
+
+        // Ensure the asynchronous operations are awaited properly
+        const banner = await Banner.findOne({ name: categoryName });
+        const category = await Category.findOne({ name: name });
+
+        if (!category) {
+            req.flash('error', 'Category not found');
+            return res.redirect('/'); // Immediate return after redirection
         }
 
         if (category.is_deleted) {
             req.flash('error', 'This category is not available');
-            return res.redirect('/');
+            return res.redirect('/'); // Immediate return after redirection
         }
+
+        const offerCategory = await Offer.findById(category.offer_id);
 
         // Extract query parameters
         const { price, author, stock_state, sort, page } = req.query;
 
         const currentPage = parseInt(page) || 1;
-        const itemsPerPage = 8;
+        const itemsPerPage = 12;
         const skip = (currentPage - 1) * itemsPerPage;
 
         const query = { category_id: category._id, is_deleted: false };
@@ -54,7 +59,6 @@ const categoryPage = async(req,res) => {
             query.author_name = new RegExp(author, "i");
         }
 
-
         // Apply filters and pagination
         let products = await Product.find(query)
             .populate('offer_id')
@@ -69,9 +73,10 @@ const categoryPage = async(req,res) => {
             products = products.sort((a, b) => b.title.toLowerCase().localeCompare(a.title.toLowerCase()));
         }
 
-        // Filter by stock state
+        // Apply stock state filter in the application logic
         if (stock_state) {
-            products = products.filter(product => product.stock_state === stock_state);
+            const stockStates = Array.isArray(stock_state) ? stock_state : [stock_state];
+            products = products.filter(product => stockStates.includes(product.stock_state));
         }
 
         // Apply offer logic
@@ -109,26 +114,17 @@ const categoryPage = async(req,res) => {
         const totalCount = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-
         // Check if there are products to display
         if (products.length === 0) {
             req.flash('error', 'No products found in this category');
         }
-
-        const updatedProducts = products.map(product => ({
-            ...product._doc,
-            title: product.title
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ')
-        }));
 
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
             return res.render("productListCategory", {
                 products,
                 totalPages,
                 currentPage,
-                title: categoryName
+                title: categoryName.toUpperCase()
             });
         } else {
             return res.render('categoryPage', {
@@ -138,16 +134,16 @@ const categoryPage = async(req,res) => {
                 banner,
                 totalPages,
                 currentPage,
-                title: categoryName
-            })
+                title: categoryName.toUpperCase()
+            });
         }
-        
+
     } catch (error) {
-        console.log('error loading the romance page',error)
-        req.flash('error', 'server error')
-        res.redirect('/')
+        console.log(`[${requestId}] Error loading the category page:`, error);
+        req.flash('error', 'Server error');
+        return res.redirect('/'); // Immediate return after redirection
     }
-}
+};
 
 module.exports = {
     categoryPage,

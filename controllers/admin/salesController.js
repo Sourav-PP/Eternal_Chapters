@@ -7,7 +7,7 @@ const loadSales = async (req, res) => {
     try {
         if (req.session.admin) {
             const page = parseInt(req.query.page) || 1
-            const limit = 10
+            const limit = 8
             const skip = (page - 1) * limit
 
             //extract filter parmas
@@ -78,6 +78,7 @@ const loadSales = async (req, res) => {
                         netAmount: 1,
                         discount: 1,
                         payment_method: 1,
+                        payment_status: 1,
                         'user.first_name': 1,
                         'user.email': 1,
                         'address.city': 1,
@@ -87,14 +88,17 @@ const loadSales = async (req, res) => {
                         'orderItems.items': 1,
                         productDetails: { title: 1 },
                         orderMonth: { $month: '$order_date' },
-                        orderYear: { $year: '$order_date' }
+                        orderYear: { $year: '$order_date' },
+                        
                     }
                 },
                 
             ];
 
             // add filter to the pipeline
-            const matchStage = {}
+            const matchStage = {
+                payment_status: { $ne: 'failed'}
+            }
             if (month && !isNaN(month)) {
                 matchStage.orderMonth = parseInt(month);
             }
@@ -108,10 +112,9 @@ const loadSales = async (req, res) => {
                     $gte: new Date(fromDate),
                     $lte: new Date(toDate)
                 }
-            }    
+            }
 
             if(Object.keys(matchStage).length > 0) {
-                console.log('matchStage:',matchStage)
                 pipeline.push({$match: matchStage})
             }
 
@@ -134,8 +137,11 @@ const loadSales = async (req, res) => {
             //fetch data
             const [totalUsers, totalOrders, totalSales, salesReport] = await Promise.all([
                 User.countDocuments(),
-                Order.countDocuments(),
-                Order.aggregate([{ $group: { _id:null, totalSales: {$sum: '$netAmount'}}}]),
+                Order.countDocuments({ payment_status: { $ne: 'failed' } }),
+                Order.aggregate([
+                    { $match: { payment_status: { $ne: 'failed' } } },
+                    { $group: { _id:null, totalSales: {$sum: '$netAmount'}}}
+                ]),
                 Order.aggregate(pipeline)
             ])
 
@@ -213,6 +219,11 @@ const getAllSalesData = async(req,res) => {
                     }
                 },
                 {
+                    $match: {
+                        payment_status: { $ne: 'failed' }
+                    }
+                },
+                {
                     $unwind: { path: '$orderItems', preserveNullAndEmptyArrays: true }
                 },
                 {
@@ -227,17 +238,19 @@ const getAllSalesData = async(req,res) => {
                 {
                     $project: {
                         orderDate: { $dateToString: { format: "%Y-%m-%d", date: "$order_date" } },
+                        order_date: 1,
                         customer: { $concat: ["$user.first_name", " (", "$user.email", ")"] },
-                        products: { $arrayElemAt: ["$productDetails.title", 0] },
+                        products: "$productDetails.title", 
                         quantity: { $size: "$orderItems.items" },
                         totalAmount: "$total",
                         discount: "$discount",
                         netAmount: "$netAmount",
-                        status: "$payment.status",
+                        orderItems: 1,
+                        status: "$orderItems.items.status",
                         orderMonth: { $month: '$order_date' },
                         orderYear: { $year: '$order_date' }
                     }
-                }
+                },  
             ];
     
             // Add filters to the pipeline

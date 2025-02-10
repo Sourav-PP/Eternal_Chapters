@@ -266,7 +266,7 @@
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
@@ -302,14 +302,19 @@
       });
 
       $('#today').on('click', function() {
-        const today = new Date().toISOString().split('T')[0]
-        $('#fromDate').val(today)
-        $('#toDate').val(today)
-        $('#applyFilter').click()
+        const today = new Date()
+        const tomorrow = new Date()
+        tomorrow.setDate(today.getDate() + 1)
+        
+        $('#fromDate').val(today.toISOString().split('T')[0])
+        $('#toDate').val(tomorrow.toISOString().split('T')[0])
+        $('#applyFilters').click()
       })
 
       $('#weekly').on('click', function() {
         const today = new Date()
+        const tomorrow = new Date()
+        tomorrow.setDate(today.getDate() + 1)
         const dayOfWeek = today.getDay()
         const startOfWeek = new Date(today)
         startOfWeek.setDate(today.getDate() - dayOfWeek)
@@ -317,53 +322,283 @@
         const formattedToday = today.toISOString().split('T')[0]
         
         $('#fromDate').val(formattedStartOfWeek)
-        $('#toDate').val(formattedToday)
+        $('#toDate').val(tomorrow.toISOString().split('T')[0])
         $('#applyFilter').click()
       })
 
+
       // Export to Excel
-      $('#downloadExcel').on('click', function () {
-        const table = document.getElementById('salesTable');
-        const worksheet = XLSX.utils.table_to_sheet(table);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Report');
-        XLSX.writeFile(workbook, 'Sales_Report.xlsx');
+      
+
+      // Main Excel Export Function
+      function getMonthName(monthNumber) {
+          const months = [
+              'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+          ];
+          return months[parseInt(monthNumber) - 1] || monthNumber;
+      }
+
+      function getSummaryPeriod() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const fromDate = urlParams.get('fromDate');
+          const toDate = urlParams.get('toDate');
+          const month = urlParams.get('month');
+          const year = urlParams.get('year');
+
+          if (fromDate && toDate) {
+              return `${fromDate} to ${toDate}`;
+          } else if (month && year) {
+              return `${getMonthName(month)} ${year}`;
+          } else if (month) {
+              return `${getMonthName(month)}`;
+          } else if (year) {
+              return `Year ${year}`;
+          }
+          return 'All Time';
+      }
+
+      function formatCurrency(amount) {
+          return new Intl.NumberFormat('en-IN', {
+              style: 'currency',
+              currency: 'INR',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+          }).format(amount);
+      }
+
+      // Main Excel Export Function
+      document.getElementById('downloadExcel').addEventListener('click', async function () {
+          try {
+              // Check if XLSX library is loaded
+              if (typeof XLSX === 'undefined' || !XLSX.utils.aoa_to_sheet) {
+                  throw new Error('XLSX library not properly loaded. Please ensure you are using the xlsx-style library.');
+              }
+
+              const response = await fetch('/admin/all-sales', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      fromDate: new URLSearchParams(window.location.search).get('fromDate'),
+                      toDate: new URLSearchParams(window.location.search).get('toDate'),
+                      month: new URLSearchParams(window.location.search).get('month'),
+                      year: new URLSearchParams(window.location.search).get('year')
+                  })
+              });
+
+              if (!response.ok) {
+                  throw new Error('Failed to fetch sales data');
+              }
+
+              const responseData = await response.json();
+              const salesData = responseData.data;
+
+              // Create workbook
+              const workbook = {
+                  SheetNames: ['Sales Data', 'Summary'],
+                  Sheets: {}
+              };
+
+              // Create Sales Data worksheet
+              const wsData = [];
+
+              // Add title
+              wsData.push(['DETAILED SALES REPORT']);
+              wsData.push([`Report Period: ${getSummaryPeriod()}`]);
+              wsData.push([]); // Empty row
+
+              // Add headers
+              wsData.push([
+                  'SI No',
+                  'Order Date',
+                  'Customer',
+                  'Products',
+                  'Quantity',
+                  'Total Amount (₹)',
+                  'Discount (₹)',
+                  'Net Amount (₹)',
+                  'Status'
+              ]);
+
+              // Add data
+              salesData.forEach((order, index) => {
+                  const productNames = order.products.join(', ');
+                  const quantities = order.orderItems.items.map(item => item.quantity).join(', ');
+                  wsData.push([
+                      index + 1,
+                      order.orderDate,
+                      order.customer,
+                      productNames,
+                      quantities,
+                      order.totalAmount,  // Use raw numbers for better formatting
+                      order.discount,     // Use raw numbers for better formatting
+                      order.netAmount,    // Use raw numbers for better formatting
+                      order.status.join(', ')
+                  ]);
+              });
+
+              // Convert data to worksheet
+              const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+              // Define base styles
+              const baseStyle = {
+                  font: { name: 'Arial', sz: 10 },
+                  alignment: { horizontal: 'left', vertical: 'center', wrapText: true },
+                  border: {
+                      top: { style: 'thin' },
+                      bottom: { style: 'thin' },
+                      left: { style: 'thin' },
+                      right: { style: 'thin' }
+                  }
+              };
+
+              // Header style
+              const headerStyle = {
+                  ...baseStyle,
+                  font: { ...baseStyle.font, bold: true, color: { rgb: "FFFFFF" } },
+                  fill: { fgColor: { rgb: "4472C4" } }
+              };
+
+              // Title style
+              const titleStyle = {
+                  font: { bold: true, sz: 14 },
+                  alignment: { horizontal: 'center' }
+              };
+
+              // Currency style
+              const currencyStyle = {
+                  ...baseStyle,
+                  numFmt: '₹#,##0.00'
+              };
+
+              // Apply styles to all cells
+              const range = XLSX.utils.decode_range(ws['!ref']);
+              for (let R = range.s.r; R <= range.e.r; R++) {
+                  for (let C = range.s.c; C <= range.e.c; C++) {
+                      const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                      if (!ws[cell]) continue;
+
+                      // Apply different styles based on row/column
+                      if (R === 0) {
+                          ws[cell].s = titleStyle;
+                      } else if (R === 3) {
+                          ws[cell].s = headerStyle;
+                      } else if (R > 3 && (C === 5 || C === 6 || C === 7)) {
+                          // Apply currency style to amount columns
+                          ws[cell].s = currencyStyle;
+                      } else {
+                          ws[cell].s = baseStyle;
+                      }
+                  }
+              }
+
+              // Set column widths
+              ws['!cols'] = [
+                  { wch: 8 },    // SI No
+                  { wch: 15 },   // Order Date
+                  { wch: 30 },   // Customer
+                  { wch: 35 },   // Products
+                  { wch: 10 },   // Quantity
+                  { wch: 15 },   // Total Amount
+                  { wch: 15 },   // Discount
+                  { wch: 15 },   // Net Amount
+                  { wch: 16 }    // Status
+              ];
+
+              // Set merged cells
+              ws['!merges'] = [
+                  { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },  // Title
+                  { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }   // Period
+              ];
+
+              // Add Sales Data worksheet to workbook
+              workbook.Sheets['Sales Data'] = ws;
+
+              // Create Summary worksheet with similar styling
+              const summaryData = [
+                  ['SALES REPORT SUMMARY'],
+                  [],
+                  ['Report Details'],
+                  ['Report Period:', getSummaryPeriod()],
+                  ['Generated On:', new Date().toLocaleString()],
+                  [],
+                  ['Sales Summary'],
+                  ['Total Orders:', salesData.length],
+                  ['Total Amount:', salesData.reduce((sum, order) => sum + order.totalAmount, 0)],
+                  ['Total Discount:', salesData.reduce((sum, order) => sum + order.discount, 0)],
+                  ['Net Amount:', salesData.reduce((sum, order) => sum + order.netAmount, 0)]
+              ];
+
+              const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+
+              // Apply summary styles
+              const summaryRange = XLSX.utils.decode_range(summaryWs['!ref']);
+              for (let R = summaryRange.s.r; R <= summaryRange.e.r; R++) {
+                  for (let C = summaryRange.s.c; C <= summaryRange.e.c; C++) {
+                      const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                      if (!summaryWs[cell]) continue;
+
+                      if (R === 0) {
+                          summaryWs[cell].s = titleStyle;
+                      } else if (C === 1 && (R === 8 || R === 9 || R === 10)) {
+                          summaryWs[cell].s = currencyStyle;
+                      } else {
+                          summaryWs[cell].s = baseStyle;
+                      }
+                  }
+              }
+
+              summaryWs['!cols'] = [{ wch: 25 }, { wch: 30 }];
+              summaryWs['!merges'] = [
+                  { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }
+              ];
+
+              // Add Summary worksheet to workbook
+              workbook.Sheets['Summary'] = summaryWs;
+
+              // Save the file
+              const currentDate = new Date().toISOString().split('T')[0];
+              XLSX.writeFile(workbook, `Sales_Report_${currentDate}.xlsx`);
+
+          } catch (error) {
+              console.error('Error downloading Excel:', error);
+              alert('Error downloading Excel. Please try again.');
+          }
       });
 
       // Export to PDF
       $('#downloadPDF').on('click', async function () {
+        const loadingDiv = $('<div>').addClass('loading-overlay').text('Generating PDF...')
+        $('body').append(loadingDiv)
 
-          const loadingDiv = $('<div>').addClass('loading-overlay').text('Generating PDF...')
-          $('body').append(loadingDiv)
-
-          try {
-
+        try {
             const response = await fetch('/admin/all-sales', {
-              method: 'POST',
-              headers: {
-                'Content-Type' : 'application/json'
-              },
-              body: JSON.stringify({
-                fromDate: new URLSearchParams(window.location.search).get('fromDate'),
-                toDate: new URLSearchParams(window.location.search).get('toDate'),
-                month: new URLSearchParams(window.location.search).get('month'),
-                year: new URLSearchParams(window.location.search).get('year')
-
-              })
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fromDate: new URLSearchParams(window.location.search).get('fromDate'),
+                    toDate: new URLSearchParams(window.location.search).get('toDate'),
+                    month: new URLSearchParams(window.location.search).get('month'),
+                    year: new URLSearchParams(window.location.search).get('year')
+                })
             })
 
-            if(!response.ok) {
-              throw new Error('Failed to fetch data')
+            if (!response.ok) {
+                throw new Error('Failed to fetch data')
             }
 
-            const resposeData = await response.json()
-            const allData = resposeData.data
-    
+            const responseData = await response.json()
+            const allData = responseData.data
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new jsPDF('landscape'); // Use landscape mode for better readability
 
-            let title = 'Sales Report';
+            // Create a title with filter information
+            let title = 'Comprehensive Sales Report';
             const urlParams = new URLSearchParams(window.location.search);
             const fromDate = urlParams.get('fromDate');
             const toDate = urlParams.get('toDate');
@@ -382,46 +617,97 @@
                 title += ` (Filtered)`;
             }
 
-            doc.text(title, 14, 15);
+            // Add title with larger, bold font
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, doc.internal.pageSize.width / 2, 15, { align: 'center' });
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
 
-            // Custom column widths
-            const columnWidths = {
-                0: 10,   // SI
-                1: 22,  // Order Date
-                2: 30,  // Customer
-                3: 25,  // Products
-                4: 10,  // Quantity
-                5: 20,  // Total Amount
-                6: 18,  // Discount
-                7: 20,  // Net Amount
-                8: 14   // Status
+            // Prepare data with expanded product details
+            const prepareTableData = (data) => {
+                const expandedData = [];
+
+                data.forEach((order, index) => {
+                    // Fetch the full order details including all products
+                    const baseRow = {
+                        si: index + 1,
+                        orderDate: order.orderDate,
+                        customer: order.customer,
+                        totalAmount: order.totalAmount,
+                        discount: order.discount,
+                        netAmount: order.netAmount,
+                        product: order.producs,
+                        status: order.status
+                    };
+
+                    // Handle multiple products in an order
+                    if (order.orderItems && order.orderItems.items && order.orderItems.items.length > 0) {
+                        order.orderItems.items.forEach((item, itemIndex) => {
+                            const productRow = {
+                                ...baseRow,
+                                product: order.products,
+                                quantity: item.quantity || 1
+                            };
+                            expandedData.push(productRow);
+                        });
+                    } else {
+                        // If no specific items, use the base order information
+                        expandedData.push({
+                            ...baseRow,
+                            product: order.products,
+                            quantity: 1
+                        });
+                    }
+                });
+
+                return expandedData;
             };
 
-            const headers = [];
-            $('#salesTable thead th').each(function() {
-                headers.push($(this).text().trim());
-            });
+            // Prepare table data with expanded product details
+            const tableData = prepareTableData(allData);
 
-            // Convert the API data to the format expected by autoTable
-            const tableData = allData.map((row, index) => [
-                (index + 1).toString(),  // SI
-                row.orderDate,
-                row.customer,
-                row.products,
-                row.quantity.toString(),
-                row.totalAmount.toFixed(2),
-                row.discount.toFixed(2),
-                row.netAmount.toFixed(2),
-                row.status
-            ]);
+            // Define column widths and styles
+            const columnWidths = {
+                0: 10,   // SI
+                1: 40,   // Order Date
+                2: 47,   // Customer
+                3: 50,   // Products
+                4: 20,   // Quantity
+                5: 30,   // Total Amount
+                6: 22,   // Discount
+                7: 30,   // Net Amount
+                8: 15    // Status
+            };
 
+            // Generate PDF table
             doc.autoTable({
-                head: [headers],
-                body: tableData,
+                body: tableData.map(row => [
+                    row.si.toString(),
+                    row.orderDate,
+                    row.customer,
+                    row.product,
+                    row.quantity.toString(),
+                    row.totalAmount.toFixed(2),
+                    row.discount.toFixed(2),
+                    row.netAmount.toFixed(2),
+                    row.status
+                ]),
+                columns: [
+                    { header: 'SI', dataKey: 0 },
+                    { header: 'Order Date', dataKey: 1 },
+                    { header: 'Customer', dataKey: 2 },
+                    { header: 'Product', dataKey: 3 },
+                    { header: 'Quantity', dataKey: 4 },
+                    { header: 'Total Amount', dataKey: 5 },
+                    { header: 'Discount', dataKey: 6 },
+                    { header: 'Net Amount', dataKey: 7 },
+                    { header: 'Status', dataKey: 8 }
+                ],
                 startY: 25,
                 styles: {
-                    fontSize: 7,
-                    cellPadding: 1,
+                    fontSize: 8,
+                    cellPadding: 2,
                     overflow: 'linebreak',
                     halign: 'left',
                     valign: 'middle',
@@ -443,48 +729,45 @@
                     7: { cellWidth: columnWidths[7], halign: 'right' },   // Net Amount
                     8: { cellWidth: columnWidths[8], halign: 'center' }   // Status
                 },
-                didParseCell: function(data) {
-                    if (data.column.index === 3 && data.cell.raw) {
-                        if (typeof data.cell.raw === 'string') {
-                            data.cell.text = data.cell.raw.split(' ').reduce((acc, word) => {
-                                if (acc[acc.length - 1].length + word.length > 20) {
-                                    acc.push(word);
-                                } else {
-                                    acc[acc.length - 1] += ' ' + word;
-                                }
-                                return acc;
-                            }, ['']).filter(line => line);
-                        }
-                    }
-                },
                 headStyles: {
-                    fontSize: 8,
+                    fontSize: 9,
                     fillColor: [51, 51, 51],
                     textColor: 255,
                     halign: 'center',
                     valign: 'middle'
                 },
-                margin: { top: 25, right: 7, bottom: 15, left: 7 },
+                margin: { top: 25, right: 10, bottom: 15, left: 10 },
                 pageBreak: 'auto',
                 showHead: 'everyPage'
             });
 
-            // Add summary at the end if needed
+            // Add summary at the end
             const totalOrders = allData.length;
             const totalAmount = allData.reduce((sum, row) => sum + row.netAmount, 0);
+            const totalDiscount = allData.reduce((sum, row) => sum + row.discount, 0);
             
             const finalY = doc.lastAutoTable.finalY || doc.internal.pageSize.height - 20;
-            doc.text(`Total Orders: ${totalOrders}`, 14, finalY + 10);
-            doc.text(`Total Amount: ${totalAmount.toFixed(2)}`, 14, finalY + 20);
+            
+            // Style for summary
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Summary:', 14, finalY + 10);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total Orders: ${totalOrders}`, 14, finalY + 20);
+            doc.text(`Total Amount: ${totalAmount.toFixed(2)}`, 14, finalY + 30);
+            doc.text(`Total Discount: ${totalDiscount.toFixed(2)}`, 14, finalY + 40);
 
-            doc.save('Sales_Report.pdf');
-          } catch (error) {
+            // Save the PDF
+            doc.save('Detailed_Sales_Report.pdf');
+
+        } catch (error) {
             console.error('Error generating PDF:', error);
-            alert('Error generating PDF. Please try again.',error);
-          } finally {
+            alert('Error generating PDF. Please try again.');
+        } finally {
             $('.loading-overlay').remove();
-          }          
-      });
+        }
+    });
     });
   </script>
 </body>

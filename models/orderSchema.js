@@ -12,7 +12,8 @@ const orderSchema = new Schema({
     payment_id: {
         type: Schema.Types.ObjectId,
         ref: 'Payment',
-        required: function () { return this.payment_method !== 'COD'; }
+        // required: function () { return this.payment_method !== 'COD'; }
+        required: false
     },
     payment_method: {
         type: String,
@@ -61,6 +62,11 @@ const orderSchema = new Schema({
     coupon_discount: {
         type: Number,
         default: 0
+    },
+    payment_status: {
+        type: String,
+        enum: ['pending', 'complete', 'failed'],
+        default: 'pending'
     },
     created_at: {
         type: Date,

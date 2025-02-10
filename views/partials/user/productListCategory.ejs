@@ -1,16 +1,10 @@
 <div class="row" id="product-container">
+  <% if (products.length > 0) { %>
     <% products.forEach(product => { %>
-    <div class="col-md-3 mb-4 product-card" data-category="<%= product.category_id.name %>">
-      <div class="card shadow-sm book">
-        <a
-          class="text-decoration-none text-dark"
-          href="/productDetails?id=<%= product._id %>"
-        >
-          <img
-            src="/uploads/product-images/<%= product.product_imgs[0] %>"
-            class="card-img-top"
-            alt="<%= product.title %>"
-          />
+    <div class="col-6 col-md-3 mb-4 product-card" data-category="<%= product.category_id.name %>">
+      <div class="card shadow-sm book fixed-height-card">
+        <a class="text-decoration-none text-dark" href="/productDetails?id=<%= product._id %>">
+          <img src="/uploads/product-images/<%= product.product_imgs[0] %>" class="card-img-top" alt="<%= product.title %>"/>
           <div class="card-body">
             <h5 class="card-title fw-bold mb-0"><%= product.title %></h5>
             
@@ -33,7 +27,7 @@
                   <p class="text-success fw-bold mb-0">₹<%= product.originalPrice %>.00</p>
             <% } %>
 
-            <p class="text-muted small"><%= product.author_name %></p>
+            <p class="text-muted small mb-1"><%= product.author_name %></p>
             <% if (product.stock_state === "Blocked") { %>
             <p class="text-danger small mb-0">Blocked</p>
             <% } else if (product.stock_state === "Sold out") { %>
@@ -75,4 +69,7 @@
             </li>
         </ul>
     </nav>
+    <% } else { %>
+      <p class="text-center fs-4 text-secondary mt-5">There are no books available!</p>
+    <% } %>
   </div>

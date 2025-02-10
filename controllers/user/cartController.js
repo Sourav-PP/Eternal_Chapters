@@ -86,7 +86,6 @@ const getCartPage = async (req, res) => {
                 items: [],
                 totalPrice: 0,
                 taxAmount: 0,
-                shippingCharges: 0,
                 offerDiscount: 0,
                 netAmount: 0,
                 numberOfItems: 0,
@@ -154,12 +153,10 @@ const getCartPage = async (req, res) => {
         // Add shipping charges to the total price
         const taxRate = 0.12;
         taxAmount = rawSubtotal * taxRate
-        const shippingCharges = 100;
-        const totalPrice = rawSubtotal + shippingCharges + taxAmount
+        const totalPrice = rawSubtotal + taxAmount
         console.log('number of items',numberOfItems)
 
         res.render('cart', {
-            shippingCharges,
             items: cartItems,
             totalPrice: totalPrice.toFixed(2),
             taxAmount,
@@ -202,6 +199,13 @@ const updateCart = async(req,res) => {
 
         const product = await Product.findById(product_id)
 
+        if(!product) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product not found'
+            })
+        }
+
         if(product.available_quantity < quantity) {
             return res.status(400).json({
                 success: false,
@@ -211,17 +215,39 @@ const updateCart = async(req,res) => {
 
         const cart = await Cart.findOne({user_id: userId})
 
+        if(!cart) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cart not found'
+            })
+        }
+
         //update the quantity for the specific product
-        const item = cart.items.find(item => item.product_id.toString() === product_id)
-        if(item) {
-            item.quantity = quantity
-        } else {
-            req.flash('error', 'Product not found in the cart');
-            return res.redirect('/cart-page');
+        const items = cart.items.find(item => item.product_id.toString() === product_id)
+
+        if(items) {
+            if(product.available_quantity < quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Only ${product.available_quantity} items available`,
+                    available_quantity: product.available_quantity,
+                })
+            }
+
+            items.quantity = quantity
+        }else{
+            return res.status(400).json({
+                success: false,
+                message: 'Product not found in the cart'
+            })
         }
 
         await cart.save()
-        req.flash('success', 'Cart updated successfully');
+        return res.status(200).json({
+            success: true,
+            message: 'Cart updated successfully'
+        })
+        
     } catch (error) {   
         console.error('error updating the cart', error)
     }

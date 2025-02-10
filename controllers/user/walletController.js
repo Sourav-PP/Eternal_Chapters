@@ -70,6 +70,7 @@ const getHistory = async(req,res) => {
         const skip = (page - 1) * limit
 
         const userId = req.session.user
+        const userData = await User.findById(userId)
         const wallet = await Wallet.findOne({user_id: userId})
 
         //extract filter adn sorts
@@ -102,6 +103,7 @@ const getHistory = async(req,res) => {
         const totalPages = Math.ceil(totalTransactions / limit);
 
         return res.render('walletTransactionHistory', {
+            user: userData,
             walletTransaction,
             currentPage: page,
             itemsPerPage: limit,

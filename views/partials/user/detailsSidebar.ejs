@@ -7,7 +7,7 @@
       <!-- <img src="https://via.placeholder.com/100" class="rounded-circle" alt="User Image" style="width: 100px; height: 100px;"> -->
       <!-- User Name -->
       <div class="mt-2">
-          <p class="m-0" style="font-weight: bold;">John Doe</p>
+          <p class="m-0" style="font-weight: bold;"><%= user.first_name %> <%= user.last_name %></p>
       </div>
   </div>
 
@@ -38,6 +38,61 @@
             <button class="btn btn-danger"><a class="text-decoration-none text-white" href="/logout">Logout</a></button>
         </div>
   </ul>
+</div>
 
-  
+<!-- Toggle Button (Visible only on mobile) -->
+<button class="btn btn-outline-primary d-md-none my-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
+    <i class="fas fa-bars"></i> Menu
+</button>
+
+<!-- Sidebar (Offcanvas) -->
+<div class="offcanvas offcanvas-start custom-sidebar" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-bold text-primary" id="mobileSidebarLabel">User Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <!-- User Profile Section -->
+    <div class="text-center py-4">
+      <div class="profile-img">
+        <img src="https://via.placeholder.com/100" class="rounded-circle shadow" alt="User Image">
+      </div>
+      <div class="mt-2">
+        <p class="m-0 fw-bold fs-5 text-dark">John Doe</p>
+        <small class="text-muted">johndoe@example.com</small>
+      </div>
+    </div>
+
+    <!-- Navigation Section -->
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/userProfile">
+          <i class="fas fa-user-circle me-2"></i> Account Overview
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/order-history">
+          <i class="fas fa-box-open me-2"></i> My Orders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/addressManagent">
+          <i class="fas fa-home me-2"></i> Manage Address
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/wallet-page">
+          <i class="fas fa-wallet me-2"></i> Wallet
+        </a>
+      </li>
+    </ul>
+
+    <!-- Logout Button -->
+    <div class="mt-4">
+      <button class="btn btn-danger w-100 shadow-sm">
+        <a class="text-decoration-none text-white" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </button>
+    </div>
+  </div>
 </div>
