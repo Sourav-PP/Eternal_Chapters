@@ -175,14 +175,14 @@
                                                                     <div class="card mb-3 shadow-sm">
                                                                         <div class="row g-0 align-items-center">
                                                                             <div class="col-md-4">
-                                                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
+                                                                                <img src="/uploads/product-images/<%= item.product_images[0] %>" 
                                                                                     alt="Product Image" 
                                                                                     class="img-fluid rounded-start ms-3" 
                                                                                     style="height: 150px; width: auto;" />
                                                                             </div>
                                                                             <div class="col-md-8">
                                                                                 <div class="card-body">
-                                                                                    <h5 class="card-title fw-bold"><%= item.product_id.title %></h5>
+                                                                                    <h5 class="card-title fw-bold"><%= item.product_name %></h5>
                                                                                     <p class="card-text"><em>By: <%= item.product_id.author_name %></em></p>
                                                                                     <p class="card-text"><strong>Quantity:</strong> <%= item.quantity %></p>
                                                                                     <p class="card-text"><strong>Price:</strong> ₹<%= item.product_id.price %></p>
@@ -209,13 +209,13 @@
                                     <!-- Order Item -->
                                     <div class="order-item d-flex flex-column flex-md-row align-items-center mb-4">
                                         <!-- Product Image -->
-                                        <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
-                                            alt="<%= item.product_id.title %>" 
+                                        <img src="/uploads/product-images/<%= item.product_images[0] %>" 
+                                            alt="<%= item.product_name %>" 
                                             class="img-fluid rounded border" 
                                             style="height: 150px; width: auto;" />
                                         <!-- Product Details -->
                                         <div class="ms-4">
-                                            <h5 class="fw-bold"><%= item.product_id.title %></h5>
+                                            <h5 class="fw-bold"><%= item.product_name %></h5>
                                             <p class="mb-1"><em>By: <%= item.product_id.author_name %></em></p>
                                             <p class="mb-1"><strong>Quantity:</strong> <%= item.quantity %></p>
                                             <p class="mb-1"><strong>Price:</strong> ₹<%= item.product_id.price %></p>
@@ -236,13 +236,17 @@
                                     <div class="order-actions mt-3">
                                         <% if (item.status === 'pending' || item.status === 'shipped') { %>
                                             <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>','<%= item.product_id._id %>')">Cancel Order</button>
-                                        <% } else if (item.status === 'delivered') { %>
+                                        <% } else if (item.status === 'delivered' && cancelReturn(item.delivery_date)) { %>
                                             <button class="btn btn-primary fw-bold" onclick="returnProducts('<%= order._id %>','<%= item.product_id._id %>')">Return</button>
-                                            <a href="/invoice/download/<%= order._id %>" class="btn btn-success fw-bold">Download Invoice</a>
                                         <% } else if (item.status === 'return_requested') { %>
                                             <h4 class="text-danger">Return request is sent</h4>
                                         <% } else if (item.status === 'returned') { %>
                                             <h3>Order has been returned</h3>
+                                        <% } %>
+
+                                        <!-- Show invoice button only after delivery -->
+                                        <% if (item.status === 'delivered' || item.status === 'return_requested' || item.status === 'returned') { %>
+                                            <a href="/invoice/download/<%= order._id %>" class="btn btn-success fw-bold">Download Invoice</a>
                                         <% } %>
                                     </div>
                    
@@ -283,14 +287,14 @@
                                                     <div class="card mb-3 shadow-sm">
                                                         <div class="row g-0 align-items-center">
                                                             <div class="col-md-4">
-                                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
+                                                                <img src="/uploads/product-images/<%= item.product_images[0] %>" 
                                                                     alt="Product Image" 
                                                                     class="img-fluid rounded-start ms-3" 
                                                                     style="height: 150px; width: auto;" />
                                                             </div>
                                                             <div class="col-md-8">
                                                                 <div class="card-body">
-                                                                    <h5 class="card-title fw-bold"><%= item.product_id.title %></h5>
+                                                                    <h5 class="card-title fw-bold"><%= item.product_name %></h5>
                                                                     <p class="card-text"><em>By: <%= item.product_id.author_name %></em></p>
                                                                     <p class="card-text"><strong>Quantity:</strong> <%= item.quantity %></p>
                                                                     <p class="card-text"><strong>Price:</strong> ₹<%= item.product_id.price %></p>

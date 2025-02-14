@@ -111,107 +111,113 @@
 
                     <div class="table-container">
                         <h3 class="fw-bold mb-4">Books</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Book</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Review</th>
-                                    <th class="bt-td">Actions</th>
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% products.forEach((product)=>{ %>
+                        <% if (products.length > 0) { %>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Book</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Review</th>
+                                        <th class="bt-td">Actions</th>
 
-                                    <tr id="searchData">
-                                        <td>
-                                            <img src="/uploads/product-images/<%= product.product_imgs[0] %>" alt="<%= product.title %>" width="50" height="84">
-                                        </td>
-                                        <td>
-                                            <%= product.title %>
-                                        </td>
-                                        <td>
-                                            <% const categoryId = category.find(cat => cat._id.toString() === product.category_id.toString()) %>
-                                            <%= categoryId ? categoryId.name : "Uncategorized" %>
-                                        </td>
-                                        <td>
-                                            <%= product.price + '/-' %>
-                                        </td>
-                                        <td>
-                                            <%= product.available_quantity %>
-                                        </td>
-
-                                        
-                                        <td>
-                                            <button type="submit" class="btn btn-primary rounded-pill r-bt"><a class="text-white text-decoration-none" href="">Review</a></button>
-                                        </td>
-
-                                        <!-- <td class="bt-td">
-                                            
-                                        </td> -->
-                                        <td class="bt-td">
-                                            <% if (product.offer_id) { %>
-                                                <button class="offer-btn rounded-pill me-3 ps-3 pe-3 remove-offer text-white" data-product-id="<%= product._id %>">
-                                                 Remove Offer
-                                                </button>
-                                                <% } else { %>
-                                                <button class="offer-btn rounded-pill me-3 ps-3 pe-3 ad-offer">
-                                                    <a class="text-decoration-none text-white" href="/admin/add-offer-product?id=<%= product._id %>">Add Offer</a>
-                                                </button>
-                                            <% } %>
-                                            <button class="edit-btn rounded-pill me-3 ps-3 pe-3"><a class="text-decoration-none text-white" href="/admin/editProduct?id=<%= product._id %>">Edit</a></button>
-                                            
-
-                                            <% if(product.is_deleted){ %>
-
-                                            <form action="/admin/restoreProduct/<%= product._id %>" method="POST" style="display:inline;">
-                                                <button type="submit" class="btn btn-success p-1 soft-bt">Inactive</button>
-                                            </form>
-                                            <% }else{ %>
-                                                <form action="/admin/soft-deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
-                                                    <button type="submit" class="btn btn-danger rounded-pill soft-bt">Active</button>
-                                                </form>
-                                            <% } %>
-                                            <form id="deleteForm-<%= product._id %>" action="/admin/deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
-                                                <button type="button" class="delete-btn ms-3" onclick="confirmDelete('<%= product._id %>')"><i class="bi bi-archive-fill"></i></button>
-                                            </form>
-                                            
-                                        </td>
                                     </tr>
+                                </thead>
+                                <tbody>
+                                    <% products.forEach((product)=>{ %>
 
-                                    <% }) %>
-                            </tbody>
-                        </table>
+                                        <tr id="searchData">
+                                            <td>
+                                                <img src="/uploads/product-images/<%= product.product_imgs[0] %>" alt="<%= product.title %>" width="50" height="84">
+                                            </td>
+                                            <td>
+                                                <%= product.title %>
+                                            </td>
+                                            <td>
+                                                <% const categoryId = category.find(cat => cat._id.toString() === product.category_id.toString()) %>
+                                                <%= categoryId ? categoryId.name : "Uncategorized" %>
+                                            </td>
+                                            <td>
+                                                <%= product.price + '/-' %>
+                                            </td>
+                                            <td>
+                                                <%= product.available_quantity %>
+                                            </td>
+
+                                            
+                                            <td>
+                                                <button type="submit" class="btn btn-primary rounded-pill r-bt"><a class="text-white text-decoration-none" href="">Review</a></button>
+                                            </td>
+
+                                            <!-- <td class="bt-td">
+                                                
+                                            </td> -->
+                                            <td class="bt-td">
+                                                <% if (product.offer_id) { %>
+                                                    <button class="offer-btn rounded-pill me-3 ps-3 pe-3 remove-offer text-white" data-product-id="<%= product._id %>">
+                                                    Remove Offer
+                                                    </button>
+                                                    <% } else { %>
+                                                    <button class="offer-btn rounded-pill me-3 ps-3 pe-3 ad-offer">
+                                                        <a class="text-decoration-none text-white" href="/admin/add-offer-product?id=<%= product._id %>">Add Offer</a>
+                                                    </button>
+                                                <% } %>
+                                                <button class="edit-btn rounded-pill me-3 ps-3 pe-3"><a class="text-decoration-none text-white" href="/admin/editProduct?id=<%= product._id %>">Edit</a></button>
+                                                
+
+                                                <% if(product.is_deleted){ %>
+
+                                                <form action="/admin/restoreProduct/<%= product._id %>" method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-success p-1 soft-bt">Inactive</button>
+                                                </form>
+                                                <% }else{ %>
+                                                    <form action="/admin/soft-deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
+                                                        <button type="submit" class="btn btn-danger rounded-pill soft-bt">Active</button>
+                                                    </form>
+                                                <% } %>
+                                                <form id="deleteForm-<%= product._id %>" action="/admin/deleteProduct/<%= product._id %>" method="POST" style="display:inline;">
+                                                    <button type="button" class="delete-btn ms-3" onclick="confirmDelete('<%= product._id %>')"><i class="bi bi-archive-fill"></i></button>
+                                                </form>
+                                                
+                                            </td>
+                                        </tr>
+
+                                        <% }) %>
+                                </tbody>
+                            </table>
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation example" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <!-- Previous Page Button -->
+                                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                <a class="page-link pagination-link" href="?page=<%= currentPage - 1 %>" data-page="" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                                </li>
+                        
+                                <!-- Dynamic Page Numbers -->
+                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link pagination-link" href="?page=<%= i %>" data-page=""><%= i %></a>
+                                </li>
+                                <% } %>
+                        
+                                <!-- Next Page Button -->
+                                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                <a class="page-link pagination-link" href="?page=<%= currentPage + 1 %>" data-page="" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <% } else { %>
+                            <p class="text-center fs-5 text-danger mb-0">There are no products available!</p>
+                            <p class="text-center text-secondary">Please add a products</p>
+                        <% } %>
                     </div>
-                    <!-- Pagination -->
-                    <nav aria-label="Page navigation example" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <!-- Previous Page Button -->
-                            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                            <a class="page-link pagination-link" href="?page=<%= currentPage - 1 %>" data-page="" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                            </li>
-                    
-                            <!-- Dynamic Page Numbers -->
-                            <% for (let i = 1; i <= totalPages; i++) { %>
-                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                <a class="page-link pagination-link" href="?page=<%= i %>" data-page=""><%= i %></a>
-                            </li>
-                            <% } %>
-                    
-                            <!-- Next Page Button -->
-                            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                            <a class="page-link pagination-link" href="?page=<%= currentPage + 1 %>" data-page="" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>

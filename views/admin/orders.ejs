@@ -108,11 +108,11 @@
                                 <% orderItem.items.forEach(item => { %>
                                     <tr>
                                         <td>
-                                            <% if (item.product_id && item.product_id.product_imgs && item.product_id.product_imgs[0]) { %>
-                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" alt="<%= item.product_id.title %>" class="img-thumbnail" />
+                                            <% if (item.product_images && item.product_images[0]) { %>
+                                                <img src="/uploads/product-images/<%= item.product_images[0] %>" alt="<%= item.product_name %>" class="img-thumbnail" />
                                             <% } %>
                                         </td>
-                                        <td><%= item.product_id.title %></td>
+                                        <td><%= item.product_name %></td>
                                         <td><%= order.address_id ? order.address_id.city : 'No City Provided' %></td>
                                         <td><%= order.order_date.toLocaleDateString('en-GB') %></td>
                                         <td><%= item.product_id.category_id.name %></td>
@@ -178,14 +178,14 @@
                                                                     <div class="card mb-3 shadow-sm">
                                                                         <div class="row g-0 align-items-center">
                                                                             <div class="col-md-4">
-                                                                                <img src="/uploads/product-images/<%= item.product_id.product_imgs[0] %>" 
+                                                                                <img src="/uploads/product-images/<%= item.product_images[0] %>" 
                                                                                     alt="Product Image" 
                                                                                     class="img-fluid rounded-start ms-3" 
                                                                                     style="height: 150px; width: auto;" />
                                                                             </div>
                                                                             <div class="col-md-8">
                                                                                 <div class="card-body">
-                                                                                    <h5 class="card-title fw-bold"><%= item.product_id.title %></h5>
+                                                                                    <h5 class="card-title fw-bold"><%= item.product_name %></h5>
                                                                                     <p class="card-text"><em>By: <%= item.product_id.author_name %></em></p>
                                                                                     <p class="card-text"><strong>Quantity:</strong> <%= item.quantity %></p>
                                                                                     <p class="card-text"><strong>Price:</strong> ₹<%= item.product_id.price %></p>

@@ -3,7 +3,7 @@ const Category = require('../../models/categorySchema')
 const User = require('../../models/userSchema')
 const { validationResult } = require('express-validator')
 const sharp = require('sharp')
-const fs = require('fs')
+const fs = require('fs').promises
 const path = require('path')
 
 
@@ -73,6 +73,10 @@ const addProduct = async (req, res) => {
 
                     const resizedImagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', req.files[i].filename)
                     await sharp(originalImagePath).resize({ width: 300, height: 450 }).toFile(resizedImagePath)
+
+                    // Delete the original uploaded file
+                    await fs.unlink(originalImagePath);
+
                     images.push(req.files[i].filename);
                 }
             }
@@ -83,7 +87,7 @@ const addProduct = async (req, res) => {
             }
 
             const lowerCase = language.toLowerCase();
-            const lowerCaseTitle = title.toLowerCase();
+            const lowerCaseTitle = title.toLowerCase().trim();
 
             const newProduct = new Product({
                 title: lowerCaseTitle,
@@ -115,7 +119,7 @@ const addProduct = async (req, res) => {
     }
 }
 
-//edit product page
+//get edit product page
 const getEditProduct = async (req, res) => {
     try {
 
@@ -303,6 +307,38 @@ const restoreProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         const id = req.params.id
+        const product = await Product.findById(id)
+
+        if(!product) {
+            req.flash("error", "Product not found");
+            return res.redirect('/admin/products');
+        }
+
+        console.log(`Product found: ${product._id}`);
+        console.log(`Product images:`, product.product_imgs);
+
+        // Ensure images exist before attempting to delete
+        if (product.product_imgs?.length > 0) {
+            for (const filename of product.product_imgs) {
+                const imagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', filename);
+                
+                console.log(`Checking image path: ${imagePath}`);
+
+                try {
+                    await fs.unlink(imagePath); // Delete the file directly
+                    console.log(`Deleted file: ${imagePath}`);
+                } catch (fileError) {
+                    if (fileError.code === 'ENOENT') {
+                        console.warn(`File not found (skipping): ${imagePath}`);
+                    } else {
+                        console.error(`Error deleting file: ${imagePath}`, fileError);
+                    }
+                }
+            }
+        } else {
+            console.log("No images found for this product.");
+        }
+        
         await Product.findByIdAndDelete(id)
 
         req.flash("success", "Product has been deleted successfully")

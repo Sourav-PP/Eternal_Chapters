@@ -22,13 +22,15 @@ const getWishlist = async (req, res) => {
         // Fetch product details
         const products = await Product.find(
             { _id: { $in: productIds } },
-            'title product_imgs price offer_id category_id'
+            'title product_imgs price offer_id category_id available_quantity'
         )
         .populate('offer_id', 'discount_value status start_date end_date')
         .populate({
             path: 'category_id',
             populate: { path: 'offer_id', select: 'discount_value status start_date end_date' }
         });
+
+        console.log('products in wishlist', products)
 
         // Add offer-related details for each product
         const enrichedProducts = products.map((product) => {
@@ -72,6 +74,7 @@ const getWishlist = async (req, res) => {
                 offerDiscount: offerDiscount.toFixed(2),
                 discountedPrice: discountedPrice.toFixed(2),
                 originalPrice: product.price,
+                available_quantity: product.available_quantity
             };
         });
 

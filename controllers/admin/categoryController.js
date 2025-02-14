@@ -32,12 +32,13 @@ const addCategory = async (req, res) => {
             return res.redirect(`/admin/categories?error=${encodeURIComponent(`The category name "${name}" already exists. Please choose a different name.`)}`)
         }
         const newCategory = new Category({
-            name,
+            name: normalizedName,
             description,
         });
 
         await newCategory.save();
         
+        req.flash('success', 'Category added successfully');
         res.redirect('/admin/categories'); // Redirect to the category list page
     } catch (error) {
         console.error('Error adding category:', error.message);
@@ -63,7 +64,6 @@ const softDelete = async(req,res) => {
     try {
         const {id} = req.params
         const result = await Category.findByIdAndUpdate(id,{is_deleted:true})
-        console.log("soft:",result)
         
         res.redirect('/admin/categories')
     } catch (error) {

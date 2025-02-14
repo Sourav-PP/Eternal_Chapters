@@ -7,6 +7,7 @@ const { validationResult } = require('express-validator')
 const Banner = require('../../models/bannerSchema')
 const Wallet = require('../../models/walletSchema')
 const Category = require('../../models/categorySchema')
+const { session } = require('passport')
 
 
 
@@ -411,11 +412,14 @@ const loadHomepage = async (req, res) => {
                 title: capTitle,
             });
         } else {
+            console.log('else worked')
+            console.log('session',req.session)
             // Otherwise, render the full homepage
             return res.render('home', {
                 products,
                 banner: bannerData,
                 error: req.flash('error'),
+                success: req.flash('success'),
                 category,
                 totalPages,
                 currentPage,

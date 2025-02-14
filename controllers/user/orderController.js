@@ -1072,8 +1072,7 @@ const success = async (req, res) => {
 
 //list order history
 const orderHistory = async (req, res) => {
-    try {
-        console.log('session', req.session)
+    try {          
         const userId = req.session.user
         const userData = await User.findById(userId)
         const orders = await Order.find({ user_id: userId }).sort({ created_at: -1 }).populate('address_id')
@@ -1098,9 +1097,19 @@ const orderHistory = async (req, res) => {
             return classes[status] || 'bg-dark';
         }
 
+        const cancelReturn = (deliveryDate) => {
+            const returnPeriodDays = 10
+            const deliveryDateObj = new Date(deliveryDate)
+            const currentDate = new Date()
+            const timeDiff = currentDate - deliveryDateObj
+            const daysDiff = timeDiff / (1000 * 60)
+            return daysDiff <= returnPeriodDays
+        }
+
         res.render('orderHistory', {
             user: userData,
             orders,
+            cancelReturn,
             getBadgeClass,
             error: req.flash('error')
         })

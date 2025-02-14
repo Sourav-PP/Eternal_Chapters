@@ -19,6 +19,17 @@
     margin: 0;
 }
 
+.crt {
+    width: 110px;
+}
+.q-inp {
+    width: 60px;
+    border-radius: 7px;
+}
+.mb-3 {
+    margin: auto;
+}
+
 @media (max-width: 768px) {
     .detail {
         text-align: center;

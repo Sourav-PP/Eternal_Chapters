@@ -7,6 +7,7 @@ const addToCart = async (req, res) => {
     try {
         const user_id = req.session.user
         const { quantity, product_id } = req.body
+        const isWishlist = req.query.isWishlist === 'true';
 
         const product = await Product.findById(product_id)
 
@@ -30,8 +31,14 @@ const addToCart = async (req, res) => {
         const totalQuantity = currentQuantity + parsedQuantity;
 
         if(totalQuantity > product.available_quantity) {
-            req.flash('error', `Only ${product.available_quantity} items left in stock for ${product.title}!  You have already added ${currentQuantity} items to the cart`);
-            return res.redirect(`/productDetails?id=${product_id}`);
+            if(isWishlist) {
+                req.flash('error', `Only ${product.available_quantity} items left in stock for ${product.title}!  You have already added ${currentQuantity} items to the cart`);
+                return res.redirect(`/wishlist`);
+            } else {
+                req.flash('error', `Only ${product.available_quantity} items left in stock for ${product.title}!  You have already added ${currentQuantity} items to the cart`);
+                return res.redirect(`/productDetails?id=${product_id}`);
+            }
+            
         }
 
 
@@ -52,8 +59,15 @@ const addToCart = async (req, res) => {
 
         await cart.save();
 
-        req.flash('success', 'Prodect has been added to the cart')
-        res.redirect(`/productDetails?id=${product_id}`);
+        if (isWishlist) {
+            req.flash('success', 'Prodect has been added to the cart')
+            return res.redirect('/wishlist');
+        } else {
+            req.flash('success', 'Prodect has been added to the cart')
+            res.redirect(`/productDetails?id=${product_id}`);
+        }
+
+        
     } catch (error) {
         console.error("error adding product to cart", error)
     }

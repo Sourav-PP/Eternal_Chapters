@@ -312,6 +312,7 @@
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
     // Chart.js initialization
@@ -338,7 +339,7 @@
             plugins: {
                 title: {
                     display: true,
-                    text: 'Sales Report',
+                    text: 'Monthly Sales Report',
                     font: {
                         size: 20,
                         weight: 'bold'
@@ -443,7 +444,7 @@
             salesChart.data.datasets[0].data = response.salesData.data
 
             // update the chart title if it's weekly data
-            let chartTitle = 'Sales Report'
+            let chartTitle = 'Monthly Sales Report'
             if(filters.filterType === 'weekly') {
               chartTitle = 'Weekly Sales Report'
             }else if(filters.filterType === 'monthly') {
@@ -509,6 +510,15 @@
         const fromDate = $('#fromDate').val();
         const toDate = $('#toDate').val();
 
+        if (new Date(fromDate) > new Date(toDate)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'From Date cannot be later than To Date.',
+            });
+            return;
+        }
+
         let filterType = 'custom';
         if (month && year) {
             filterType = 'monthly';
@@ -542,6 +552,7 @@
 
       $('#today').on('click', function() {
         const today = new Date()
+        console.log(today.toISOString().split('T')[0])
         const tomorrow = new Date()
         tomorrow.setDate(today.getDate() + 1)
         

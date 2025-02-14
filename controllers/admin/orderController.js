@@ -61,13 +61,19 @@ const updateOrderStatus = async (req, res) => {
             return res.redirect('/admin/orders')
         }
 
-        if (orderItems.items[itemIndex] === status) {
+        if (orderItems.items[itemIndex].status === status) {
             req.flash('error', `product is already ${status}`)
             return res.redirect('/admin/orders')
         }
 
         //update the item status
         orderItems.items[itemIndex].status = status
+
+        // Set the delivery date if the status is delivered
+        if (status === 'delivered') {
+            orderItems.items[itemIndex].delivery_date = new Date()
+        }
+
         await orderItems.save();
 
         //if status is canceled, update the product quantity and payment
@@ -224,7 +230,6 @@ const approveReturn = async (req, res) => {
             } else {
                 console.log('wallet not found when return approve')
             }
-
         }
 
         req.flash('success', 'return request approved!')

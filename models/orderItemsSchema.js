@@ -42,6 +42,11 @@ const orderItemsSchema = new Schema({
       cancel_reason: {
         type: String,
         default: ''
+      },
+      delivery_date: {
+        type: Date,
+        required: false,
+        default: null,
       }
     }
   ],

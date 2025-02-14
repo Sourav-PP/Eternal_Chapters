@@ -14,22 +14,22 @@
   <!-- Navigation Section -->
   <ul class="nav flex-column p-3">
       <li class="nav-item">
-          <a class="nav-link" href="/userProfile">
+          <a class="nav-link sidebar-link" href="/userProfile">
               <i class="fas si fa-user-circle me-2"></i>Account Overview
           </a>
       </li>
       <li class="nav-item">
-          <a class="nav-link" href="/order-history">
+          <a class="nav-link sidebar-link" href="/order-history">
               <i class="fas si fa-box-open me-2"></i>My Orders
           </a>
       </li>
       <li class="nav-item">
-          <a class="nav-link" href="/addressManagent">
+          <a class="nav-link sidebar-link" href="/addressManagent">
               <i class="fas si fa-home me-2"></i>Manage Address
           </a>
       </li>
       <li class="nav-item">
-          <a class="nav-link" href="/wallet-page">
+          <a class="nav-link sidebar-link" href="/wallet-page">
               <i class="fas si fa-wallet me-2"></i>Wallet
           </a>
       </li>
@@ -96,3 +96,14 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let currentPath = window.location.pathname;
+    document.querySelectorAll(".sidebar-link").forEach(function(link) {
+      if (link.getAttribute("href") === currentPath) {
+        link.classList.add("active");
+      }
+    })
+  })
+</script>

@@ -14,11 +14,10 @@ const loadSales = async (req, res) => {
             const { fromDate, toDate, month, year } = req.query;
 
             // Fetch data for total users, orders, and sales
-
             const pipeline = [
                 {
                     $lookup: {
-                        from: 'users', // Collection name for the User model
+                        from: 'users',
                         localField: 'user_id',
                         foreignField: '_id',
                         as: 'user'
@@ -26,7 +25,7 @@ const loadSales = async (req, res) => {
                 },
                 {
                     $lookup: {
-                        from: 'payments', // Collection name for the Payment model
+                        from: 'payments',
                         localField: 'payment_id',
                         foreignField: '_id',
                         as: 'payment'
@@ -34,7 +33,7 @@ const loadSales = async (req, res) => {
                 },
                 {
                     $lookup: {
-                        from: 'addresses', // Collection name for the Address model
+                        from: 'addresses', 
                         localField: 'address_id',
                         foreignField: '_id',
                         as: 'address'
@@ -50,7 +49,7 @@ const loadSales = async (req, res) => {
                 },
                 {
                     $lookup: {
-                        from: 'products', // Collection name for Product model
+                        from: 'products',
                         localField: 'orderItems.items.product_id',
                         foreignField: '_id',
                         as: 'productDetails'

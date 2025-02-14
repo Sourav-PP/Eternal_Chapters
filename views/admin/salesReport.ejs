@@ -264,6 +264,7 @@
     </div>
   </div>
   
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
@@ -279,6 +280,16 @@
         const year = $('#yearFilter').val();
         const fromDate = $('#fromDate').val();
         const toDate = $('#toDate').val();
+
+        if (new Date(fromDate) > new Date(toDate)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'From Date cannot be later than To Date.',
+            });
+            return;
+        }
+
         // Reload the page with filter parameters
         const queryParams = new URLSearchParams({
             // status,
@@ -595,7 +606,15 @@
             const allData = responseData.data
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape'); // Use landscape mode for better readability
+                const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // A4 dimensions in landscape mode (297 x 210 mm)
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
 
             // Create a title with filter information
             let title = 'Comprehensive Sales Report';
@@ -669,14 +688,14 @@
 
             // Define column widths and styles
             const columnWidths = {
-                0: 10,   // SI
-                1: 40,   // Order Date
-                2: 47,   // Customer
-                3: 50,   // Products
-                4: 20,   // Quantity
-                5: 30,   // Total Amount
-                6: 22,   // Discount
-                7: 30,   // Net Amount
+                0: 7,    // SI
+                1: 20,   // Order Date
+                2: 30,   // Customer
+                3: 35,   // Products
+                4: 12,   // Quantity
+                5: 20,   // Total Amount
+                6: 15,   // Discount
+                7: 20,   // Net Amount
                 8: 15    // Status
             };
 
@@ -706,13 +725,14 @@
                 ],
                 startY: 25,
                 styles: {
-                    fontSize: 8,
-                    cellPadding: 2,
+                    fontSize: 7,
+                    cellPadding: 1,
                     overflow: 'linebreak',
                     halign: 'left',
                     valign: 'middle',
                     lineWidth: 0.1,
-                    lineColor: [0, 0, 0]
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
                 },
                 columnStyles: {
                     0: { cellWidth: columnWidths[0], halign: 'center' },  // SI
@@ -738,7 +758,16 @@
                 },
                 margin: { top: 25, right: 10, bottom: 15, left: 10 },
                 pageBreak: 'auto',
-                showHead: 'everyPage'
+                showHead: 'everyPage',
+                didDrawPage: function(data) {
+                // Add page numbers
+                doc.setFontSize(8);
+                doc.text(
+                    `Page ${data.pageCount}`,
+                    pageWidth - 15,
+                    pageHeight - 10
+                );
+            }
             });
 
             // Add summary at the end

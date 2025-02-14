@@ -18,7 +18,7 @@ const categoryPage = async (req, res) => {
         const category = await Category.findOne({ name: name });
 
         if (!category) {
-            req.flash('error', 'Category not found');
+            req.flash('error', 'Category not found or not available');
             return res.redirect('/'); // Immediate return after redirection
         }
 
@@ -117,6 +117,7 @@ const categoryPage = async (req, res) => {
         // Check if there are products to display
         if (products.length === 0) {
             req.flash('error', 'No products found in this category');
+            return res.redirect(`/`);
         }
 
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {

@@ -19,9 +19,7 @@ const getPage = async(req,res) => {
 //create coupon
 const createCoupon = async( req, res ) => {
     try {
-        console.log('its coming here!')
         const errors = validationResult(req)
-        console.log('coupon error',errors)
     
         if(!errors.isEmpty()) {
             req.flash('validationError', errors.array());
@@ -71,7 +69,6 @@ const editCoupon = async(req,res)=> {
     try {
 
         const { coupon_id, code, discount_value, max_discount_amount, minimum_purchase_amount, coupon_type, description, limit, expiry_date, is_active } = req.body;
-        console.log('coooo',coupon_id)
 
         const updatedCoupon = await Coupon.findByIdAndUpdate(coupon_id, {
             code,
