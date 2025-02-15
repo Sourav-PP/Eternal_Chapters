@@ -17,7 +17,7 @@ const orderSchema = new Schema({
     },
     payment_method: {
         type: String,
-        enum: ['COD', 'creditCard', 'bank', 'upi'],
+        enum: ['COD', 'creditCard', 'bank', 'upi', 'wallet'],
         required: true
     },
     address_id: {

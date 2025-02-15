@@ -89,6 +89,9 @@
                             <p>Select any payment method</p>
                             <div>
                                 <label class="form-check">
+                                    <input type="radio" name="paymentMethod" value="wallet" class="form-check-input" /> Wallet (Balance: ₹<%= wallet.balance %>)
+                                </label>
+                                <label class="form-check">
                                     <input type="radio" name="paymentMethod" value="creditCard" class="form-check-input" /> Debit Card / Credit Card
                                 </label>
                                 <label class="form-check mt-2">
@@ -306,6 +309,75 @@
             }
 
             try {
+                //handle wallet payment
+                if(selectedPaymentMethod.value === 'wallet') {
+                    const walletBalanceResponse = await fetch('/get-wallet-balance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount })
+                    })
+
+                    const walletBalanceData = await walletBalanceResponse.json()
+                    
+                    if (!walletBalanceData.success) {
+                        Swal.fire({
+                            title: "Insufficient Balance!",
+                            text: walletBalanceData.message || "Your wallet balance is insufficient for this purchase.",
+                            icon: "warning",
+                            showConfirmButton: true,
+                            confirmButtonText: "Ok",
+                            confirmButtonColor: "#ff9800",
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: {
+                                popup: "my-swal-popup",
+                                title: "my-swal-title",
+                                content: "my-swal-content",
+                                confirmButton: "my-swal-btn",
+                            },
+                            didOpen: () => {
+                                const popup = Swal.getPopup();
+                                popup.style.borderRadius = "15px";
+                                popup.style.boxShadow = "0 0 10px rgba(255, 165, 0, 0.3)";
+                            }
+                        });
+                        return;
+                    }
+
+                    // Deduct amount from wallet and place order
+                    const placeOrderResponse = await fetch('/place-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...Object.fromEntries(new FormData(this).entries()),
+                            paymentMethod: 'wallet'
+                        })
+                    });
+
+                    const placeOrderData = await placeOrderResponse.json()
+
+                    if(!placeOrderData.success) {
+                        Swal.fire({
+                            title: "Error",
+                            text: placeOrderData.message || 'Failed to place the order, please try again',
+                            icon: 'error',
+                            showConfirmButton: true
+                        });
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Order placed successfully! Your order will be delivered soon.",
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 2600
+                    }).then(() => {
+                        window.location.href = '/success-page';
+                    });
+                    return; 
+                }
+                
                 // create the order first
                 const formData = new FormData(this)
                 const formObject = Object.fromEntries(formData.entries());

@@ -18,7 +18,7 @@ const walletTransactionSchema = new Schema({
   },
   transaction_type: {
     type: String,
-    enum: ['creditCard', 'bank', 'upi', 'razorpay', 'refund'],
+    enum: ['wallet','creditCard', 'bank', 'upi', 'razorpay', 'refund'],
     required: true
   },
   balance_after_transaction: {

@@ -56,12 +56,18 @@
             font-size: .9rem;
         }
 
-        .approve{
-            width:100px;
+        .req {
+            color: rgb(255, 128, 0);
         }
 
-        .reject {
-            width: 100px
+        .approve-btn{
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+        }
+
+        .reject-btn {
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
         }
 
         .no-order {
@@ -120,32 +126,47 @@
                                             View Details
                                         </button></td>
                                         <td>
-                                            <form action="/admin/update-order-status/<%= order._id %>/<%= item.product_id._id %>" method="POST">
+                                            <form action="/admin/update-order-status/<%= order._id %>/<%= item.product_id._id %>" method="POST" class="d-flex align-items-center gap-2">
                                                 <% if (item.status === 'pending') { %>
-                                                    <select name="status" class="form-select" onchange="this.form.submit()">
-                                                        <option value="pending" <%= item.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+                                                    <select name="status" class="form-select form-select-sm w-auto shadow-sm border-warning text-warning fw-bold" onchange="this.form.submit()">
+                                                        <option value="pending" <%= item.status === 'pending' ? 'selected' : '' %>>🟡 Pending</option>
+                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>🚚 Shipped</option>
+                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>❌ Canceled</option>
                                                     </select>
+                                            
                                                 <% } else if (item.status === 'shipped') { %>
-                                                    <select name="status" class="form-select" onchange="this.form.submit()">
-                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                                                        <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+                                                    <select name="status" class="form-select form-select-sm w-auto shadow-sm border-primary text-primary fw-bold" onchange="this.form.submit()">
+                                                        <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>🚚 Shipped</option>
+                                                        <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>✅ Delivered</option>
+                                                        <option value="canceled" <%= item.status === 'canceled' ? 'selected' : '' %>>❌ Canceled</option>
                                                     </select>
+                                            
                                                 <% } else if (item.status === 'return_requested') { %>
-                                                  <div class="d-flex flex-column">
-                                                    <p class="form-text fw-bold text-dark">Return Requested</p>
-                                                    <button class="btn btn-success btn-sm mb-2 approve" formaction="/admin/approve-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Approve</button>
-                                                    <button class="btn btn-danger rounded-pill btn-sm reject" formaction="/admin/reject-return/<%= order._id %>/<%= item.product_id._id %>" method="POST">Reject</button>
-                                                </div>
-                                                <% } else if (item.status === 'ret') { %>
-                                                 
+                                                    <div class="d-flex flex-column align-items-start">
+                                                        <p class="fw-bold req">🔄 Return Requested</p>
+                                                        <div class="d-flex gap-2">
+                                                            <button class="btn btn-success btn-sm shadow-sm rounded-pill px-3 py-2 fw-bold approve-btn"
+                                                                    formaction="/admin/approve-return/<%= order._id %>/<%= item.product_id._id %>" formmethod="POST">
+                                                                ✔ Approve
+                                                            </button>
+                                                            <button class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 py-2 fw-bold reject-btn" 
+                                                                    formaction="/admin/reject-return/<%= order._id %>/<%= item.product_id._id %>" formmethod="POST">
+                                                                    ⛌ Reject
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                            
+                                                <% } else if (item.status === 'delivered') { %>
+                                                    <p class="fw-bold ms-2 text-success">✅ Delivered</p>
+                                            
+                                                <% } else if (item.status === 'canceled') { %>
+                                                    <p class="fw-bold ms-2 text-danger">❌ Canceled</p>
+                                            
                                                 <% } else { %>
-                                                    <!-- Display plain text for 'delivered' and 'canceled' statuses -->
-                                                    <p class="form-text fw-bold ms-2 text-danger cncl"><%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %></p>
+                                                    <p class="fw-bold ms-2 text-dark"><%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %></p>
                                                 <% } %>
                                             </form>
+                                            
                                         </td>
                                     </tr>
     

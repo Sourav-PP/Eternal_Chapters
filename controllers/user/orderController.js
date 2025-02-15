@@ -68,9 +68,12 @@ const checkout = async (req, res) => {
         const isRetry = req.query.retry === 'true';
         const coupons = await Coupon.find({ is_active: 'active' })
         const user = await User.findById(userId)
+        const wallet = await Wallet.findOne({ user_id: userId })
         const addresses = await Address.find({ user_id: userId })
         const shippingCharge = calculateDeliveryCharge(addresses[0])
         const taxRate = 0.12;
+
+        console.log('session when check', req.session)
 
         let cart = null
         // let product = null
@@ -242,6 +245,7 @@ const checkout = async (req, res) => {
 
 
         res.render('checkout', {
+            wallet,
             retryOrderId: orderId,
             productId,
             quantityForBuyNow: quantityInProduct,
@@ -654,13 +658,37 @@ const removeCoupon = async (req, res) => {
     }
 }
 
+
+const getWalletBalance = async(req, res) => {
+    try {
+        const {amount} = req.body
+        const userId = req.session.user
+        const wallet = await Wallet.findOne({user_id: userId})
+
+        if(!wallet) {
+            return res.status(400).json({success: false, message: 'wallet not found'})
+        }
+
+        if(wallet.balance < amount) {
+            return res.status(400).json({ success: false, message: 'Insufficient wallet balance' })
+        }
+
+        return res.json({success:true})
+
+    } catch (error) {
+        console.error('Error checking wallet balance:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 //place order
 const placeOrder = async (req, res) => {
     try {
         console.log('place order invoked')
         const { addressId, paymentMethod, productId, quantity, retryOrderId } = req.body;
         const userId = req.session.user;
-        console.log('payment method',paymentMethod)
+        const wallet = await Wallet.findOne({user_id: userId})
+        console.log('req.body is',req.body)
 
         if (!addressId || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Please select address and payment method' });
@@ -882,6 +910,143 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'COD is not available for orders above Rs. 1000' });
         }
 
+        //handle wallet payment
+        if(paymentMethod === 'wallet') {
+            if(wallet.balance < netAmount) {
+                return res.status(400).json({success:false, message: 'Insufficient wallet balance'})
+            }
+
+            //deduct the amount from the wallet
+            wallet.balance = (wallet.balance - netAmount).toFixed(2)
+            await wallet.save()
+
+            const walletTransaction = new WalletTransaction ({
+                wallet_id: wallet._id,
+                amount: netAmount,
+                transaction_type: 'wallet',
+                balance_after_transaction: wallet.balance,
+                payment_status: 'successful'
+            })
+            await walletTransaction.save()
+
+            if(retryOrderId) {
+                existingOrder.payment_method = paymentMethod;
+                existingOrder.address_id = addressId;
+                existingOrder.shipping_chrg = shippingCharges;
+                existingOrder.total = totalAmount;
+                existingOrder.netAmount = netAmount;
+                existingOrder.tax_amount = taxAmount.toFixed(2);
+                existingOrder.discount = discount.toFixed(2);
+                existingOrder.offer_discount = offerDiscount;
+                existingOrder.coupon_discount = couponDiscount;
+                existingOrder.payment_status = 'complete';
+
+                await existingOrder.save()
+
+                // update the order item
+                const existingOrderItems = await OrderItems.findOne({order_id: retryOrderId})
+                existingOrderItems.items = items
+                await existingOrderItems.save()
+
+                // update the product stock
+                for (const item of existingOrderItems.items) {
+                    const productId = item.product_id;
+                    const product = await Product.findById(productId)
+                    const newQuantity = product.available_quantity - item.quantity;
+    
+                    if (newQuantity >= 0) {
+                        await Product.findByIdAndUpdate(product._id, { available_quantity: newQuantity });
+                    } else {
+                        return res.status(400).json({ success: false, message: `Not enough stock for ${product.title}.` });
+                    }
+                }
+
+                // update the cart
+                const cart = await Cart.findOne({ user_id: existingOrder.user_id });
+                if (cart) {
+                    const updatedItems = cart.items.filter(cartItem =>
+                        !existingOrderItems.items.some(orderItem => orderItem.product_id._id.equals(cartItem.product_id))
+                    );
+                    cart.items = updatedItems;
+                    await cart.save();
+                }
+
+            } else {
+                // Create new order
+                const newOrder = new Order({
+                    user_id: userId,
+                    payment_method: paymentMethod,
+                    address_id: addressId,
+                    shipping_chrg: shippingCharges,
+                    total: totalAmount,
+                    netAmount,
+                    tax_amount: taxAmount.toFixed(2),
+                    discount: discount.toFixed(2),
+                    offer_discount: offerDiscount,
+                    coupon_discount: couponDiscount,
+                    payment_status: 'complete'
+                });
+
+                const savedOrder = await newOrder.save();
+
+                // Create order items
+                const orderItems = new OrderItems({
+                    order_id: savedOrder._id,
+                    items,
+                })
+
+                await orderItems.save();
+
+                // update the product stock
+                for (const item of orderItems.items) {
+                    const productId = item.product_id;
+                    const product = await Product.findById(productId)
+                    const newQuantity = product.available_quantity - item.quantity;
+    
+                    if (newQuantity >= 0) {
+                        await Product.findByIdAndUpdate(product._id, { available_quantity: newQuantity });
+                    } else {
+                        return res.status(400).json({ success: false, message: `Not enough stock for ${product.title}.` });
+                    }
+                }   
+
+                if (!productId) {
+                    const cart = await Cart.findOne({ user_id: newOrder.user_id });
+                    if (cart) {
+                        const updatedItems = cart.items.filter(cartItem =>
+                            !orderItems.items.some(orderItem => orderItem.product_id._id.equals(cartItem.product_id))
+                        );
+                        cart.items = updatedItems;
+                        await cart.save();
+                    }
+                }
+
+            }
+
+            // Update used_by field in the coupon and delete coupon from session
+            if (req.session.coupon) {
+                await Coupon.updateOne(
+                    { code: req.session.coupon.code },
+                    { $addToSet: { used_by: userId } }
+                );
+                delete req.session.coupon;
+            }
+
+            return res.json({
+                success: true,
+                paymentMethod: paymentMethod,
+                coupon: req.session.coupon,
+                order_id: retryOrderId || savedOrder._id,
+                amount: netAmount * 100,
+                currency: 'INR',
+                razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+                userName: req.session.user.name,
+                userEmail: req.session.user.email,
+                userPhone: req.session.user.phone,
+                imageUrl: 'http://localhost:3000/img/favicon.png'
+            });
+        }
+
         let savedOrder;
         if (retryOrderId) {
             // Update the existing order
@@ -928,7 +1093,6 @@ const placeOrder = async (req, res) => {
 
             await orderItems.save();
         }
-        console.log('payyyy',paymentMethod)
 
         res.json({
             success: true,
@@ -1266,7 +1430,7 @@ const cancelOrder = async (req, res) => {
             const wallet = await Wallet.findOne({ user_id: user._id })
 
             if (wallet) {
-                wallet.balance += refundAmount
+                wallet.balance = (wallet.balance + refundAmount).toFixed(2) 
                 await wallet.save()
 
 
@@ -1640,4 +1804,5 @@ module.exports = {
     updatePaymentStatus,
     retryPayment,
     getDeliveryCharges,
+    getWalletBalance,
 }

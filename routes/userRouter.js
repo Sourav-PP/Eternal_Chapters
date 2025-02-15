@@ -72,6 +72,7 @@ router.post('/remove-wishlist/:id', userAuth, wishlistController.remove)
 //order management
 router.get('/checkout', userAuth, orderController.checkout)
 router.post('/get-delivery-charges', userAuth, orderController.getDeliveryCharges)
+router.post('/get-wallet-balance', userAuth, orderController.getWalletBalance)
 router.post('/place-order', userAuth, orderController.placeOrder)
 router.post ('/update-payment-status', userAuth, orderController.updatePaymentStatus)
 router.get('/success-page',userAuth, orderController.success)

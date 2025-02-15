@@ -168,9 +168,42 @@ const approveReturn = async (req, res) => {
 
         //handle the online payments
         const order = await Order.findById(orderId)
-        if (order.payment_method !== 'COD') {
-            const refundAmount = item.total_amount
+        const refundAmount = item.total_amount
 
+        // check if the order is placed using wallet
+        if(order.payment_method === 'wallet') {
+            const user = await User.findById(order.user_id)
+            let wallet = await Wallet.findOne({user_id:user._id})
+
+            if(!wallet) {
+                console.error('Wallet not found') 
+                req.flash('error', 'Wallet not found')
+                return res.redirect('/admin/orders')
+            }
+
+            // update wallet
+            wallet.balance = (wallet.balance + refundAmount).toFixed(2)
+            await wallet.save()
+
+            // wallet transaction
+            const walletTransaction = new WalletTransaction({
+                wallet_id: wallet._id,
+                amount: refundAmount,
+                order_id: orderId,
+                transaction_type: 'refund',
+                balance_after_transaction: wallet.balance,
+                payment_status: 'successful',
+                razorpay_payment_id: null,
+                razorpay_signature: null,
+            })
+
+            await walletTransaction.save();
+
+            req.flash('success', 'Return request approved! Refund processed via Wallet.');
+            return res.redirect('/admin/orders');
+        }
+
+        if (order.payment_method !== 'COD') {
             const payment = await Payment.findById(order.payment_id)
             if (payment) {
                 payment.refunded_amount = (payment.refunded_amount || 0) + refundAmount
@@ -210,7 +243,7 @@ const approveReturn = async (req, res) => {
             const wallet = await Wallet.findOne({ user_id: user._id })
 
             if (wallet) {
-                wallet.balance += refundAmount
+                wallet.balance = (wallet.balance + refundAmount).toFixed(2)
                 await wallet.save()
 
 

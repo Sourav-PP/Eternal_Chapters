@@ -412,8 +412,6 @@ const loadHomepage = async (req, res) => {
                 title: capTitle,
             });
         } else {
-            console.log('else worked')
-            console.log('session',req.session)
             // Otherwise, render the full homepage
             return res.render('home', {
                 products,

@@ -43,7 +43,7 @@ const updateWallet = async(req,res) => {
         }
 
         const amountInRupees = parseFloat(amount) / 100
-        wallet.balance += amountInRupees
+        wallet.balance = (wallet.balance + amountInRupees).toFixed(2)
         await wallet.save();
 
         const newTransaction = new WalletTransaction({

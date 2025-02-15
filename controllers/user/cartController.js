@@ -150,7 +150,7 @@ const getCartPage = async (req, res) => {
             const subTotal = discountedPrice * item.quantity;
             rawSubtotal += subTotal
             totalOfferDiscount += productOfferDiscount * item.quantity
-            originalPrice = productPrice * item.quantity
+            originalPrice += productPrice * item.quantity
             numberOfItems += item.quantity
 
             return {
