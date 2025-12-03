@@ -1,29 +1,23 @@
-const payment = require('../../models/paymentSchema')
-const transaction = require('../../models/transactionSchema')
-const Wallet = require('../../models/walletSchema')
-const WalletTransaction = require('../../models/walletTransactionSchema')
-const walletTransaction = require('../../models/walletTransactionSchema')
-const Razorpay = require('razorpay')
-const env = require('dotenv').config()
+const Razorpay = require('razorpay');
+require('dotenv').config();
 
-//initialize rezorpay instance
+//initialize razorpay instance
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-})
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 const createOrder = async (req, res) => {
     try {
+        const { amount } = req.body;
 
-        const {amount} = req.body
-
-        const amountInPaise = parseInt(amount) * 100
+        const amountInPaisa = parseInt(amount) * 100;
 
         const options = {
-            amount: amountInPaise, // amount in the smallest currency unit
-            currency: "INR",
+            amount: amountInPaisa, // amount in the smallest currency unit
+            currency: 'INR',
             receipt: req.body.receipt,
-            payment_capture: 1
+            payment_capture: 1,
         };
 
         const order = await razorpay.orders.create(options);
@@ -31,35 +25,38 @@ const createOrder = async (req, res) => {
             success: true,
             order_id: order.id,
             amount: order.amount,
-            currency: order.currency
+            currency: order.currency,
         });
     } catch (error) {
-        console.log('error in the createOrder',error)
+        console.log('error in the createOrder', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 //create wallet order
-const createWalletOrder = async(req,res) => {
+const createWalletOrder = async (req, res) => {
     try {
-        const {amount} = req.body
+        const { amount } = req.body;
 
         const razorpayOrder = await razorpay.orders.create({
-            amount, 
+            amount,
             currency: 'INR',
-            receipt: `wallet_${Date.now()}`
+            receipt: `wallet_${Date.now()}`,
         });
 
-        res.json({ success: true, order_id: razorpayOrder.id, amount: razorpayOrder.amount, currency: razorpayOrder.currency })
+        res.json({
+            success: true,
+            order_id: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+        });
     } catch (error) {
-        console.log('error in creating wallet',error)
+        console.log('error in creating wallet', error);
         res.status(500).json({ success: false, error: error.message });
     }
-    
-}
+};
 
 module.exports = {
     createOrder,
     createWalletOrder,
 };
-

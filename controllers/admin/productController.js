@@ -1,78 +1,95 @@
-const Product = require('../../models/productSchema')
-const Category = require('../../models/categorySchema')
-const User = require('../../models/userSchema')
-const { validationResult } = require('express-validator')
-const sharp = require('sharp')
-const fs = require('fs').promises
-const path = require('path')
-
+const Product = require('../../models/productSchema');
+const Category = require('../../models/categorySchema');
+const { validationResult } = require('express-validator');
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+const adminRoutes = require('../../constants/routeConsts/adminRoutes');
 
 const productInfo = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1
-        const limit = 10
-        const skip = (page - 1) * limit
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
         const searchQuery = req.query.search || '';
         const query = searchQuery ? { title: { $regex: searchQuery, $options: 'i' } } : {};
 
-        const productCount = await Product.countDocuments(query)
-        const totalPages = Math.ceil(productCount / limit)
+        const productCount = await Product.countDocuments(query);
+        const totalPages = Math.ceil(productCount / limit);
 
-        const productdata = await Product.find(query).skip(skip).limit(limit)
-        const categoryData = await Category.find({ is_deleted: false })
+        const productData = await Product.find(query).skip(skip).limit(limit);
+        const categoryData = await Category.find({ is_deleted: false });
 
-        res.render("products", {
+        res.render('products', {
             category: categoryData,
-            products: productdata,
+            products: productData,
             success: req.flash('success'),
             currentPage: page,
             totalPages: totalPages,
-            searchQuery: searchQuery
-        })
-
+            searchQuery: searchQuery,
+        });
     } catch (error) {
-        console.log("error loading product page", error)
+        console.log('error loading product page', error);
     }
-}
+};
 
 //get the add product page
 const getAddProduct = async (req, res) => {
     try {
-        const categoryData = await Category.find()
+        const categoryData = await Category.find();
 
         res.render('addProduct', {
             validationError: req.flash('validationError'),
             data: req.flash('data')[0] || {},
             category: categoryData,
-            success: req.flash("success")
-        })
+            success: req.flash('success'),
+        });
     } catch (error) {
-        console.log("error loading add procuct page")
+        console.log('error loading add product page', error);
     }
-}
+};
 
 //add product
 const addProduct = async (req, res) => {
     try {
-        const errors = validationResult(req)
+        const errors = validationResult(req);
 
-        if(!errors.isEmpty()) {
-            req.flash('validationError', errors.array())
-            req.flash('data', req.body)
-            return res.redirect('/admin/addProduct')
+        if (!errors.isEmpty()) {
+            req.flash('validationError', errors.array());
+            req.flash('data', req.body);
+            return res.redirect(`${adminRoutes.base}${adminRoutes.addProduct}`);
         }
 
-        const { title, author_name, price, available_quantity, category_id, status, language, publishing_date, publisher, page, description } = req.body
-        const productExist = await Product.findOne({ title: title })
+        const {
+            title,
+            author_name,
+            price,
+            available_quantity,
+            category_id,
+            status,
+            language,
+            publishing_date,
+            publisher,
+            page,
+            description,
+        } = req.body;
+        const productExist = await Product.findOne({ title: title });
 
         if (!productExist) {
             const images = [];
             if (req.files && req.files.length > 0) {
                 for (let i = 0; i < req.files.length; i++) {
-                    const originalImagePath = req.files[i].path
+                    const originalImagePath = req.files[i].path;
 
-                    const resizedImagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', req.files[i].filename)
-                    await sharp(originalImagePath).resize({ width: 300, height: 450 }).toFile(resizedImagePath)
+                    const resizedImagePath = path.join(
+                        __dirname,
+                        '..',
+                        '..',
+                        'uploads',
+                        'product-images',
+                        req.files[i].filename,
+                    );
+                    await sharp(originalImagePath).resize({ width: 300, height: 450 }).toFile(resizedImagePath);
 
                     // Delete the original uploaded file
                     await fs.unlink(originalImagePath);
@@ -81,9 +98,9 @@ const addProduct = async (req, res) => {
                 }
             }
 
-            const categoryId = await Category.findOne({ _id: category_id })
+            const categoryId = await Category.findOne({ _id: category_id });
             if (!categoryId) {
-                return res.status(400).join("Invalid category")
+                return res.status(400).join('Invalid category');
             }
 
             const lowerCase = language.toLowerCase();
@@ -101,60 +118,68 @@ const addProduct = async (req, res) => {
                 page,
                 language: lowerCase,
                 product_imgs: images,
-                status
+                status,
             });
 
-            await newProduct.save()
-            req.flash("success", "Product added successfully")
-            return res.redirect("/admin/addProduct")
-
+            await newProduct.save();
+            req.flash('success', 'Product added successfully');
+            return res.redirect(`${adminRoutes.base}${adminRoutes.addProduct}`);
         } else {
-            return res.status(400).json("Product already exist!")
+            return res.status(400).json('Product already exist!');
         }
-
-
     } catch (error) {
-        console.error("Error adding product:", error);
-        res.status(500).send("Internal Server Error");
+        console.error('Error adding product:', error);
+        res.status(500).send('Internal Server Error');
     }
-}
+};
 
 //get edit product page
 const getEditProduct = async (req, res) => {
     try {
-
         const id = req.query.id;
-        const productData = await Product.findOne({ _id: id })
-        const categoryData = await Category.find()
+        const productData = await Product.findOne({ _id: id });
+        const categoryData = await Category.find();
 
         res.render('editProduct', {
             validationError: req.flash('validationError'),
             product: productData,
-            category: categoryData
-        })
+            category: categoryData,
+        });
     } catch (error) {
-        console.error("error geting product edit page")
+        console.error('error getting product edit page', error);
     }
-}
+};
 
 const editProduct = async (req, res) => {
-    let productId
+    let productId;
     try {
         productId = req.params.id;
         const errors = validationResult(req);
 
-        if(!errors.isEmpty()) {
-            req.flash('validationError', errors.array())
-            req.flash('data', req.body)
-            return res.redirect(`/admin/editProduct?id=${productId}`)
+        if (!errors.isEmpty()) {
+            req.flash('validationError', errors.array());
+            req.flash('data', req.body);
+            return res.redirect(`${adminRoutes.base}${adminRoutes.editProduct}?id=${productId}`);
         }
 
-        const { 
-            title, author_name, price, available_quantity, 
-            category_id, status, language, publishing_date, 
-            publisher, page, description, 
-            delete_images, existing_images
+        const {
+            title,
+            author_name,
+            price,
+            available_quantity,
+            category_id,
+            status,
+            language,
+            publishing_date,
+            publisher,
+            page,
+            description,
+            delete_images,
+            existing_images,
         } = req.body;
+        console.log('req.files: ', req.files);
+
+        console.log('existing: ', existing_images);
 
         const productExist = await Product.findById(productId);
         if (!productExist) {
@@ -163,11 +188,12 @@ const editProduct = async (req, res) => {
 
         const categoryId = await Category.findOne({ _id: category_id });
         if (!categoryId) {
-            return res.status(400).send("Invalid category");
+            return res.status(400).send('Invalid category');
         }
 
         // Convert existing_images to array if it's not already
-        const existingImagesArray = Array.isArray(existing_images) ? existing_images : [existing_images];
+        const existingImagesArray = productExist.product_imgs || [];
+        console.log('existing from DB: ', existingImagesArray);
 
         // Create a map of current images with their positions
         const currentImagesMap = new Map();
@@ -177,10 +203,10 @@ const editProduct = async (req, res) => {
 
         // Handle deleted images
         if (delete_images) {
-            const imagesToDelete = Array.isArray(delete_images) 
+            const imagesToDelete = Array.isArray(delete_images)
                 ? delete_images.map(img => decodeURIComponent(img))
                 : [decodeURIComponent(delete_images)];
-            
+
             // Remove deleted images from filesystem
             imagesToDelete.forEach(imgName => {
                 const imagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', imgName);
@@ -204,16 +230,14 @@ const editProduct = async (req, res) => {
             for (let file of req.files) {
                 const originalImagePath = file.path;
                 const resizedImagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', file.filename);
-                
+
                 try {
-                    await sharp(originalImagePath)
-                        .resize({ width: 300, height: 450 })
-                        .toFile(resizedImagePath);
+                    await sharp(originalImagePath).resize({ width: 300, height: 450 }).toFile(resizedImagePath);
 
                     if (fs.existsSync(originalImagePath)) {
                         fs.unlinkSync(originalImagePath);
                     }
-                    
+
                     newImages.push(file.filename);
                 } catch (error) {
                     console.error('Error processing image:', file.filename, error);
@@ -224,12 +248,12 @@ const editProduct = async (req, res) => {
 
         // Create final images array maintaining order
         const finalImages = new Array(4).fill(null);
-        
+
         // First, place existing images in their original positions
         for (const [img, pos] of currentImagesMap.entries()) {
             if (pos < 4) finalImages[pos] = img;
         }
-        
+
         // Then, fill empty slots with new images
         let newImageIndex = 0;
         for (let i = 0; i < 4; i++) {
@@ -253,65 +277,64 @@ const editProduct = async (req, res) => {
             page,
             language: language.toLowerCase(),
             product_imgs: images,
-            status
+            status,
         };
 
         const result = await Product.updateOne(
             { _id: productId },
-            { 
+            {
                 $set: updateFields,
-                $currentDate: { updated_at: true }
-            }
+                $currentDate: { updated_at: true },
+            },
         );
 
         if (!result.modifiedCount) {
             console.log('Warning: No changes were made to the document');
         }
 
-        req.flash("success", "The product has been updated successfully");
-        return res.redirect("/admin/products");
+        req.flash('success', 'The product has been updated successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
         console.error('Error updating the product!', error);
         req.flash('error', 'Failed to update the product');
-        return res.redirect(`/admin/editProduct?id=${productId}`);
+        return res.redirect(`${adminRoutes.base}${adminRoutes.editProduct}?id=${productId}`);
     }
-}
+};
 //soft delete product
 const softDeleteProduct = async (req, res) => {
     try {
-        const { id } = req.params
-        const result = await Product.findByIdAndUpdate(id, { is_deleted: true })
+        const { id } = req.params;
+        await Product.findByIdAndUpdate(id, { is_deleted: true });
 
-        res.redirect('/admin/products')
+        res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
-        console.log("error soft deleting product", error)
-        res.status(500).send("Unable to delete the product")
+        console.log('error soft deleting product', error);
+        res.status(500).send('Unable to delete the product');
     }
-}
+};
 
 //restore product
 const restoreProduct = async (req, res) => {
     try {
-        const { id } = req.params
-        await Product.findByIdAndUpdate(id, { is_deleted: false })
+        const { id } = req.params;
+        await Product.findByIdAndUpdate(id, { is_deleted: false });
 
-        res.redirect('/admin/products')
+        res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
-        console.log("Error restoring the product")
-        res.status(500).send("Unable to restore the product")
-
+        console.log('Error restoring the product', error);
+        res.status(500).send('Unable to restore the product');
     }
-}
+};
 
 //delete the product
 const deleteProduct = async (req, res) => {
     try {
-        const id = req.params.id
-        const product = await Product.findById(id)
+        const id = req.params.id;
+        const product = await Product.findById(id);
 
-        if(!product) {
-            req.flash("error", "Product not found");
-            return res.redirect('/admin/products');
+        if (!product) {
+            req.flash('error', 'Product not found');
+            return res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
         }
 
         console.log(`Product found: ${product._id}`);
@@ -321,7 +344,7 @@ const deleteProduct = async (req, res) => {
         if (product.product_imgs?.length > 0) {
             for (const filename of product.product_imgs) {
                 const imagePath = path.join(__dirname, '..', '..', 'uploads', 'product-images', filename);
-                
+
                 console.log(`Checking image path: ${imagePath}`);
 
                 try {
@@ -336,21 +359,17 @@ const deleteProduct = async (req, res) => {
                 }
             }
         } else {
-            console.log("No images found for this product.");
+            console.log('No images found for this product.');
         }
-        
-        await Product.findByIdAndDelete(id)
 
-        req.flash("success", "Product has been deleted successfully")
-        res.redirect('/admin/products')
+        await Product.findByIdAndDelete(id);
+
+        req.flash('success', 'Product has been deleted successfully');
+        res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
-        console.log('error deleting the product', error)
+        console.log('error deleting the product', error);
     }
-}
-
-
-
-
+};
 
 module.exports = {
     productInfo,
@@ -361,5 +380,4 @@ module.exports = {
     getEditProduct,
     editProduct,
     deleteProduct,
-
-}
+};

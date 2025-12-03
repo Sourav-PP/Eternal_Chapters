@@ -1,54 +1,61 @@
-const express = require('express')
-const app = express()
-const http = require('http')
-const { Server } = require('socket.io')
-const path = require('path')
-const env = require('dotenv').config()
-const nocache = require('nocache')
-const session = require('express-session')
+const express = require('express');
+const app = express();
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+require('dotenv').config();
+const nocache = require('nocache');
+const session = require('express-session');
 const flash = require('connect-flash');
-const db = require('./config/db')
-const userRouter = require('./routes/userRouter')
-const adminRouter = require('./routes/adminRouter')
-const passport = require('./config/passport')
-const authRouter = require('./routes/authRouter')
+const db = require('./config/db');
+const userRouter = require('./routes/userRouter');
+const adminRouter = require('./routes/adminRouter');
+const passport = require('./config/passport');
+const authRouter = require('./routes/authRouter');
+const adminRoutes = require('./constants/routeConsts/adminRoutes');
+const authRoutes = require('./constants/routeConsts/authRoutes');
+const userRoutes = require('./constants/routeConsts/userRoutes');
 
-db() //function for connecting db
+db(); // connecting db
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false },
-    httpOnly: true,
-    maxAge: 72 * 60 * 60 * 1000
-}))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+        httpOnly: true,
+        maxAge: 72 * 60 * 60 * 1000,
+    }),
+);
 
 app.use(flash()); //flash messages
-app.use(nocache())
-app.set("view engine", "ejs")
+app.use(nocache());
+app.set('view engine', 'ejs');
 
-app.set("views", [
+app.set('views', [
     path.join(__dirname, 'views/user'),
     path.join(__dirname, 'views/admin'),
-    path.join(__dirname, 'views/partials/user')
-])
-
-
+    path.join(__dirname, 'views/partials/user'),
+]);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/uploads', express.static('uploads'));
 
+app.locals.adminRoutes = adminRoutes;
+app.locals.authRoutes = authRoutes;
+app.locals.userRoutes = userRoutes;
+
 //Routers
-app.use('/auth', authRouter);
-app.use('/admin', adminRouter)
-app.use('/', userRouter)
+app.use(authRoutes.base, authRouter);
+app.use(adminRoutes.base, adminRouter);
+app.use(userRoutes.base, userRouter);
 
 //create an http server
 const server = http.createServer(app);
@@ -57,11 +64,11 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 //socket.io event handling
-io.on('connection', (socket) => {
-    console.log("A user connected");
+io.on('connection', socket => {
+    console.log('A user connected');
 
-    //custon event for cart update
-    socket.on('updateCart', (data) => {
+    //custom event for cart update
+    socket.on('updateCart', data => {
         console.log('cart updated', data);
         io.emit('updateClientCart', data);
     });
@@ -72,7 +79,7 @@ io.on('connection', (socket) => {
 });
 
 server.listen(process.env.PORT, () => {
-    console.log(`server is running on port ${process.env.PORT} `)
-})
+    console.log(`server is running on port ${process.env.PORT} `);
+});
 
-module.exports = { app, server }
+module.exports = { app, server };

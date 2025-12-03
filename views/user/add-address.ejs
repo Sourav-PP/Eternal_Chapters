@@ -48,8 +48,8 @@
                                         <% }} %>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="lastName" class="form-label">Pincode</label>
-                                        <input type="text" class="form-control" name="pin_code" value="<%= formData?.pin_code || '' %>" id="pin_code" placeholder="Enter your last name">
+                                        <label for="lastName" class="form-label">Pin code</label>
+                                        <input type="text" class="form-control" name="pin_code" value="<%= formData?.pin_code || '' %>" id="pin_code" placeholder="Enter your pin code">
                                         <% if (validationErrors) { 
                                             const pinCodeError = validationErrors.find(err => err.path === 'pin_code'); 
                                             if (pinCodeError) { %>
@@ -71,7 +71,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">State</label>
-                                        <input type="text" class="form-control" name="state" value="<%= formData?.state || '' %>" id="email" placeholder="Enter your email">
+                                        <input type="text" class="form-control" name="state" value="<%= formData?.state || '' %>" id="email" placeholder="Enter the name of your state">
                                         <% if (validationErrors) { 
                                             const stateError = validationErrors.find(err => err.path === 'state'); 
                                             if (stateError) { %>
@@ -103,7 +103,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="pincode" class="form-label">Landmark</label>
-                                        <input type="text" class="form-control" name="land_mark" value="<%= formData?.land_mark || '' %>" id="pincode" placeholder="Enter your pincode">
+                                        <input type="text" class="form-control" name="land_mark" value="<%= formData?.land_mark || '' %>" id="pincode" placeholder="Enter your land mark">
                                         <% if (validationErrors) { 
                                             const landMarkError = validationErrors.find(err => err.path === 'land_mark'); 
                                             if (landMarkError) { %>
@@ -125,7 +125,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="mobile" class="form-label">Alternative Number</label>
-                                        <input type="tel" class="form-control" name="alternate_number" value="<%= formData?.alternate_number || '' %>" id="mobile" placeholder="Enter your mobile number">
+                                        <input type="tel" class="form-control" name="alternate_number" value="<%= formData?.alternate_number || '' %>" id="mobile" placeholder="Enter your alternative mobile number">
                                         <% if (validationErrors) { 
                                             const alternateMobileError = validationErrors.find(err => err.path === 'alternate_number'); 
                                             if (alternateMobileError) { %>

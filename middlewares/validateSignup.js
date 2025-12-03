@@ -1,41 +1,54 @@
-const { body, validationResult } = require('express-validator')
+const { body } = require('express-validator');
 
 const signupValidationRules = [
     body('first_name')
         .trim()
-        .notEmpty().withMessage("Name is required")
-        .isLength({ min: 2 }).withMessage("Name must be atleast 2 characters long")
-        .matches(/^[A-Za-z]+$/).withMessage("Name must not contain numbers or special characters"),
+        .matches(/^[A-Za-z ]+$/)
+        .withMessage('Name can only contain letters and spaces')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Name must be between 2 and 50 characters'),
     body('last_name')
         .trim()
-        .notEmpty().withMessage("Name is requried")
-        .isLength({ min: 1 }).withMessage("Name must be atleast 1 characters long")
-        .matches(/^[A-Za-z]+$/).withMessage("Name must not contain numbers or special characters"),
+        .matches(/^[A-Za-z ]+$/)
+        .withMessage('Name can only contain letters and spaces')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Name must be between 1 and 50 characters'),
     body('email')
         .trim()
-        .notEmpty().withMessage("Email is required")
-        .isEmail().withMessage("Invalid email format"),
+        .isEmail()
+        .withMessage('Invalid email address')
+        .isLength({ max: 100 })
+        .withMessage('Email must be at most 100 characters'),
     body('phone_no')
         .trim()
-        .notEmpty().withMessage("Phone number is required")
-        .isMobilePhone().withMessage("Invalid phone number")
-        .isLength({ min: 10, max: 10 }).withMessage("Phone number must be 10 digits"),
+        .notEmpty()
+        .withMessage('Phone number is required')
+        .isMobilePhone('en-IN')
+        .withMessage('Invalid phone number')
+        .isLength({ min: 10, max: 10 })
+        .withMessage('Phone number must be 10 digits'),
     body('password')
         .trim()
-        .notEmpty().withMessage("Password is requried")
-        .isLength({min : 8}).withMessage("Password must be atleast 8 characters long")
-        .matches(/\d/).withMessage("Password must contain atleast one number")
-        .matches(/[A-Za-z]/).withMessage("Password must contain atleast one letter")
-        .matches(/[@$!%*-?&#]/).withMessage("Password must contain atleast one special character"),
+        .notEmpty()
+        .withMessage('Password is required')
+        .isLength({ min: 8 })
+        .withMessage('Password must be at least 8 characters long')
+        .matches(/\d/)
+        .withMessage('Password must contain at least one number')
+        .matches(/[A-Za-z]/)
+        .withMessage('Password must contain at least one letter')
+        .matches(/[@$!%*-?&#]/)
+        .withMessage('Password must contain at least one special character'),
     body('confirmPass')
-    .trim()
-    .notEmpty().withMessage("Please confirm the password")
-    .custom((value, {req}) => {
-        if(value != req.body.password) {
-            throw new Error("Passwored do not match")
-        }
-        return true
-    })
-]
+        .trim()
+        .notEmpty()
+        .withMessage('Please confirm the password')
+        .custom((value, { req }) => {
+            if (value != req.body.password) {
+                throw new Error('Password do not match');
+            }
+            return true;
+        }),
+];
 
-module.exports = signupValidationRules
+module.exports = signupValidationRules;

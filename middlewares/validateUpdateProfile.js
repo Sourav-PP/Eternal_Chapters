@@ -1,31 +1,45 @@
-const {body} = require("express-validator")
+const { body } = require('express-validator');
 
 const updateProfileValidation = [
     body('first_name')
-        .notEmpty().withMessage('First name is required')
-        .isLength({ min: 2 }).withMessage('First name must be at least 2 characters')
-        .trim(),
-
+        .trim()
+        .matches(/^[A-Za-z ]+$/)
+        .withMessage('Name can only contain letters and spaces')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Name must be between 2 and 50 characters'),
     body('last_name')
-        .notEmpty().withMessage('Last name is required')
-        .isLength({ min: 2 }).withMessage('Last name must be at least 2 characters')
-        .trim(),
-
+        .trim()
+        .matches(/^[A-Za-z ]+$/)
+        .withMessage('Name can only contain letters and spaces')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Name must be between 1 and 50 characters'),
     body('date_of_birth')
-        .notEmpty().withMessage('Date of birth is required')
-        .isISO8601().withMessage('Date of birth must be a valid date'),
+        .notEmpty()
+        .withMessage('Date of birth is required')
+        .isISO8601()
+        .withMessage('Date of birth must be a valid date')
+        .custom(value => {
+            const dob = new Date(value);
+            const today = new Date();
 
-    body('email')
-        .isEmail().withMessage('Please provide a valid email address')
-        .normalizeEmail()
-        .custom((value) => {
-            // Custom regex to disallow emails with underscores in the local part
-            const regex = /^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (!regex.test(value)) {
-                throw new Error('Email address cannot contain underscores');
+            // 1. Should not be in the future
+            if (dob > today) {
+                throw new Error('Date of birth cannot be in the future');
             }
-            return true;
-        })
-]
 
-module.exports = updateProfileValidation
+            // 2. Should be after year 1900 (realistic)
+            if (dob.getFullYear() < 1900) {
+                throw new Error('Date of birth is too old or invalid');
+            }
+
+            return true;
+        }),
+    body('email')
+        .trim()
+        .isEmail()
+        .withMessage('Invalid email address')
+        .isLength({ max: 100 })
+        .withMessage('Email must be at most 100 characters'),
+];
+
+module.exports = updateProfileValidation;

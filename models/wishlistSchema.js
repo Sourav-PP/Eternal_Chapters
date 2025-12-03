@@ -1,40 +1,39 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose
-
+const { Schema } = mongoose;
 
 const wishlistSchema = new Schema({
-  user_id: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  products: [
-    {
-      product_id: {
+    user_id: {
         type: Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: 'User',
         required: true,
-      },
-      addedAt: {
+    },
+    products: [
+        {
+            product_id: {
+                type: Schema.Types.ObjectId,
+                ref: 'Product',
+                required: true,
+            },
+            addedAt: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
+    created_at: {
         type: Date,
         default: Date.now,
-      },
     },
-  ],
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now,
-  },
+    updated_at: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
 // Middleware to update `updated_at` before saving
 wishlistSchema.pre('save', function (next) {
-  this.updated_at = Date.now();
-  next();
+    this.updated_at = Date.now();
+    next();
 });
 
 // Add an index for performance

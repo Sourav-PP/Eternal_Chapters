@@ -38,7 +38,7 @@
                         <div class="d-flex justify-content-between">
                             <span class="badge bg-primary text-light pt-2"><%= addr.address_type %></span>
                             <div>
-                                <button class="btn btn-warning btn-sm"><a class="text-decoration-none text-dark" href="/editAddress/<%= addr._id  %>">Edit</a></button>
+                                <button class="btn btn-warning btn-sm"><a class="text-decoration-none text-dark" href="<%= userRoutes.editAddress.replace(':id', addr._id) %>">Edit</a></button>
                                     <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteModal<%= addr._id %>">Delete</button>
                                 
                             </div>
@@ -56,7 +56,7 @@
 
             <% }) %>
         
-            <button class="add-address mb-4"><a class="text-decoration-none text-white" href="/addAddress">Add Address</a></button>
+            <button class="add-address mb-4"><a class="text-decoration-none text-white" href="<%= userRoutes.addAddress %>">Add Address</a></button>
         </div>
         
         
@@ -79,7 +79,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <form action="/deleteAdress/<%= addr._id %>" method="POST">
+                        <form action="<%= userRoutes.deleteAddress.replace(':id', addr._id)%>" method="POST">
                             <button type="submit" class="btn btn-danger">Delete</button>
                         </form>
                     </div>

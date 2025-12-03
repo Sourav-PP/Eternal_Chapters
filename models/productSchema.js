@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const { Schema } = mongoose
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const productSchema = new Schema({
     title: {
@@ -8,12 +8,12 @@ const productSchema = new Schema({
     },
     offer_id: {
         type: Schema.Types.ObjectId,
-        ref:"Offer",
-        required:false,
+        ref: 'Offer',
+        required: false,
     },
     category_id: {
         type: Schema.Types.ObjectId,
-        ref: "Category",
+        ref: 'Category',
         required: true,
     },
     author_name: {
@@ -54,39 +54,39 @@ const productSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["active", "discontinued", "unavailable"],
+        enum: ['active', 'discontinued', 'unavailable'],
         required: true,
-        default: "active"
+        default: 'active',
     },
     is_deleted: {
         type: Boolean,
-        default: false
+        default: false,
     },
     created_at: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     updated_at: {
         type: Date,
-        default: Date.now
-    }
-})
+        default: Date.now,
+    },
+});
 
 productSchema.pre('save', function (next) {
     this.updated_at = Date.now();
     next();
 });
 
-productSchema.virtual("stock_state").get(function() {
-    if(this.is_deleted) return "Blocked";
-    if(this.available_quantity === 0) return this.status === "discontinued" ? "Sold out" : "Out of stock";
-    if(this.status === "unavailable") return "Unavailable"
-    return "Available"
-})
+productSchema.virtual('stock_state').get(function () {
+    if (this.is_deleted) return 'Blocked';
+    if (this.available_quantity === 0) return this.status === 'discontinued' ? 'Sold out' : 'Out of stock';
+    if (this.status === 'unavailable') return 'Unavailable';
+    return 'Available';
+});
 
 productSchema.set('toObject', { virtuals: true });
 productSchema.set('toJSON', { virtuals: true });
 
-const Product = mongoose.model('Product', productSchema)
+const Product = mongoose.model('Product', productSchema);
 
-module.exports = Product
+module.exports = Product;

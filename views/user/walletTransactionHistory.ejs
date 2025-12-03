@@ -39,7 +39,7 @@
         <div class="container mt-5 pe-5">
             <% if (walletTransaction.length === 0) { %>
              <div class="text-center fw-bold not-yet">No transaction yet!</div>
-             <% } else { %>
+            <% } else { %>
                 <h2 class="mb-3">Wallet Transaction History</h2>
 
                 <!-- Filters and Sorting Section -->
@@ -100,7 +100,7 @@
                                     </td>
                                 </tr>
     
-                                <!-- Modal for Order Details -->
+                                <!-- Modal for Details -->
                                 <div class="modal fade" id="transactionDetailsModal<%= data._id %>" tabindex="-1" aria-labelledby="transactionDetailsLabel<%= data._id %>" aria-hidden="true">
                                     <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
@@ -133,30 +133,30 @@
                     </table>
                 </div>
                 <!-- Pagination Links -->
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-center">
-                        <!-- Previous Page Button -->
-                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                            <a class="page-link" href="?page=<%= currentPage - 1 %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                
-                        <!-- Dynamic Page Numbers -->
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>"><%= i %></a>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous Page Button -->
+                            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="?page=<%= currentPage - 1 %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
                             </li>
-                        <% } %>
-                
-                        <!-- Next Page Button -->
-                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                            <a class="page-link" href="?page=<%= currentPage + 1 %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                    
+                            <!-- Dynamic Page Numbers -->
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                    
+                            <!-- Next Page Button -->
+                            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="?page=<%= currentPage + 1 %>&dateFilter=<%= dateFilter || '' %>&sortBy=<%= sortBy || '' %>" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
             <% } %>
             
         </div>        

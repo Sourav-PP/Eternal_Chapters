@@ -1,107 +1,99 @@
-const User = require("../../models/userSchema")
-const bcrypt = require('bcrypt')
-const mongoose = require('mongoose')
-
+const adminRoutes = require('../../constants/routeConsts/adminRoutes');
+const User = require('../../models/userSchema');
+const bcrypt = require('bcrypt');
 
 const customerInfo = async (req, res) => {
     try {
-        let search = ""
+        let search = '';
         if (req.query.search) {
-            search = req.query.search
+            search = req.query.search;
         }
 
         const userData = await User.find({
             is_admin: false,
-            $or: [
-                { name: { $regex: ".*" + search + ".*" } },
-                { email: { $regex: ".*" + search + ".*" } }
-            ]
-        })
-        
+            $or: [{ name: { $regex: '.*' + search + '.*' } }, { email: { $regex: '.*' + search + '.*' } }],
+        });
+
         res.render('customers', {
             users: userData,
             error: req.flash('error'),
             success: req.flash('success'),
-        })
-
+        });
     } catch (error) {
-        console.log("error loading the customer Info")
+        console.log('error loading the customer Info', error);
     }
-}
+};
 
 const updateStatus = async (req, res) => {
     try {
-        const { userId, isBlocked } = req.body
+        const { userId, isBlocked } = req.body;
 
         //update the users "is_blocked" status
-        await User.findByIdAndUpdate(userId, { is_blocked: isBlocked }, { new: true })
+        await User.findByIdAndUpdate(userId, { is_blocked: isBlocked }, { new: true });
 
         res.status(200).json({ message: 'User status updated successfully' });
-
     } catch (error) {
-
-        console.log("error updating the user status", error)
-        res.status(500).json('error updating user status')
+        console.log('error updating the user status', error);
+        res.status(500).json('error updating user status');
     }
-}
+};
 
-const securePassword = async (password) => {
+const securePassword = async password => {
     try {
-        const passwordHash = await bcrypt.hash(password,10)
-        return passwordHash
+        const passwordHash = await bcrypt.hash(password, 10);
+        return passwordHash;
     } catch (error) {
-        console.error("Error hashing password", error)
+        console.error('Error hashing password', error);
     }
-}
+};
 
 //add user
-const addUser = async(req,res) => {
+const addUser = async (req, res) => {
     try {
-        const {first_name, last_name,email,phone_no,password} = req.body
+        const { first_name, last_name, email, phone_no, password } = req.body;
 
-        const passwordHash = await securePassword(password)
+        const passwordHash = await securePassword(password);
         const newUser = new User({
             first_name,
             last_name,
             email,
             phone_no,
-            password: passwordHash
-        })
+            password: passwordHash,
+        });
 
-        await newUser.save()
+        await newUser.save();
 
         //redirect to customer page
-        res.redirect('/admin/users')
+        res.redirect(`${adminRoutes.base}${adminRoutes.customers}`);
     } catch (error) {
-        console.error("error adding user")
-        res.status(500).send("Server error")
+        console.error('error adding user', error);
+        res.status(500).send('Server error');
     }
-}
-//delter user
+};
 
-const deleteUser = async(req,res) => {
+//delete user
+const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
-    const user = await User.findByIdAndDelete(userId)
-    
-    req.flash('success','User has been deleted successfully')
-    res.redirect("/admin/users")
+        await User.findByIdAndDelete(userId);
+
+        req.flash('success', 'User has been deleted successfully');
+        res.redirect(`${adminRoutes.base}${adminRoutes.customers}`);
     } catch (error) {
-        console.log("error deleting user", error)
+        console.log('error deleting user', error);
     }
-}
+};
 
-const editUser = async(req,res) => {
+const editUser = async (req, res) => {
     try {
-        const {_id, first_name, last_name, email, phone_no} = req.body    
-        await User.findByIdAndUpdate(_id, { first_name, last_name,email, phone_no }, { new: true });
+        const { _id, first_name, last_name, email, phone_no } = req.body;
+        await User.findByIdAndUpdate(_id, { first_name, last_name, email, phone_no }, { new: true });
 
-
-        res.redirect('/admin/users');
+        res.redirect(`${adminRoutes.base}${adminRoutes.customers}`);
     } catch (error) {
-        console.error("error editing the users",error)
-    }   
-}
+        console.error('error editing the users', error);
+    }
+};
 
 module.exports = {
     customerInfo,
@@ -109,4 +101,4 @@ module.exports = {
     addUser,
     deleteUser,
     editUser,
-}
+};

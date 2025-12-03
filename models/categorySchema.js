@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const {Schema} = mongoose
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const categorySchema = new Schema({
     name: {
@@ -13,15 +13,15 @@ const categorySchema = new Schema({
     },
     offer_id: {
         type: Schema.Types.ObjectId,
-        ref:"Offer",
-        required:false,
+        ref: 'Offer',
+        required: false,
     },
     is_deleted: {
         type: Boolean,
-        default: false
-    }
-})
+        default: false,
+    },
+});
 
-const Category = mongoose.model('Category', categorySchema)
+const Category = mongoose.model('Category', categorySchema);
 
-module.exports = Category
+module.exports = Category;

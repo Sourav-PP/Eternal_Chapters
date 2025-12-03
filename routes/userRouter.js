@@ -1,102 +1,97 @@
-const express = require('express')
-const router = express.Router()
-const cartController = require('../controllers/user/cartController')
-const categoryController = require('../controllers/user/categoryController')
-const orderController = require('../controllers/user/orderController')
-const userController = require('../controllers/user/userController')
-const productController = require('../controllers/user/productController')
-const profileController = require('../controllers/user/profileController')
-const wishlistController = require('../controllers/user/wishlistController')
-const paymentController = require('../controllers/user/paymentController')
-const walletController = require('../controllers/user/walletController')
+const express = require('express');
+const router = express.Router();
+const cartController = require('../controllers/user/cartController');
+const categoryController = require('../controllers/user/categoryController');
+const orderController = require('../controllers/user/orderController');
+const userController = require('../controllers/user/userController');
+const productController = require('../controllers/user/productController');
+const profileController = require('../controllers/user/profileController');
+const wishlistController = require('../controllers/user/wishlistController');
+const paymentController = require('../controllers/user/paymentController');
+const walletController = require('../controllers/user/walletController');
 //validation
-const validateSignup = require('../middlewares/validateSignup')
-const validateSignin = require('../middlewares/validateSignin')
-const validateAddAddress = require('../middlewares/validateAddAddress')
-const validateUpdateProfile = require('../middlewares/validateUpdateProfile')
-const validateOtpInput = require('../middlewares/validateOtp')
-const { userAuth, adminAuth } = require('../middlewares/auth')
+const validateSignup = require('../middlewares/validateSignup');
+const validateSignin = require('../middlewares/validateSignin');
+const validateAddAddress = require('../middlewares/validateAddAddress');
+const validateUpdateProfile = require('../middlewares/validateUpdateProfile');
+const validateOtpInput = require('../middlewares/validateOtp');
+const { userAuth } = require('../middlewares/auth');
+const userRoutes = require('../constants/routeConsts/userRoutes');
+const authRoutes = require('../constants/routeConsts/authRoutes');
 
+router.get(userRoutes.notFound, userController.page_404);
+router.get(userRoutes.base, userAuth, userController.loadHomepage);
+router.get(authRoutes.signup, userController.loadSignup);
+router.post(authRoutes.signup, validateSignup, userController.signup);
 
-
-
-
-router.get('/404', userController.page_404)
-router.get('/', userAuth, userController.loadHomepage)
-router.get('/signup', userController.loadSignup)
-router.post('/signup', validateSignup, userController.signup)
-
-//login management  
-router.get('/login', userController.loadLogin)
-router.post('/login', validateSignin, userController.login)
-router.get('/verify-otp', userController.getOtpPage)
-router.post('/verify-otp', validateOtpInput, userController.verifyOtp)
-router.post('/resend-signup-otp', userController.resendSignupOtp)
-router.get('/logout', userController.logout)
+//login management
+router.get(authRoutes.login, userController.loadLogin);
+router.post(authRoutes.login, validateSignin, userController.login);
+router.get(authRoutes.verifyOtp, userController.getOtpPage);
+router.post(authRoutes.verifyOtp, validateOtpInput, userController.verifyOtp);
+router.post(authRoutes.resendSignupOtp, userController.resendSignupOtp);
+router.get(authRoutes.logout, userController.logout);
 
 //blocked user page
-router.get('/blocked', userController.blockedUser)
+router.get(userRoutes.blockedPage, userController.blockedUser);
 
 //profile management
-router.get('/forgot-password', profileController.getForgotpage)
-router.post('/forgot-password', profileController.forgotPassword)
-router.post('/verify-forgotPass-otp', validateOtpInput, profileController.verifyForgotPassOtp)
-router.post('/resend-forgot-otp', validateOtpInput, profileController.resendOtp)
-router.get('/reset-password', profileController.getResetPassword)
-router.post('/reset-password', profileController.resetPassword)
-router.get('/userProfile', userAuth, profileController.userProfile)
-router.post('/updateProfile', userAuth,validateUpdateProfile, profileController.updateProfile) //update profile
+router.get(authRoutes.forgotPassword, profileController.getForgotPage);
+router.post(authRoutes.forgotPassword, profileController.forgotPassword);
+router.post(authRoutes.verifyForgotPassOtp, validateOtpInput, profileController.verifyForgotPassOtp);
+router.post(authRoutes.resendForgotPassOtp, validateOtpInput, profileController.resendOtp);
+router.get(authRoutes.resetPassword, profileController.getResetPassword);
+router.post(authRoutes.resetPassword, profileController.resetPassword);
+router.get(userRoutes.profile, userAuth, profileController.userProfile);
+router.post(userRoutes.updateProfile, userAuth, validateUpdateProfile, profileController.updateProfile); //update profile
 
 //address management
-router.get('/addressManagent', userAuth, profileController.manageAddress)
-router.get('/addAddress', userAuth, profileController.getAddAddress)
-router.post('/addAddress', userAuth, validateAddAddress, profileController.addAddress)
-router.get('/editAddress/:id', userAuth, profileController.getEditAddress)
-router.post('/editAddress/:id', userAuth,validateAddAddress, profileController.editAddress)
-router.post('/deleteAdress/:id', userAuth, profileController.deleteAddress)
+router.get(userRoutes.addressManagement, userAuth, profileController.manageAddress);
+router.get(userRoutes.addAddress, userAuth, profileController.getAddAddress);
+router.post(userRoutes.addAddress, userAuth, validateAddAddress, profileController.addAddress);
+router.get(userRoutes.editAddress, userAuth, profileController.getEditAddress);
+router.post(userRoutes.editAddress, userAuth, validateAddAddress, profileController.editAddress);
+router.post(userRoutes.deleteAddress, userAuth, profileController.deleteAddress);
 
 //product management
-router.get('/productDetails', userAuth, productController.getProductDetails)
+router.get(userRoutes.productDetails, userAuth, productController.getProductDetails);
 
 //cart management
-router.get('/cart-page', userAuth, cartController.getCartPage)
-router.post('/addCart', userAuth, cartController.addToCart)
-router.post('/remove-cart-product/:id', userAuth, cartController.removeProduct)
-router.post('/update-cart', userAuth, cartController.updateCart)
+router.get(userRoutes.cartPage, userAuth, cartController.getCartPage);
+router.post(userRoutes.addCart, userAuth, cartController.addToCart);
+router.post(userRoutes.removeCartProduct, userAuth, cartController.removeProduct);
+router.post(userRoutes.updateCart, userAuth, cartController.updateCart);
 
 //wishlist
-router.get('/wishlist', userAuth, wishlistController.getWishlist)
-router.post('/wishlist', userAuth, wishlistController.wishlist)
-router.post('/remove-wishlist/:id', userAuth, wishlistController.remove)
+router.get(userRoutes.wishlist, userAuth, wishlistController.getWishlist);
+router.post(userRoutes.wishlist, userAuth, wishlistController.wishlist);
+router.post(userRoutes.removeWishlist, userAuth, wishlistController.remove);
 
 //order management
-router.get('/checkout', userAuth, orderController.checkout)
-router.post('/get-delivery-charges', userAuth, orderController.getDeliveryCharges)
-router.post('/get-wallet-balance', userAuth, orderController.getWalletBalance)
-router.post('/place-order', userAuth, orderController.placeOrder)
-router.post ('/update-payment-status', userAuth, orderController.updatePaymentStatus)
-router.get('/success-page',userAuth, orderController.success)
-router.get('/order-history', userAuth, orderController.orderHistory)
-router.get('/retry-payment/:id', userAuth, orderController.retryPayment)
-router.post('/cancel-order/:id/:productId', userAuth, orderController.cancelOrder)
-router.post('/return-order/:id/:productId', userAuth, orderController.returnOrder)
-router.post('/apply-coupon', userAuth, orderController.applyCoupon)
-router.post('/remove-coupon', userAuth, orderController.removeCoupon)
-router.get('/invoice/download/:id', userAuth, orderController.generateInvoice)
+router.get(userRoutes.checkout, userAuth, orderController.checkout);
+router.post(userRoutes.getDeliveryCharges, userAuth, orderController.getDeliveryCharges);
+router.post(userRoutes.getWalletBalance, userAuth, orderController.getWalletBalance);
+router.post(userRoutes.placeOrder, userAuth, orderController.placeOrder);
+router.post(userRoutes.updatePaymentStatus, userAuth, orderController.updatePaymentStatus);
+router.get(userRoutes.success, userAuth, orderController.success);
+router.get(userRoutes.orderHistory, userAuth, orderController.orderHistory);
+router.get(userRoutes.retryPayment, userAuth, orderController.retryPayment);
+router.post(userRoutes.cancelOrder, userAuth, orderController.cancelOrder);
+router.post(userRoutes.returnOrder, userAuth, orderController.returnOrder);
+router.post(userRoutes.applyCoupon, userAuth, orderController.applyCoupon);
+router.post(userRoutes.removeCoupon, userAuth, orderController.removeCoupon);
+router.get(userRoutes.generateInvoice, userAuth, orderController.generateInvoice);
 
 //payment management
-router.post('/create-order', userAuth, paymentController.createOrder)
-router.post('/create-wallet-order', userAuth, paymentController.createWalletOrder)
+router.post(userRoutes.createOrder, userAuth, paymentController.createOrder);
+router.post(userRoutes.createWalletOrder, userAuth, paymentController.createWalletOrder);
 
 //wallet management
-router.get('/wallet-page', userAuth, walletController.getWallet)
-router.post('/update-wallet', userAuth, walletController.updateWallet)
-router.get('/wallet-transction-history', userAuth, walletController.getHistory)
+router.get(userRoutes.walletPage, userAuth, walletController.getWallet);
+router.post(userRoutes.updateWallet, userAuth, walletController.updateWallet);
+router.get(userRoutes.walletTransactionHistory, userAuth, walletController.getHistory);
 
 //category
-router.get('/category/:id', userAuth, categoryController.categoryPage)
+router.get(userRoutes.category, userAuth, categoryController.categoryPage);
 
-
-
-
-module.exports = router
+module.exports = router;

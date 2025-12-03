@@ -1,46 +1,46 @@
-const Offer = require('../../models/offerSchema')
-const Product = require('../../models/productSchema')
-const Category = require('../../models/categorySchema')
-const { validationResult } = require('express-validator')
+const Offer = require('../../models/offerSchema');
+const Product = require('../../models/productSchema');
+const Category = require('../../models/categorySchema');
+const { validationResult } = require('express-validator');
+const adminRoutes = require('../../constants/routeConsts/adminRoutes');
 
 //offer management page
-const getOfferManagement = async(req,res) => {
+const getOfferManagement = async (req, res) => {
     try {
-        const offers = await Offer.find().sort({createdAt: -1})
+        const offers = await Offer.find().sort({ createdAt: -1 });
 
-        return res.render('offerManagement',{
+        return res.render('offerManagement', {
             offers,
             success: req.flash('success'),
-            error: req.flash('error')
-        })
-
+            error: req.flash('error'),
+        });
     } catch (error) {
-        console.log('error loading the offer management',error)
+        console.log('error loading the offer management', error);
     }
-}
+};
 
 //get create offers
-const getCreateOffer = async(req,res) => {
+const getCreateOffer = async (req, res) => {
     try {
         res.render('createOffer', {
             validationError: req.flash('validationError'),
-        })
+        });
     } catch (error) {
-        console.log('error getin the offer create page',error)
+        console.log('error getting the offer create page', error);
     }
-}
+};
 
 //create offers
-const createOffer = async(req,res) => {
+const createOffer = async (req, res) => {
     try {
-        const errors = validationResult(req)
+        const errors = validationResult(req);
 
-        if(!errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             req.flash('validationError', errors.array());
             req.flash('data', req.body);
-            return res.redirect('/admin/create-offer');
+            return res.redirect(`${adminRoutes.base}${adminRoutes.createOffer}`);
         }
-        const {name, offer_type, discount_value, start_date, end_date, status } = req.body
+        const { name, offer_type, discount_value, start_date, end_date, status } = req.body;
 
         //create new offer
         const newOffer = new Offer({
@@ -49,48 +49,47 @@ const createOffer = async(req,res) => {
             discount_value,
             start_date,
             end_date,
-            status
-        })
+            status,
+        });
 
-        await newOffer.save()
+        await newOffer.save();
 
-        req.flash('success','offer created successfully')
-        return res.redirect('/admin/offer-management')
+        req.flash('success', 'offer created successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.offerManagement}`);
     } catch (error) {
-        console.log('error creating the offer',error)
+        console.log('error creating the offer', error);
     }
-}
+};
 
 //get edit offer
-const getEditOffer = async(req,res) => {
+const getEditOffer = async (req, res) => {
     try {
-        const offerId = req.params.id
-        const offer = await Offer.findById(offerId)
-        
-        return res.render('editOffer',{
+        const offerId = req.params.id;
+        const offer = await Offer.findById(offerId);
+
+        return res.render('editOffer', {
             offer,
             validationError: req.flash('validationError'),
-        })
+        });
     } catch (error) {
-        console.log('error loading edit offer',error)
+        console.log('error loading edit offer', error);
     }
-}
+};
 
 //edit offer
-const editOffer = async(req,res) => {
+const editOffer = async (req, res) => {
     try {
-        const offerId = req.params.id
+        const offerId = req.params.id;
 
-        const errors = validationResult(req)
+        const errors = validationResult(req);
 
-        if(!errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             req.flash('validationError', errors.array());
             req.flash('data', req.body);
-            return res.redirect(`/admin/edit-offer/${offerId}`);
+            return res.redirect(`${adminRoutes.base}/edit-offer/${offerId}`);
         }
 
-        
-        const {name, offer_type, discount_value, start_date, end_date, status} = req.body
+        const { name, offer_type, discount_value, start_date, end_date, status } = req.body;
 
         const updateOffer = await Offer.findByIdAndUpdate(offerId, {
             name,
@@ -99,131 +98,129 @@ const editOffer = async(req,res) => {
             start_date,
             end_date,
             status,
-        })
+        });
 
-        await updateOffer.save()
+        await updateOffer.save();
 
-        req.flash('success','Offer updated successfully')
-        return res.redirect('/admin/offer-management')
+        req.flash('success', 'Offer updated successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.offerManagement}`);
     } catch (error) {
-        console.log('error editing the offer',error)
+        console.log('error editing the offer', error);
     }
-}
+};
 
 //delete offer
-const deleteOffer = async(req,res) => {
+const deleteOffer = async (req, res) => {
     try {
-        const {offer_id} = req.body
+        const { offer_id } = req.body;
 
-        await Offer.findByIdAndDelete(offer_id)
+        await Offer.findByIdAndDelete(offer_id);
 
-        req.flash('success','offer deleted successfylly')
-        return res.redirect('/admin/offer-management')
+        req.flash('success', 'offer deleted successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.offerManagement}`);
     } catch (error) {
-        console.log('error deleting the offer', error)
+        console.log('error deleting the offer', error);
     }
-}
+};
 
 // get the add offer for product
-const getAddOfferProduct = async(req,res) => {
+const getAddOfferProduct = async (req, res) => {
     try {
-        const productId = req.query.id
-        const offers = await Offer.find({status: 'active', offer_type: 'product'})
-        const product = await Product.findById(productId)
-        return res.render('addOfferProduct',{
+        const productId = req.query.id;
+        const offers = await Offer.find({ status: 'active', offer_type: 'product' });
+        const product = await Product.findById(productId);
+        return res.render('addOfferProduct', {
             product,
             offers,
-            error: req.flash('error')
-        })
+            error: req.flash('error'),
+        });
     } catch (error) {
-        console.log('error loadin add offer page', error)
+        console.log('error loading add offer page', error);
     }
-}
+};
 
 //apply offer to the product
-const applyOfferProduct = async(req,res) => {
+const applyOfferProduct = async (req, res) => {
     try {
-        const {productId, offerId} = req.body;
+        const { productId, offerId } = req.body;
 
-        const product = await Product.findById(productId)
-        
-        if(product.offer_id?.toString() === offerId) {
-            req.flash('error','offer already exist for this product')
-            return res.redirect(`/admin/add-offer-product?id=${productId}`)
+        const product = await Product.findById(productId);
+
+        if (product.offer_id?.toString() === offerId) {
+            req.flash('error', 'offer already exist for this product');
+            return res.redirect(`${adminRoutes.base}${adminRoutes.addOfferProduct}?id=${productId}`);
         }
 
-        await Product.findByIdAndUpdate(productId, {$set: {offer_id: offerId}})
-        req.flash('success','Offer added successfully')
-        return res.redirect('/admin/products')
+        await Product.findByIdAndUpdate(productId, { $set: { offer_id: offerId } });
+        req.flash('success', 'Offer added successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
-        console.log('error applying offer to the product',error)
+        console.log('error applying offer to the product', error);
     }
-}
+};
 
-//reomve offer from the product
-const removeOfferProduct = async(req,res) => {
+//remove offer from the product
+const removeOfferProduct = async (req, res) => {
     try {
-        const productId = req.query.id
+        const productId = req.query.id;
 
-        await Product.findByIdAndUpdate(productId, {$unset: {offer_id: ""}})
+        await Product.findByIdAndUpdate(productId, { $unset: { offer_id: '' } });
         req.flash('success', 'Offer removed successfully');
-        return res.redirect('/admin/products');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.products}`);
     } catch (error) {
-        console.log('error removing offer from the product',error)
+        console.log('error removing offer from the product', error);
     }
-}
+};
 
 // get the add offer page for category
-const getAddOfferCategory = async(req,res) => {
+const getAddOfferCategory = async (req, res) => {
     try {
-        const categoryId = req.query.id
-        const offers = await Offer.find({offer_type: 'category', status: 'active'})
-        const category = await Category.findById(categoryId)
+        const categoryId = req.query.id;
+        const offers = await Offer.find({ offer_type: 'category', status: 'active' });
+        const category = await Category.findById(categoryId);
 
-        return res.render('addOfferCategory',{
+        return res.render('addOfferCategory', {
             category,
             offers,
-            error: req.flash('error')
-        })
+            error: req.flash('error'),
+        });
     } catch (error) {
-        console.log('error loading the addOfferCategory',error)
+        console.log('error loading the addOfferCategory', error);
     }
-}
+};
 
 //apply offer to the category
-const applyOfferCategory = async(req,res) => {
+const applyOfferCategory = async (req, res) => {
     try {
-        const {categoryId, offerId} = req.body
-        
-        const category = await Category.findById(categoryId)
+        const { categoryId, offerId } = req.body;
 
-        if(category.offer_id?.toString() === offerId) {
-            req.flash('error','offer already exist for this category')
-            return res.redirect(`/admin/add-offer-category?id=${categoryId}`)
+        const category = await Category.findById(categoryId);
+
+        if (category.offer_id?.toString() === offerId) {
+            req.flash('error', 'offer already exist for this category');
+            return res.redirect(`${adminRoutes.base}${adminRoutes.addOfferCategory}?id=${categoryId}`);
         }
 
-        await Category.findByIdAndUpdate(categoryId, {$set: {offer_id: offerId}})
-        req.flash('success',    'Offer added successfully')
-        return res.redirect('/admin/categories')
+        await Category.findByIdAndUpdate(categoryId, { $set: { offer_id: offerId } });
+        req.flash('success', 'Offer added successfully');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.categories}`);
     } catch (error) {
-        console.log('error applying offer to the category',error)
+        console.log('error applying offer to the category', error);
     }
-}
+};
 
 //remove offer for category
-const removeOfferCategory = async(req,res) => {
+const removeOfferCategory = async (req, res) => {
     try {
-        const categoryId = req.query.id
-        
-        await Category.findByIdAndUpdate(categoryId, { $unset: { offer_id: "" } });
+        const categoryId = req.query.id;
+
+        await Category.findByIdAndUpdate(categoryId, { $unset: { offer_id: '' } });
         req.flash('success', 'Offer removed successfully');
-        return res.redirect('/admin/categories');
+        return res.redirect(`${adminRoutes.base}${adminRoutes.categories}`);
     } catch (error) {
-        console.log('error removing the category offer' ,error)
+        console.log('error removing the category offer', error);
     }
-}
-
-
+};
 
 module.exports = {
     getAddOfferProduct,
@@ -238,4 +235,4 @@ module.exports = {
     applyOfferCategory,
     removeOfferCategory,
     removeOfferProduct,
-}
+};
