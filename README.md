@@ -1,4 +1,3 @@
-```md
 # 📚 Eternal Chapters – E-Commerce Bookstore Web Application
 
 **Eternal Chapters** is a full-stack e-commerce bookstore web application that allows users to explore, purchase, and manage books seamlessly. The application provides a smooth shopping experience with secure authentication, cart management, coupon support, online payments, and an admin dashboard for efficient store management.
@@ -52,26 +51,6 @@
 
 ### Deployment & Cloud
 - AWS EC2
-
----
-
-## 📂 Project Structure
-
-```
-
-Eternal_Chapters/
-│
-├── config/            # Configuration files
-├── controllers/       # Application logic
-├── models/            # MongoDB schemas
-├── routes/            # Express routes
-├── views/             # EJS templates
-├── public/            # Static files (CSS, JS, Images)
-├── middleware/        # Custom middleware
-├── app.js             # Application entry point
-└── package.json
-
-````
 
 ---
 
